@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>BasketScore Perfect Fit Fixed</title>
+<title>BasketScore Full Scroll Settings</title>
 <style>
     /* --- CSS Reset & Base --- */
     * { box-sizing: border-box; }
@@ -140,39 +140,45 @@
     .to-row { display: flex; gap: 2px; height: 36px; }
     .to-btn { flex: 1; font-size: 0.7rem; padding: 0; background: #fff; border: 1px solid #ccc; height: 100%; }
 
-    /* --- SETTINGS VIEW --- */
+    /* --- SETTINGS VIEW (Full Scroll) --- */
     #settings-view { 
         display: none; background: #f3f4f6; 
         height: 100%; width: 100%; 
-        padding: 10px; overflow: hidden; 
+        padding: 10px; 
+        overflow-y: auto; /* Allow vertical scroll for the whole view */
     }
     .settings-layout {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        grid-template-rows: 1fr; 
-        gap: 10px;
-        height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+        padding-bottom: 40px; /* Space at bottom */
     }
-    @media (max-width: 800px) {
-        .settings-layout { grid-template-columns: 1fr; grid-template-rows: auto auto auto; overflow-y: auto; }
-    }
+    
     .set-panel {
-        background: white; padding: 10px; border-radius: 8px; 
+        background: white; padding: 15px; border-radius: 8px; 
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         display: flex; flex-direction: column;
-        overflow: hidden; 
+        /* No internal overflow hidden */
     }
-    .set-panel h3 { margin: 0 0 8px 0; font-size: 0.9rem; border-bottom: 2px solid #eee; padding-bottom: 4px; flex-shrink: 0; }
-    .scroll-content { flex: 1; overflow-y: auto; }
-    .form-row { display: flex; gap: 6px; margin-bottom: 6px; }
+    .set-panel h3 { margin: 0 0 15px 0; font-size: 1rem; border-bottom: 2px solid #eee; padding-bottom: 8px; }
+    
+    .scroll-content { 
+        /* No fixed height or internal scroll */
+    }
+
+    .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
     .form-grp { flex: 1; }
-    .form-lbl { font-size: 0.65rem; font-weight: bold; display: block; margin-bottom: 1px; color:#555; }
-    .form-inp { width: 100%; padding: 4px; font-size: 0.85rem; border: 1px solid #ccc; border-radius: 4px; }
-    .tbl-container { flex: 1; overflow-y: auto; border: 1px solid #eee; margin-top: 5px; }
-    .tbl-set { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
-    .tbl-set th { background: #eee; padding: 4px; text-align: center; font-weight: bold; position: sticky; top: 0; z-index: 10; }
-    .tbl-set td { border-bottom: 1px solid #eee; padding: 2px; text-align: center; }
-    .inp-cell { width: 100%; border: 1px solid transparent; padding: 2px; text-align: center; background:transparent; font-size: 0.8rem; }
+    .form-lbl { font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 2px; color:#555; }
+    .form-inp { width: 100%; padding: 8px; font-size: 0.95rem; border: 1px solid #ccc; border-radius: 4px; }
+    
+    .tbl-container { width: 100%; border: 1px solid #eee; margin-top: 10px; }
+    .tbl-set { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .tbl-set th { background: #eee; padding: 8px; text-align: center; font-weight: bold; }
+    .tbl-set td { border-bottom: 1px solid #eee; padding: 4px; text-align: center; }
+    .inp-cell { width: 100%; border: 1px solid transparent; padding: 6px; text-align: center; background:transparent; font-size: 0.9rem; }
     .inp-cell:focus { border-color: #2563eb; background: #eff6ff; }
 
     /* --- HISTORY VIEW --- */
@@ -193,7 +199,7 @@
         flex-shrink: 0;
     }
     
-    /* --- SHEET VIEW (Fix for Overlap) --- */
+    /* --- SHEET VIEW (OBA Style) --- */
     #sheet-view { 
         display: none; 
         width: 100%; height: 100%;
@@ -203,12 +209,10 @@
         flex-direction: column;
     }
     
-    /* The Sheet Wrapper */
     .sheet-wrapper {
         width: 100%; height: 100%;
         display: flex; flex-direction: column;
         padding: 5px; 
-        /* Use vmin to keep aspect ratio sane on extreme screens, or just use smaller vh */
         font-size: 1.2vh; 
         background: white;
     }
@@ -223,18 +227,21 @@
     .bb { border-bottom: 1px solid #000; }
     .bl { border-left: 1px solid #000; }
     .br { border-right: 1px solid #000; }
+    .b-double { border-bottom: 3px double #000; }
     
     .txt-c { text-align: center; }
+    .txt-r { text-align: right; }
+    .txt-l { text-align: left; }
     .txt-b { font-weight: bold; }
     .bg-g { background: #eee; }
     .text-red { color: #dc2626 !important; }
     
     .center-v { display: flex; align-items: center; justify-content: center; }
     
-    /* Sheet Header Grid Layout to avoid Absolute Positioning overlap */
+    /* Sheet Header Grid */
     .sheet-header-grid {
         display: grid;
-        grid-template-columns: 35% 30% 35%;
+        grid-template-columns: 20% 50% 30%;
         grid-template-rows: auto auto auto;
         gap: 2px;
         width: 100%;
@@ -243,11 +250,10 @@
         padding-bottom: 5px;
         flex-shrink: 0;
     }
-    .sh-title { grid-column: 1 / 4; text-align: center; font-weight: bold; font-size: 1.5em; letter-spacing: 2px; margin-bottom: 5px; }
-    .sh-left { grid-column: 1; }
-    .sh-center { grid-column: 2; text-align: center; }
-    .sh-right { grid-column: 3; }
-    .sh-bottom { grid-column: 1 / 4; display: flex; justify-content: space-between; margin-top: 5px; }
+    .sh-logo { grid-column: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: bold; border-right: 1px solid #ccc; padding-right:5px; }
+    .sh-main { grid-column: 2; padding: 0 5px; }
+    .sh-right { grid-column: 3; padding-left: 5px; }
+    .sh-bottom { grid-column: 1 / 4; display: flex; justify-content: space-between; margin-top: 5px; border-top: 1px solid #000; padding-top:2px; }
 
     /* Visual Symbols */
     .slash { background: linear-gradient(to top right, transparent calc(50% - 0.5px), black calc(50% - 0.5px), black calc(50% + 0.5px), transparent calc(50% + 0.5px)); }
@@ -275,7 +281,7 @@
             font-size: 10px !important;
             display: flex !important;
         }
-        .sheet-header-grid { display: grid !important; } /* Force grid print */
+        .sheet-header-grid { display: grid !important; }
     }
 </style>
 </head>
@@ -367,7 +373,7 @@
             </div>
         </div>
 
-        <!-- SETTINGS VIEW (Multi-Col) -->
+        <!-- SETTINGS VIEW (Full Vertical Scroll) -->
         <div id="settings-view">
             <div class="settings-layout">
                 <!-- Panel 1: Info -->
@@ -684,13 +690,9 @@ function renSheet() {
 
     const getP = (p) => `
         <div class="flex-row bb center-v flex-1" style="min-height:0;">
-            <div class="br txt-c" style="width:2.5em; font-size:0.8em;"></div>
+            <div class="br txt-c" style="width:2.5em; font-weight:bold;">${p.no}</div>
             <div class="br txt-l" style="flex:1; overflow:hidden; white-space:nowrap; padding-left:4px; font-size:0.9em;">
                 ${p.name} ${p.capt?'(CAP)':''}
-            </div>
-            <div class="br txt-c" style="width:2.5em; font-weight:bold;">${p.no}</div>
-            <div class="br txt-c" style="width:1.8em; font-size:0.9em; color:#dc2626;">
-                ${p.start ? '<span class="starter-mark">✕</span>' : (p.played ? '✕' : '')}
             </div>
             ${[0,1,2,3,4].map(i=>`<div class="br txt-c" style="width:1.6em; font-size:0.8em;">${p.fouls[i]||''}</div>`).join('')}
         </div>`;
@@ -700,29 +702,30 @@ function renSheet() {
             <div class="flex-row bb" style="align-items:end; margin-bottom:1px; flex-shrink:0;">
                 <div style="font-size:0.9em; width:4em;">${ttl}</div>
                 <div style="font-weight:bold; font-size:1.2em; margin-left:5px; text-transform:uppercase; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${st[tk].name}</div>
+                <div style="width:5em; text-align:right; font-size:0.8em; margin-right:4px;">Time-outs</div>
             </div>
             <div class="flex-row" style="font-size:0.8em; margin-bottom:2px; justify-content:space-between; flex-shrink:0;">
-                <div style="display:flex; align-items:center;">
-                    <strong style="width:5em;">Time-outs</strong>
+                 <div style="display:flex; align-items:center;">
+                    <div style="display:flex; flex-direction:column; margin-right:5px;">
+                        <span style="font-size:0.7em;">Team fouls</span>
+                    </div>
+                    <div style="display:flex; gap:1px;">
+                         ${[1,2].map(q=>`<div class="bd txt-c ${(q===1||q===3)?'text-red':''}" style="width:1.5em; height:1.2em;">${st[tk].fouls[q]>0?(st[tk].fouls[q]>4?5:st[tk].fouls[q]):''}</div>`).join('')}
+                         <span style="margin:0 2px;"></span>
+                         ${[3,4].map(q=>`<div class="bd txt-c ${(q===1||q===3)?'text-red':''}" style="width:1.5em; height:1.2em;">${st[tk].fouls[q]>0?(st[tk].fouls[q]>4?5:st[tk].fouls[q]):''}</div>`).join('')}
+                    </div>
+                 </div>
+                 <div style="display:flex; align-items:center;">
                     ${[0,1].map(i=> `<div class="bd txt-c" style="width:1.5em; height:1.2em; margin-right:1px;">${st[tk].timeouts[1][i]||''}</div>`).join('')}
                     <span style="margin:0 4px;"></span>
                     ${[0,1,2].map(i=>`<div class="bd txt-c" style="width:1.5em; height:1.2em; margin-right:1px;">${st[tk].timeouts[2][i]||''}</div>`).join('')}
-                </div>
-                <div style="display:flex; align-items:center;">
-                    <strong style="margin-right:2px;">Team fouls</strong>
-                    ${[1,2,3,4].map(q=>`<div class="bd txt-c ${(q===1||q===3)?'text-red':''}" style="width:1.5em; height:1.2em; margin-left:1px;">${st[tk].fouls[q]>0?(st[tk].fouls[q]>4?5:st[tk].fouls[q]):''}</div>`).join('')}
-                </div>
+                 </div>
             </div>
             <div class="bd flex-col flex-1" style="min-height:0;">
                 <div class="flex-row bb bg-g center-v" style="font-size:0.6em; font-weight:bold; height:1.6em; flex-shrink:0; text-align:center;">
-                    <div class="br" style="width:2.5em;">Licence<br>No.</div>
-                    <div class="br" style="flex:1;">Players</div>
                     <div class="br" style="width:2.5em;">No.</div>
-                    <div class="br" style="width:1.8em;">Player<br>in</div>
+                    <div class="br" style="flex:1;">Players</div>
                     <div class="" style="flex:0 0 8em;">Fouls</div>
-                </div>
-                <div class="flex-row bb center-v" style="height:1em; font-size:0.6em; flex-shrink:0; background:#eee;">
-                     <div style="flex:1;"></div><div class="br" style="width:1.6em;">1</div><div class="br" style="width:1.6em;">2</div><div class="br" style="width:1.6em;">3</div><div class="br" style="width:1.6em;">4</div><div style="width:1.6em;">5</div>
                 </div>
                 <div class="flex-col flex-1" style="min-height:0;">
                     ${st[tk].players.map(p=>getP(p)).join('')}
@@ -772,36 +775,39 @@ function renSheet() {
 
     document.getElementById('sheet-view').innerHTML = `
         <div class="sheet-wrapper">
-            <!-- HEADER (Using Grid Layout to prevent overlap) -->
+            <!-- HEADER (OBA Style) -->
             <div class="sheet-header-grid">
-                <div class="sh-title">OFFICIAL SCORESHEET</div>
+                <div class="sh-logo">
+                    <div style="font-size:2em; font-weight:900;">OBA</div>
+                    <div style="font-size:0.6em; text-align:center;">Oita Basketball<br>Association</div>
+                </div>
                 
-                <div class="sh-left">
-                    <div class="flex-row"><span style="width:4em;">Team A</span> <span class="bb" style="flex:1; font-weight:bold;">${st.teamA.name}</span></div>
-                    <div class="flex-row" style="margin-top:2px;"><span style="width:5em;">Competition</span> <span class="bb" style="flex:1;">${st.meta.competition}</span></div>
-                    <div class="flex-row" style="margin-top:2px;"><span style="width:4.5em;">Game No.</span> <span class="bb" style="width:4em;">${st.meta.no}</span></div>
+                <div class="sh-main" style="display:flex; flex-direction:column; justify-content:center;">
+                    <div class="flex-row" style="margin-bottom:2px;"><span style="width:4em;">Competition</span> <span class="bb" style="flex:1;">${st.meta.competition}</span></div>
+                    <div class="flex-row"><span style="width:4em;">Game No.</span> <span class="bb" style="flex:1;">${st.meta.no}</span></div>
+                    <div class="txt-c txt-b" style="font-size:1.4em; letter-spacing:1px; margin-top:2px;">OFFICIAL SCORESHEET</div>
                 </div>
 
-                <div class="sh-center">
-                   <div style="font-size:0.9em; margin-bottom:2px;">
-                       <span class="bb" style="padding:0 4px;">${st.meta.date}</span> <span class="bb" style="padding:0 4px;">${st.meta.time}</span>
-                   </div>
-                   <div style="font-size:0.9em;">
-                       <span class="bb" style="padding:0 8px;">${st.meta.place}</span>
-                   </div>
-                </div>
-
-                <div class="sh-right">
-                    <div class="flex-row"><span style="width:4em;">Team B</span> <span class="bb" style="flex:1; font-weight:bold;">${st.teamB.name}</span></div>
-                    <div class="flex-row" style="margin-top:2px;"><span style="width:5.5em;">Crew Chief</span> <span class="bb" style="flex:1;">${st.meta.crewChief}</span></div>
-                </div>
-
-                <div class="sh-bottom">
-                   <div class="flex-row" style="width:45%;"><span style="width:5em;">Umpire 1</span> <span class="bb" style="flex:1;">${st.meta.umpire1}</span></div>
-                   <div class="flex-row" style="width:45%;"><span style="width:5em;">Umpire 2</span> <span class="bb" style="flex:1;">${st.meta.umpire2}</span></div>
+                <div class="sh-right" style="display:flex; flex-direction:column; justify-content:center; gap:2px;">
+                    <div class="flex-row"><span style="width:2.5em;">Date</span> <span class="bb" style="flex:1;">${st.meta.date}</span></div>
+                    <div class="flex-row"><span style="width:2.5em;">Time</span> <span class="bb" style="flex:1;">${st.meta.time}</span></div>
+                    <div class="flex-row"><span style="width:2.5em;">Place</span> <span class="bb" style="flex:1;">${st.meta.place}</span></div>
+                    <div class="flex-row"><span style="width:3.5em; font-size:0.8em;">Crew Chief</span> <span class="bb" style="flex:1;">${st.meta.crewChief}</span></div>
+                    <div class="flex-row"><span style="width:3.5em; font-size:0.8em;">Umpire 1</span> <span class="bb" style="flex:1;">${st.meta.umpire1}</span></div>
+                    <div class="flex-row"><span style="width:3.5em; font-size:0.8em;">Umpire 2</span> <span class="bb" style="flex:1;">${st.meta.umpire2}</span></div>
                 </div>
             </div>
             
+            <div class="flex-row" style="margin-bottom:2px; font-weight:bold;">
+                <div style="width:46%; display:flex; justify-content:space-between;">
+                    <span>Team A: ${st.teamA.name}</span>
+                </div>
+                <div style="width:8%;"></div>
+                <div style="width:46%; display:flex; justify-content:space-between;">
+                    <span>Team B: ${st.teamB.name}</span>
+                </div>
+            </div>
+
             <!-- BODY -->
             <div class="flex-row flex-1" style="gap:0.5em; overflow:hidden; min-height:0;">
                 
@@ -810,18 +816,32 @@ function renSheet() {
                     ${getTm('teamA','Team A')}
                     ${getTm('teamB','Team B')}
                     
-                    <!-- SCORE SUMMARY -->
+                    <!-- SCORE SUMMARY (OBA Style) -->
                     <div class="bd flex-col" style="margin-top:auto; font-size:0.85em; border-width:2px; flex-shrink:0;">
-                        <div class="flex-row bb bg-g txt-b txt-c center-v" style="height:1.5em;"><div style="flex:1.5; text-align:left; padding-left:4px;">Scores</div><div class="br" style="flex:1;">Quarter 1</div><div class="br" style="flex:1;">Quarter 2</div><div class="br" style="flex:1;">Quarter 3</div><div class="br" style="flex:1;">Quarter 4</div><div style="flex:1;">Overtime</div></div>
-                        <div class="flex-row bb txt-c center-v" style="height:1.5em;"><div style="flex:1.5; text-align:left; padding-left:4px;">A</div><div class="br" style="flex:1;">${sumA[1]}</div><div class="br" style="flex:1;">${sumA[2]}</div><div class="br" style="flex:1;">${sumA[3]}</div><div class="br" style="flex:1;">${sumA[4]}</div><div style="flex:1;">0</div></div>
-                        <div class="flex-row bb txt-c center-v" style="height:1.5em;"><div style="flex:1.5; text-align:left; padding-left:4px;">B</div><div class="br" style="flex:1;">${sumB[1]}</div><div class="br" style="flex:1;">${sumB[2]}</div><div class="br" style="flex:1;">${sumB[3]}</div><div class="br" style="flex:1;">${sumB[4]}</div><div style="flex:1;">0</div></div>
+                        <div class="flex-row bb txt-c center-v" style="height:1.5em;"><div style="width:30%; text-align:left; padding-left:4px;">Scores</div><div class="br" style="flex:1;">Quarter 1</div><div class="br" style="flex:1;">Quarter 2</div><div class="br" style="flex:1;">Quarter 3</div><div class="br" style="flex:1;">Quarter 4</div><div style="flex:1;">Overtime</div></div>
+                        <div class="flex-row bb txt-c center-v" style="height:1.5em;"><div style="width:30%; text-align:left; padding-left:4px;">A</div><div class="br" style="flex:1;">${sumA[1]}</div><div class="br" style="flex:1;">${sumA[2]}</div><div class="br" style="flex:1;">${sumA[3]}</div><div class="br" style="flex:1;">${sumA[4]}</div><div style="flex:1;">0</div></div>
+                        <div class="flex-row bb txt-c center-v" style="height:1.5em;"><div style="width:30%; text-align:left; padding-left:4px;">B</div><div class="br" style="flex:1;">${sumB[1]}</div><div class="br" style="flex:1;">${sumB[2]}</div><div class="br" style="flex:1;">${sumB[3]}</div><div class="br" style="flex:1;">${sumB[4]}</div><div style="flex:1;">0</div></div>
                         
                         <div class="flex-row bb" style="height:1.8em; align-items:center; padding:0 4px;">
-                            <div style="width:50%; display:flex;"><strong style="width:6em;">Final Score</strong> Team A <span class="bb txt-c" style="width:3em;">${cA}</span> Team B <span class="bb txt-c" style="width:3em;">${cB}</span></div>
-                            <div style="width:50%; display:flex;"><strong style="width:8em;">Winning Team</strong> <span class="bb" style="flex:1;">${cA>cB?st.teamA.name:(cB>cA?st.teamB.name:'')}</span></div>
+                            <div style="width:100%; display:flex;"><strong style="width:6em;">Final Score</strong> Team A <span class="bb txt-c" style="width:3em;">${cA}</span> Team B <span class="bb txt-c" style="width:3em;">${cB}</span></div>
+                        </div>
+                        <div class="flex-row bb" style="height:1.8em; align-items:center; padding:0 4px;">
+                            <div style="width:100%; display:flex;"><strong style="width:10em;">Name of Winning Team</strong> <span class="bb" style="flex:1;">${cA>cB?st.teamA.name:(cB>cA?st.teamB.name:'')}</span></div>
                         </div>
                          <div class="flex-row" style="height:1.8em; align-items:center; padding:0 4px;">
-                             <strong style="width:8em;">Game Ended at</strong> <span class="bb" style="width:6em; text-align:center;">${st.meta.gameEndedAt}</span>
+                             <strong style="width:12em;">Game ended at (hh:mm)</strong> <span class="bb" style="width:6em; text-align:center;">${st.meta.gameEndedAt}</span>
+                        </div>
+                    </div>
+
+                     <!-- FOOTER SIGNATURES (OBA Style) -->
+                    <div class="bd flex-row" style="margin-top:2px; padding:2px; font-size:0.8em; flex-shrink:0; align-items:center;">
+                        <div style="flex:1; display:flex; flex-direction:column; gap:1px;">
+                            <div class="flex-row"><span style="width:6em;">Scorer</span> <span class="bb" style="flex:1;">${st.meta.scorer}</span></div>
+                            <div class="flex-row"><span style="width:6em;">A. Scorer</span> <span class="bb" style="flex:1;">${st.meta.assistantScorer}</span></div>
+                        </div>
+                        <div style="flex:1; display:flex; flex-direction:column; gap:1px; margin-left:5px;">
+                            <div class="flex-row"><span style="width:6em;">Timer</span> <span class="bb" style="flex:1;">${st.meta.timer}</span></div>
+                            <div class="flex-row"><span style="width:6em;">S.C.Operator</span> <span class="bb" style="flex:1;">${st.meta.shotClock}</span></div>
                         </div>
                     </div>
                 </div>
@@ -835,21 +855,6 @@ function renSheet() {
                 </div>
             </div>
             
-            <!-- FOOTER SIGNATURES -->
-            <div class="bd flex-row" style="margin-top:0.3em; padding:2px; font-size:0.8em; flex-shrink:0; align-items:center;">
-                <div style="flex:1; display:flex; flex-direction:column; gap:2px;">
-                    <div class="flex-row"><span style="width:5em;">Scorer</span> <span class="bb" style="flex:1;">${st.meta.scorer}</span></div>
-                    <div class="flex-row"><span style="width:5em;">A. Scorer</span> <span class="bb" style="flex:1;">${st.meta.assistantScorer}</span></div>
-                </div>
-                <div style="flex:1; display:flex; flex-direction:column; gap:2px; margin-left:10px;">
-                    <div class="flex-row"><span style="width:5em;">Timer</span> <span class="bb" style="flex:1;">${st.meta.timer}</span></div>
-                    <div class="flex-row"><span style="width:5em;">Shot Clock</span> <span class="bb" style="flex:1;">${st.meta.shotClock}</span></div>
-                </div>
-                <div style="flex:1.2; display:flex; flex-direction:column; gap:2px; margin-left:10px;">
-                     <div class="flex-row"><span style="width:6em;">Crew Chief</span> <span class="bb" style="flex:1;"></span></div>
-                     <div class="flex-row"><span style="width:6em;">Umpire 1</span> <span class="bb" style="flex:1;"></span> <span style="width:5em; text-align:right; margin-right:4px;">Umpire 2</span> <span class="bb" style="flex:1;"></span></div>
-                </div>
-            </div>
         </div>
     `;
 }
