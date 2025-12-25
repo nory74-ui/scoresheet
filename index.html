@@ -3,870 +3,950 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Basketball Score Sheet (Offline)</title>
+<title>Official Basketball Score Sheet (Offline)</title>
 <style>
-    /* --- CSS Reset & Base Styles --- */
+    /* --- CSS Reset & Base --- */
     * { box-sizing: border-box; }
-    body { margin: 0; padding: 0; font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif; background-color: #e5e7eb; color: #111827; }
-    button { cursor: pointer; border: none; font-family: inherit; }
-    input, select { font-family: inherit; }
-    
-    /* --- Utility Classes (Mimicking Tailwind) --- */
-    .hidden { display: none; }
-    .block { display: block; }
-    .flex { display: flex; }
-    .flex-col { flex-direction: column; }
-    .flex-row { flex-direction: row; }
-    .items-center { align-items: center; }
-    .justify-center { justify-content: center; }
-    .justify-between { justify-content: space-between; }
-    .justify-end { justify-content: flex-end; }
-    .justify-start { justify-content: flex-start; }
-    .gap-1 { gap: 0.25rem; }
-    .gap-2 { gap: 0.5rem; }
-    .gap-4 { gap: 1rem; }
-    .gap-x-4 { column-gap: 1rem; }
-    .gap-y-1 { row-gap: 0.25rem; }
-    
-    .w-full { width: 100%; }
-    .h-full { height: 100%; }
-    .h-screen { height: 100vh; }
-    .w-1_2 { width: 50%; }
-    .w-1_3 { width: 33.333%; }
-    .w-1_4 { width: 25%; }
-    .w-2_4 { width: 50%; }
-    .w-3_4 { width: 75%; }
-    .w-16 { width: 4rem; }
-    .w-20 { width: 5rem; }
-    .w-24 { width: 6rem; }
-    .w-32 { width: 8rem; }
-    .min-w-50 { min-width: 50px; }
-    
-    .p-1 { padding: 0.25rem; }
-    .p-2 { padding: 0.5rem; }
-    .p-3 { padding: 0.75rem; }
-    .p-4 { padding: 1rem; }
-    .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
-    .px-4 { padding-left: 1rem; padding-right: 1rem; }
-    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
-    .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-    .pb-0_5 { padding-bottom: 0.125rem; }
-    .pl-1 { padding-left: 0.25rem; }
-    .pr-1 { padding-right: 0.25rem; }
-    
-    .m-0 { margin: 0; }
-    .mb-1 { margin-bottom: 0.25rem; }
-    .mb-2 { margin-bottom: 0.5rem; }
-    .mb-6 { margin-bottom: 1.5rem; }
-    .mr-1 { margin-right: 0.25rem; }
-    .mr-2 { margin-right: 0.5rem; }
-    .mt-1 { margin-top: 0.25rem; }
-    .mt-2 { margin-top: 0.5rem; }
-    
-    .text-center { text-align: center; }
-    .text-left { text-align: left; }
-    .text-right { text-align: right; }
-    
-    .text-xs { font-size: 0.75rem; line-height: 1rem; }
-    .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
-    .text-base { font-size: 1rem; line-height: 1.5rem; }
-    .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
-    .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
-    .text-2xl { font-size: 1.5rem; line-height: 2rem; }
-    .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
-    
-    .font-bold { font-weight: 700; }
-    .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-    .font-serif { font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif; }
-    
-    .bg-white { background-color: white; }
-    .bg-gray-50 { background-color: #f9fafb; }
-    .bg-gray-100 { background-color: #f3f4f6; }
-    .bg-gray-200 { background-color: #e5e7eb; }
-    .bg-gray-700 { background-color: #374151; }
-    .bg-gray-800 { background-color: #1f2937; }
-    .bg-gray-900 { background-color: #111827; }
-    .bg-blue-600 { background-color: #2563eb; }
-    .bg-blue-800 { background-color: #1e40af; }
-    .bg-blue-900 { background-color: #1e3a8a; }
-    .bg-green-600 { background-color: #16a34a; }
-    .bg-yellow-400 { background-color: #facc15; }
-    .bg-yellow-500 { background-color: #eab308; }
-    .bg-red-500 { background-color: #ef4444; }
-    .bg-orange-100 { background-color: #ffedd5; }
-    
-    .text-white { color: white; }
-    .text-black { color: black; }
-    .text-gray-300 { color: #d1d5db; }
-    .text-gray-400 { color: #9ca3af; }
-    .text-gray-500 { color: #6b7280; }
-    .text-gray-600 { color: #4b5563; }
-    .text-blue-200 { color: #bfdbfe; }
-    .text-blue-900 { color: #1e3a8a; }
-    .text-red-500 { color: #ef4444; }
-    .text-red-600 { color: #dc2626; }
-    .text-yellow-400 { color: #facc15; }
-    .text-orange-900 { color: #7c2d12; }
-    
-    .border { border: 1px solid #e5e7eb; }
-    .border-b { border-bottom-width: 1px; }
-    .border-t { border-top-width: 1px; }
-    .border-l { border-left-width: 1px; }
-    .border-r { border-right-width: 1px; }
-    .border-black { border-color: black; }
-    .border-gray-300 { border-color: #d1d5db; }
-    .border-gray-400 { border-color: #9ca3af; }
-    
-    .rounded { border-radius: 0.25rem; }
-    .rounded-lg { border-radius: 0.5rem; }
-    .rounded-full { border-radius: 9999px; }
-    .shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
-    
-    .overflow-hidden { overflow: hidden; }
-    .overflow-y-auto { overflow-y: auto; }
-    .overflow-auto { overflow: auto; }
-    
-    /* Grid System */
-    .grid { display: grid; }
-    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .grid-cols-11 { grid-template-columns: repeat(11, minmax(0, 1fr)); }
-    .col-span-2 { grid-column: span 2 / span 2; }
-    .col-span-3 { grid-column: span 3 / span 3; }
-    
-    /* Input Styles */
-    input.std-input { width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.25rem; }
-    
-    /* Sheet Specifics */
-    .sheet-container {
-        width: 210mm;
-        min-height: 297mm;
-        background: white;
-        margin: 0 auto;
-        padding: 10mm;
-        position: relative;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        font-family: "Times New Roman", Times, serif;
+    body { 
+        margin: 0; padding: 0; 
+        font-family: "Times New Roman", "YuMincho", "Hiragino Mincho ProN", "Yu Mincho", "MS PMincho", serif;
+        background-color: #525659; /* Reader background color */
+        color: #000;
+        -webkit-font-smoothing: antialiased;
     }
     
-    .running-score-col {
+    /* --- UI Specific Fonts (Sans-Serif) --- */
+    .ui-font { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+    /* --- Screen Layout --- */
+    #app { display: flex; flex-direction: column; height: 100vh; }
+    
+    /* --- Navbar --- */
+    nav { 
+        background-color: #1a1a1a; color: white; padding: 0.5rem 1rem; 
+        display: flex; justify-content: space-between; align-items: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        z-index: 100;
+    }
+    .btn { 
+        padding: 0.5rem 1rem; border-radius: 4px; border: none; cursor: pointer; 
+        font-size: 0.875rem; font-weight: bold; transition: background 0.2s;
+        display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .btn-primary { background-color: #2563eb; color: white; }
+    .btn-primary:hover { background-color: #1d4ed8; }
+    .btn-secondary { background-color: #4b5563; color: white; }
+    .btn-secondary:hover { background-color: #374151; }
+    .btn-success { background-color: #16a34a; color: white; }
+    .btn-warning { background-color: #ca8a04; color: white; }
+    .btn-danger { background-color: #dc2626; color: white; }
+    
+    .nav-group { display: flex; gap: 0.5rem; background: #333; padding: 0.25rem; border-radius: 4px; }
+    .nav-btn { background: transparent; color: #9ca3af; }
+    .nav-btn.active { background: white; color: #111827; shadow: 0 1px 2px rgba(0,0,0,0.1); }
+
+    /* --- Input View --- */
+    .input-container { display: flex; flex: 1; overflow: hidden; background: #f3f4f6; }
+    .scoreboard { background: #111827; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
+    .team-card { flex: 1; padding: 0.5rem; border-radius: 8px; text-align: center; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+    .team-card.active { background: #1f2937; border-color: #3b82f6; }
+    .score-display { font-size: 3rem; font-family: monospace; font-weight: bold; color: #facc15; line-height: 1; }
+    .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; padding: 0.5rem; overflow-y: auto; }
+    .player-btn { 
+        background: white; border: 1px solid #e5e7eb; padding: 0.75rem; border-radius: 8px; 
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        transition: all 0.1s; position: relative; min-height: 80px;
+    }
+    .player-btn.active { background: #2563eb; color: white; border-color: #2563eb; transform: scale(1.05); z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .player-btn.fouled-out { opacity: 0.5; background: #fee2e2; }
+    .foul-dots { display: flex; gap: 2px; margin-top: 4px; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: #e5e7eb; }
+    .dot.active { background: #eab308; }
+    .dot.active-selected { background: #fde047; }
+
+    .controls { width: 300px; background: white; border-left: 1px solid #e5e7eb; padding: 1rem; display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; }
+    .action-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; }
+    .action-btn { padding: 1rem 0; border-radius: 8px; font-weight: bold; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .big-num { font-size: 1.5rem; line-height: 1; }
+    .sub-text { font-size: 0.75rem; font-weight: normal; }
+
+    /* --- Settings View --- */
+    .settings-container { max-width: 900px; margin: 2rem auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-y: auto; height: calc(100vh - 100px); }
+    .form-group { margin-bottom: 1rem; }
+    .form-label { display: block; font-size: 0.875rem; font-weight: bold; color: #374151; margin-bottom: 0.25rem; }
+    .form-input { width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px; font-size: 1rem; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .table-input { width: 100%; border: none; background: transparent; text-align: center; padding: 4px; }
+    .table-input:focus { background: #eff6ff; outline: 1px solid #3b82f6; }
+
+    /* --- SHEET CSS (Official Layout) --- */
+    .sheet-wrapper {
+        width: 100%;
+        height: calc(100vh - 60px);
+        overflow: auto;
+        display: flex;
+        justify-content: center;
+        background: #525659;
+        padding: 20px;
+    }
+
+    .sheet {
+        width: 210mm;
+        height: 297mm;
+        background: white;
+        padding: 10mm;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        position: relative;
+        box-sizing: border-box;
+        font-size: 10px; /* Base font size for sheet */
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .sheet-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        border-bottom: 2px solid black;
+        padding-bottom: 5px;
+        margin-bottom: 5px;
+    }
+    
+    .sheet-title {
+        text-align: center;
+        font-weight: bold;
+        font-size: 16px;
+        letter-spacing: 2px;
+        position: absolute;
+        width: 100%;
+        top: 15mm;
+        left: 0;
+        pointer-events: none; /* Let clicks pass through */
+    }
+
+    .header-info-box {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        width: 30%;
+    }
+
+    .info-row { display: flex; align-items: flex-end; gap: 4px; white-space: nowrap; }
+    .info-label { font-weight: bold; font-size: 9px; }
+    .info-val { border-bottom: 1px solid #000; flex: 1; text-align: center; height: 14px; }
+    
+    .referee-box {
+        border: 1px solid black;
+        display: flex;
+        justify-content: space-between;
+        padding: 2px 5px;
+        margin-bottom: 5px;
+        font-size: 9px;
+    }
+
+    /* Main Content Area */
+    .sheet-body {
+        display: flex;
+        flex: 1;
+        gap: 4mm;
+    }
+
+    /* Left Column (Teams) */
+    .col-left {
+        width: 50%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Team Section */
+    .team-section { margin-bottom: 5px; }
+    .team-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        border-bottom: 1px solid black;
+        margin-bottom: 2px;
+    }
+    .team-name { font-size: 14px; font-weight: bold; text-transform: uppercase; }
+    
+    .team-meta {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2px;
+        font-size: 9px;
+    }
+    .timeout-grid { display: flex; gap: 2px; }
+    .timeout-box { width: 16px; height: 14px; border: 1px solid black; text-align: center; line-height: 12px; font-weight: bold; }
+    
+    .foul-grid { display: flex; gap: 2px; align-items: center; }
+    .foul-box { width: 16px; height: 14px; border: 1px solid black; text-align: center; line-height: 12px; }
+
+    /* Player Table */
+    .player-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 9px;
+        table-layout: fixed;
+    }
+    .player-table th, .player-table td {
+        border: 1px solid #000; /* Standard thin border */
+        padding: 1px 2px;
+        height: 15px; /* Fixed height for rows */
+    }
+    .player-table th { background: #f0f0f0; text-align: center; font-weight: bold; height: 20px; }
+    
+    .col-lic { width: 25px; text-align: center; }
+    .col-no { width: 25px; text-align: center; font-family: sans-serif; font-weight: bold; }
+    .col-name { text-align: left; overflow: hidden; white-space: nowrap; }
+    .col-foul { width: 14px; text-align: center; border-right: none; }
+    .col-foul-last { border-right: 1px solid black; }
+
+    /* Score Summary Table */
+    .score-summary {
+        margin-top: auto; /* Push to bottom of left col */
+        border: 2px solid black;
+        width: 100%;
+        font-size: 9px;
+    }
+    .summary-row { display: flex; border-bottom: 1px solid black; height: 18px; }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-header { background: #f0f0f0; font-weight: bold; }
+    .s-cell { flex: 1; border-right: 1px solid black; display: flex; align-items: center; justify-content: center; }
+    .s-cell:last-child { border-right: none; }
+    .s-wide { flex: 2; }
+
+    /* Right Column (Running Score) */
+    .col-right {
+        width: 50%;
+        border: 2px solid black;
+        display: flex;
+        flex-direction: column;
+    }
+    .running-header {
+        text-align: center;
+        font-weight: bold;
+        background: #f0f0f0;
+        border-bottom: 1px solid black;
+        padding: 2px;
+        letter-spacing: 3px;
+    }
+    .running-body {
+        display: flex;
+        flex: 1;
+    }
+    .running-col {
+        flex: 1;
         display: flex;
         flex-direction: column;
         border-right: 1px solid black;
-        width: 25%;
-        font-size: 0.75rem;
     }
-    .running-score-col:last-child { border-right: none; }
+    .running-col:last-child { border-right: none; }
     
-    /* --- Print Styles --- */
+    .rc-header {
+        display: flex;
+        height: 20px;
+        border-bottom: 1px solid black;
+        background: #f0f0f0;
+        font-weight: bold;
+        align-items: center;
+    }
+    .rc-cell { flex: 1; text-align: center; font-size: 8px; }
+    
+    .rc-row {
+        display: flex;
+        height: 14.5px; /* Adjusted to fit 40 rows */
+        border-bottom: 1px solid #ccc;
+        align-items: center;
+    }
+    .rc-row:nth-child(5n) { border-bottom: 1px solid #888; } /* Guide line every 5 */
+    
+    .rc-num { flex: 1; text-align: center; font-weight: bold; font-family: sans-serif; font-size: 9px; }
+    .rc-score { flex: 1; text-align: center; font-size: 8px; color: #888; }
+    .rc-score.filled { color: black; font-weight: bold; font-size: 10px; }
+    
+    /* Footer */
+    .sheet-footer {
+        margin-top: 5px;
+        border: 1px solid black;
+        padding: 2px 5px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        font-size: 9px;
+    }
+    .footer-item { display: flex; align-items: flex-end; gap: 5px; width: 30%; }
+
+    /* --- Utilities --- */
+    .hidden { display: none !important; }
+    .text-center { text-align: center; }
+    .font-bold { font-weight: bold; }
+    .border-b { border-bottom: 1px solid black; }
+    
+    /* --- Print Media Query --- */
     @media print {
         @page { size: A4 portrait; margin: 0; }
         body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .no-print { display: none !important; }
-        .sheet-container { 
-            box-shadow: none; 
-            margin: 0; 
-            padding: 10mm; 
-            width: 100%; 
-            height: auto; 
+        nav, .input-container, .settings-container { display: none !important; }
+        
+        .sheet-wrapper {
+            display: block;
+            width: 100%;
+            height: auto;
             overflow: visible;
+            padding: 0;
+            margin: 0;
+            background: white;
         }
-        .print-full { width: 100% !important; height: 100vh !important; }
+        
+        .sheet {
+            box-shadow: none;
+            margin: 0;
+            page-break-after: always;
+            width: 100%;
+            height: 100vh; /* Force full height */
+            padding: 8mm 10mm; /* Adjusted padding for printer margins */
+        }
+
+        /* Ensure borders print */
+        * { border-color: black !important; }
     }
 </style>
 </head>
 <body>
 
-    <!-- App Root -->
-    <div id="app" class="h-screen flex flex-col"></div>
+<div id="app">
+    <!-- Navbar injected by JS -->
+</div>
 
 <script>
-    /**
-     * --- STATE MANAGEMENT & LOGIC ---
-     * Reactを使わずに、単純なJavaScriptで状態管理と画面描画を行います。
-     * これにより、ライブラリの読み込みが不要になり、完全オフラインで動作します。
-     */
+/**
+ * --- Application State ---
+ * バニラJSによる状態管理
+ */
 
-    const initialPlayers = (teamName) => Array.from({ length: 18 }, (_, i) => ({
-        id: `${teamName}-${i + 1}`,
-        number: '', 
-        name: "", 
-        isCaptain: false, 
-        fouls: [],
-        points: 0
-    }));
+// データ構造の初期化
+const createPlayer = (team, i) => ({ 
+    id: `${team}-${i}`, 
+    number: '', 
+    license: '', // 追加: PDFにあるLicense No.
+    name: '', 
+    isCaptain: false, 
+    fouls: [], 
+    points: 0 
+});
 
-    const initialState = {
-        viewMode: 'input', // input, sheet, settings, history
-        selectedTeam: 'A',
-        selectedPlayerId: null,
-        quarter: 1,
-        gameInfo: {
-            competition: '令和__年度 バスケットボール大会',
-            date: new Date().toISOString().split('T')[0],
-            time: '10:00',
-            place: '〇〇体育館',
-            gameNo: '',
-            crewChief: '', umpire1: '', umpire2: '',
-            scorer: '', assistantScorer: '', timer: '', shotClock: '', endTime: ''
-        },
-        teamA: {
-            name: 'Team A', color: '', coach: '', assistantCoach: '',
-            players: initialPlayers('A'),
-            timeouts: { 1: [], 2: [] },
-            teamFouls: { 1: 0, 2: 0, 3: 0, 4: 0 },
-        },
-        teamB: {
-            name: 'Team B', color: '', coach: '', assistantCoach: '',
-            players: initialPlayers('B'),
-            timeouts: { 1: [], 2: [] },
-            teamFouls: { 1: 0, 2: 0, 3: 0, 4: 0 },
-        },
-        scores: [],
-        history: [], // For undo
-        savedGames: [] // Loaded from local storage
-    };
+const initialState = {
+    view: 'input', // input, sheet, settings
+    teamA: {
+        name: 'Team A', color: '', coach: '', assistantCoach: '',
+        players: Array.from({length: 18}, (_, i) => createPlayer('A', i+1)),
+        timeouts: { 1: [], 2: [] }, // 1=前半(1-2Q), 2=後半(3-4Q)
+        fouls: { 1:0, 2:0, 3:0, 4:0 }
+    },
+    teamB: {
+        name: 'Team B', color: '', coach: '', assistantCoach: '',
+        players: Array.from({length: 18}, (_, i) => createPlayer('B', i+1)),
+        timeouts: { 1: [], 2: [] },
+        fouls: { 1:0, 2:0, 3:0, 4:0 }
+    },
+    game: {
+        competition: '令和__年度 京都府高等学校総合体育大会',
+        no: '',
+        date: new Date().toISOString().slice(0, 10),
+        time: '10:00',
+        place: '',
+        crewChief: '', umpire1: '', umpire2: '',
+        scorer: '', assistantScorer: '', timer: '', shotClock: '',
+        endTime: ''
+    },
+    quarter: 1,
+    scores: [], // { q: 1, team: 'A', playerNo: '4', val: 2, runningA: 2, runningB: 0 }
+    history: [],
+    selectedTeam: 'A',
+    selectedPlayerId: null
+};
 
-    // Deep copy helper
-    const clone = (obj) => JSON.parse(JSON.stringify(obj));
+// State Container
+let state = JSON.parse(JSON.stringify(initialState));
 
-    let state = clone(initialState);
-    const STORAGE_KEY = 'offline_score_sheet_v1';
+// --- Logic Functions ---
 
-    // --- Actions ---
+function saveState() {
+    localStorage.setItem('basket_score_offline_v2', JSON.stringify(state));
+    alert('保存しました (Saved to Browser)');
+}
 
-    function loadSavedGames() {
+function loadState() {
+    const saved = localStorage.getItem('basket_score_offline_v2');
+    if(saved) {
         try {
-            const data = localStorage.getItem(STORAGE_KEY);
-            if (data) state.savedGames = JSON.parse(data);
-        } catch(e) { console.error("Load error", e); }
+            const parsed = JSON.parse(saved);
+            // マージロジックがあれば良いが、今回は単純置換
+            state = parsed;
+            render();
+        } catch(e) { console.error(e); }
     }
+}
 
-    function saveGameData() {
-        const gameId = Date.now().toString();
-        const gameTitle = `${state.teamA.name} vs ${state.teamB.name}`;
-        const newGame = {
-            id: gameId,
-            title: gameTitle,
-            gameState: clone(state),
-            createdAt: new Date().toISOString(),
-            finalScoreA: calculateTotalScore('A'),
-            finalScoreB: calculateTotalScore('B')
-        };
-        // Remove circular or heavy stuff if any (not here, but good practice)
-        newGame.gameState.savedGames = []; 
-        newGame.gameState.history = []; // Don't save undo history to save space
-
-        const updatedGames = [newGame, ...state.savedGames];
-        state.savedGames = updatedGames;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedGames));
-        alert('データを保存しました (Saved)');
-        render();
+function update(path, value) {
+    // path: 'teamA.name', 'game.place', 'teamA.players.0.number'
+    const parts = path.split('.');
+    let target = state;
+    for(let i=0; i<parts.length-1; i++) {
+        target = target[parts[i]];
     }
+    target[parts[parts.length-1]] = value;
+    // 画面全体再描画は重いので、設定画面ではonchangeでのみデータ更新し、
+    // 必要な時だけ再描画するが、今回はシンプルに都度renderする
+    // ただし入力のフォーカス外れを防ぐため、SettingsViewは慎重に実装
+}
 
-    function deleteGame(id) {
-        if(!confirm('削除しますか？')) return;
-        state.savedGames = state.savedGames.filter(g => g.id !== id);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.savedGames));
-        render();
-    }
-
-    function loadGame(game) {
-        if(!confirm('現在の入力内容は上書きされます。よろしいですか？')) return;
-        const loadedState = clone(game.gameState);
-        loadedState.savedGames = state.savedGames; // Keep current saved list
-        loadedState.viewMode = 'input';
-        state = loadedState;
-        render();
-    }
-
-    function setViewMode(mode) {
-        state.viewMode = mode;
-        render();
-    }
-
-    function setSelectedTeam(team) {
-        state.selectedTeam = team;
-        state.selectedPlayerId = null;
-        render();
-    }
-
-    function setSelectedPlayer(id) {
-        state.selectedPlayerId = id;
-        render();
-    }
-
-    function updateGameInfo(field, value) {
-        state.gameInfo[field] = value;
-        // No render needed for input fields usually, but for simple binding:
-        // We will rely on onchange events which don't need full re-render if we use value binding correctly.
-        // For this simple app, we might re-render or let the input hold value.
-    }
-
-    function updateTeamInfo(teamKey, field, value) {
-        state[teamKey][field] = value;
-    }
-
-    function updatePlayer(teamKey, playerId, field, value) {
-        const p = state[teamKey].players.find(p => p.id === playerId);
-        if (p) p[field] = value;
-    }
-
-    function pushHistory() {
-        // Simple history limitation
-        if(state.history.length > 50) state.history.shift();
-        state.history.push(JSON.stringify(state));
-    }
-
-    function undo() {
-        if (state.history.length === 0) return;
-        const prevJSON = state.history.pop();
-        const prevState = JSON.parse(prevJSON);
-        // Restore essential state, keep system state
-        state.teamA = prevState.teamA;
-        state.teamB = prevState.teamB;
-        state.scores = prevState.scores;
-        state.quarter = prevState.quarter;
-        render();
-    }
-
-    function addScore(points) {
-        if (!state.selectedPlayerId) return alert('選手を選択してください');
-        pushHistory();
-        
-        const teamKey = state.selectedTeam === 'A' ? 'teamA' : 'teamB';
-        const player = state[teamKey].players.find(p => p.id === state.selectedPlayerId);
-        
-        const currentScoreA = calculateTotalScore('A');
-        const currentScoreB = calculateTotalScore('B');
-
-        state.scores.push({
-            quarter: state.quarter,
-            team: state.selectedTeam,
-            playerNumber: player.number,
-            points: points,
-            scoreA: state.selectedTeam === 'A' ? currentScoreA + points : currentScoreA,
-            scoreB: state.selectedTeam === 'B' ? currentScoreB + points : currentScoreB,
-            timestamp: new Date().toLocaleTimeString()
-        });
-
-        player.points += points;
-        render();
-    }
-
-    function addFoul(type) {
-        if (!state.selectedPlayerId) return alert('選手を選択してください');
-        pushHistory();
-        
-        const teamKey = state.selectedTeam === 'A' ? 'teamA' : 'teamB';
-        const player = state[teamKey].players.find(p => p.id === state.selectedPlayerId);
-        
-        if (player.fouls.length < 5) {
-            player.fouls.push(type);
-            state[teamKey].teamFouls[state.quarter] = (state[teamKey].teamFouls[state.quarter] || 0) + 1;
-        }
-        render();
-    }
-
-    function addTimeout(team) {
-        const teamKey = team === 'A' ? 'teamA' : 'teamB';
-        const half = state.quarter <= 2 ? 1 : 2;
-        const limit = half === 1 ? 2 : 3;
-        
-        if (state[teamKey].timeouts[half].length >= limit) {
-            return alert('タイムアウト回数制限です');
-        }
-        pushHistory();
-        state[teamKey].timeouts[half].push('X');
-        render();
-    }
-
-    function nextQuarter() {
-        pushHistory();
-        state.quarter++;
-        render();
-    }
-
-    // --- Calculation Helpers ---
-    function calculateTotalScore(team) {
-        return state.scores.filter(s => s.team === team).reduce((sum, s) => sum + s.points, 0);
-    }
+function addScore(val) {
+    if(!state.selectedPlayerId) return alert('選手を選択してください');
     
-    function calculateQuarterScore(team, q) {
-        return state.scores.filter(s => s.team === team && s.quarter === q).reduce((sum, s) => sum + s.points, 0);
-    }
+    const teamKey = state.selectedTeam === 'A' ? 'teamA' : 'teamB';
+    const player = state[teamKey].players.find(p => p.id === state.selectedPlayerId);
+    
+    if(!player.number) return alert('選手の背番号が設定されていません');
 
-    // --- Icons (SVG Strings) ---
-    const Icons = {
-        Settings: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`,
-        FileText: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`,
-        Activity: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>`,
-        Folder: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`,
-        Save: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>`,
-        Printer: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>`,
-        RotateCcw: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>`,
-        Trash: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`,
-        Clock: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`,
-        Crown: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>`
+    // History push
+    state.history.push(JSON.stringify({scores: state.scores, players: [state.teamA.players, state.teamB.players]})); // 簡易保存
+
+    // Calculate current running score
+    const totalA = calcScore('A');
+    const totalB = calcScore('B');
+    
+    const newScore = {
+        q: state.quarter,
+        team: state.selectedTeam,
+        playerNo: player.number,
+        val: val,
+        runningA: state.selectedTeam === 'A' ? totalA + val : totalA,
+        runningB: state.selectedTeam === 'B' ? totalB + val : totalB
     };
+    
+    state.scores.push(newScore);
+    player.points += val;
+    render();
+}
 
-    // --- Components (HTML Generators) ---
+function addFoul(type) {
+    if(!state.selectedPlayerId) return alert('選手を選択してください');
+    const teamKey = state.selectedTeam === 'A' ? 'teamA' : 'teamB';
+    const player = state[teamKey].players.find(p => p.id === state.selectedPlayerId);
+    
+    if(player.fouls.length >= 5) return alert('退場(5ファウル)済みです');
+    
+    player.fouls.push(type);
+    
+    // Team Foul加算 (4Q以降は延長も含むが今回は簡易的に4に加算)
+    const qKey = state.quarter > 4 ? 4 : state.quarter;
+    state[teamKey].fouls[qKey]++;
+    
+    render();
+}
 
-    const Navbar = () => `
-        <nav class="bg-blue-900 text-white p-2 shadow flex justify-between items-center no-print">
-            <div class="flex items-center gap-2">
-                ${Icons.Activity}
-                <span class="font-bold text-lg hidden md:block">Score Sheet</span>
-            </div>
-            <div class="flex gap-2 bg-blue-800 rounded p-1">
-                <button onclick="setViewMode('input')" class="px-4 py-1 rounded text-sm font-bold flex items-center gap-1 ${state.viewMode === 'input' ? 'bg-white text-blue-900' : 'text-blue-200'}">
-                    ${Icons.Activity} <span class="hidden sm:inline">入力</span>
-                </button>
-                <button onclick="setViewMode('sheet')" class="px-4 py-1 rounded text-sm font-bold flex items-center gap-1 ${state.viewMode === 'sheet' ? 'bg-white text-blue-900' : 'text-blue-200'}">
-                    ${Icons.FileText} <span class="hidden sm:inline">公式シート</span>
-                </button>
-                <button onclick="setViewMode('settings')" class="px-4 py-1 rounded text-sm font-bold flex items-center gap-1 ${state.viewMode === 'settings' ? 'bg-white text-blue-900' : 'text-blue-200'}">
-                    ${Icons.Settings} <span class="hidden sm:inline">設定</span>
-                </button>
-                <button onclick="setViewMode('history')" class="px-4 py-1 rounded text-sm font-bold flex items-center gap-1 ${state.viewMode === 'history' ? 'bg-white text-blue-900' : 'text-blue-200'}">
-                    ${Icons.Folder} <span class="hidden sm:inline">保存データ</span>
-                </button>
-            </div>
-            <div class="flex gap-2">
-                ${state.viewMode === 'sheet' ? `
-                    <button onclick="window.print()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm font-bold flex items-center gap-1">
-                        ${Icons.Printer} PDF/印刷
-                    </button>
-                ` : ''}
-                <button onclick="saveGameData()" class="p-2 hover:bg-blue-800 rounded text-blue-200" title="保存">
-                    ${Icons.Save}
-                </button>
-            </div>
-        </nav>
-    `;
+function addTimeout(team) {
+    const teamKey = team === 'A' ? 'teamA' : 'teamB';
+    const half = state.quarter <= 2 ? 1 : 2;
+    const limit = half === 1 ? 2 : 3;
+    
+    if(state[teamKey].timeouts[half].length >= limit) return alert('前半/後半の制限数を超えています');
+    
+    // 時間を記録するが、シートには分数(残り時間)を書くことが多い。今回は'X'や分数を入力させる代わりに自動カウント
+    // 実際の運用では分数を手書きすることが多いので、ここでは単純なマークとして扱う
+    const timeStr = prompt("タイムアウト時間（分）を入力、または空欄", state.game.time);
+    state[teamKey].timeouts[half].push(timeStr || 'X');
+    render();
+}
 
-    // --- Input View ---
-    const InputView = () => {
-        const activeTeamKey = state.selectedTeam === 'A' ? 'teamA' : 'teamB';
-        const activeTeamData = state[activeTeamKey];
-        const displayPlayers = activeTeamData.players.filter(p => p.number);
-        const half = state.quarter <= 2 ? 1 : 2;
-        const toLimit = half === 1 ? 2 : 3;
+function undo() {
+    if(state.scores.length === 0) return;
+    state.scores.pop();
+    // プレイヤーのポイント再計算が必要だが、今回は簡易実装のため省略せず、scoresから全再計算すべき
+    // リセットして再計算
+    ['teamA', 'teamB'].forEach(tk => {
+        state[tk].players.forEach(p => p.points = 0);
+    });
+    state.scores.forEach(s => {
+        const p = state[`team${s.team}`].players.find(pl => pl.number === s.playerNo);
+        if(p) p.points += s.val;
+    });
+    render();
+}
 
-        return `
-        <div class="flex flex-col h-full bg-gray-50 no-print">
-            <!-- Scoreboard Header -->
-            <div class="bg-gray-900 text-white p-4 flex justify-between items-center shadow shrink-0">
-                 <div onclick="setSelectedTeam('A')" class="flex-1 p-2 rounded cursor-pointer text-center ${state.selectedTeam === 'A' ? 'bg-gray-700 border border-blue-400' : ''}">
-                    <div class="text-sm text-gray-400">${state.teamA.name}</div>
-                    <div class="text-4xl font-bold text-yellow-400 font-mono">${calculateTotalScore('A')}</div>
-                    <div class="text-xs">Fouls: ${state.teamA.teamFouls[state.quarter] || 0} | TO: ${state.teamA.timeouts[half].length}</div>
-                 </div>
-                 <div class="px-4 text-center">
-                    <div class="text-xl font-bold text-red-500">Q${state.quarter}</div>
-                    <button onclick="nextQuarter()" class="text-xs bg-gray-700 px-3 py-1 rounded mt-1">Next Q</button>
-                 </div>
-                 <div onclick="setSelectedTeam('B')" class="flex-1 p-2 rounded cursor-pointer text-center ${state.selectedTeam === 'B' ? 'bg-gray-700 border border-blue-400' : ''}">
-                    <div class="text-sm text-gray-400">${state.teamB.name}</div>
-                    <div class="text-4xl font-bold text-yellow-400 font-mono">${calculateTotalScore('B')}</div>
-                    <div class="text-xs">Fouls: ${state.teamB.teamFouls[state.quarter] || 0} | TO: ${state.teamB.timeouts[half].length}</div>
-                 </div>
-            </div>
+function calcScore(team) {
+    return state.scores.filter(s => s.team === team).reduce((a,c) => a + c.val, 0);
+}
 
-            <div class="flex-1 overflow-hidden flex">
-                <!-- Players List -->
-                <div class="flex-1 overflow-y-auto p-2 bg-white border-r">
-                    <h3 class="text-sm font-bold text-gray-500 mb-2 border-b pb-1">選手選択 (${activeTeamData.name})</h3>
-                    ${displayPlayers.length === 0 ? '<div class="p-4 text-center text-sm text-gray-500">選手が登録されていません。<br>「設定」で番号を入力してください。</div>' : 
-                      `<div class="grid grid-cols-3 gap-2">
-                        ${displayPlayers.map(p => `
-                            <button onclick="setSelectedPlayer('${p.id}')" class="p-3 rounded-lg flex flex-col items-center justify-center border transition-all relative ${state.selectedPlayerId === p.id ? 'bg-blue-600 text-white shadow' : 'bg-white hover:bg-gray-50 text-gray-800'} ${p.fouls.length >= 5 ? 'opacity-50' : ''}">
-                                ${p.isCaptain ? `<span class="absolute top-1 left-1 text-xs text-yellow-500 font-bold">C</span>` : ''}
-                                <span class="text-xl font-bold font-mono">#${p.number}</span>
-                                <span class="text-xs truncate w-full text-center">${p.name || '-'}</span>
-                                <div class="flex gap-1 mt-1">
-                                    ${p.fouls.map(() => `<div class="w-1.5 h-1.5 rounded-full ${state.selectedPlayerId === p.id ? 'bg-yellow-300' : 'bg-yellow-500'}"></div>`).join('')}
-                                    ${p.fouls.length >= 5 ? '<span class="text-xs text-red-500 font-bold">OUT</span>' : ''}
-                                </div>
-                            </button>
-                        `).join('')}
-                      </div>`
-                    }
-                </div>
+function calcQuarterScore(team, q) {
+    return state.scores.filter(s => s.team === team && s.q === q).reduce((a,c) => a + c.val, 0);
+}
 
-                <!-- Controls -->
-                <div class="w-1_3 bg-gray-100 p-4 border-l flex flex-col justify-center gap-3 shrink-0" style="min-width: 250px;">
-                    <div class="text-center mb-1">
-                        <span class="text-xs text-gray-500">選択中:</span>
-                        <div class="font-bold text-lg h-7">
-                            ${state.selectedPlayerId 
-                                ? (() => {
-                                    const p = activeTeamData.players.find(x => x.id === state.selectedPlayerId);
-                                    return p ? `#${p.number} ${p.name}` : '';
-                                  })()
-                                : '未選択'}
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="addScore(1)" class="bg-green-600 text-white py-4 rounded font-bold shadow hover:bg-green-500 flex flex-col items-center"><span class="text-lg">+1</span><span class="text-xs font-normal">FT</span></button>
-                        <button onclick="addScore(2)" class="bg-green-600 text-white py-4 rounded font-bold shadow hover:bg-green-500 flex flex-col items-center"><span class="text-lg">+2</span><span class="text-xs font-normal">FG</span></button>
-                        <button onclick="addScore(3)" class="bg-green-600 text-white py-4 rounded font-bold shadow hover:bg-green-500 flex flex-col items-center"><span class="text-lg">+3</span><span class="text-xs font-normal">3P</span></button>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 mt-2">
-                        <button onclick="addFoul('P')" class="bg-yellow-500 text-white py-3 rounded font-bold shadow hover:bg-yellow-400">P ファウル</button>
-                        <button onclick="undo()" class="bg-gray-500 text-white py-3 rounded font-bold shadow hover:bg-gray-400 flex items-center justify-center gap-2">${Icons.RotateCcw} 戻る</button>
-                    </div>
-                     <div class="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-gray-300">
-                        <button onclick="addTimeout('A')" class="bg-orange-100 text-orange-900 border border-orange-200 py-2 rounded text-xs font-bold">A タイムアウト<br>(${state.teamA.timeouts[half].length}/${toLimit})</button>
-                        <button onclick="addTimeout('B')" class="bg-orange-100 text-orange-900 border border-orange-200 py-2 rounded text-xs font-bold">B タイムアウト<br>(${state.teamB.timeouts[half].length}/${toLimit})</button>
-                    </div>
-                </div>
-            </div>
+// --- View Components (String Templates) ---
+
+const Icons = {
+    Pen: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`,
+    Sheet: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`,
+    Settings: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`,
+    Print: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>`,
+};
+
+const Navbar = () => `
+    <nav class="ui-font">
+        <div style="font-weight:bold; font-size:1.2rem;">BasketScore Offline</div>
+        <div class="nav-group">
+            <button class="btn nav-btn ${state.view==='input'?'active':''}" onclick="state.view='input'; render()">${Icons.Pen} 入力</button>
+            <button class="btn nav-btn ${state.view==='sheet'?'active':''}" onclick="state.view='sheet'; render()">${Icons.Sheet} シート</button>
+            <button class="btn nav-btn ${state.view==='settings'?'active':''}" onclick="state.view='settings'; render()">${Icons.Settings} 設定</button>
         </div>
-        `;
-    };
+        <div>
+            ${state.view === 'sheet' ? `<button class="btn btn-warning" onclick="window.print()">${Icons.Print} 印刷</button>` : ''}
+            <button class="btn btn-primary" onclick="saveState()">保存</button>
+        </div>
+    </nav>
+`;
 
-    // --- Settings View ---
-    const SettingsView = () => {
-        // We use onchange="update...()" to bind data without re-rendering the whole form on every keystroke
-        return `
-        <div class="p-4 bg-gray-50 h-full overflow-y-auto no-print">
-            <div class="max-w-4xl mx-auto bg-white shadow rounded p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold flex items-center gap-2">${Icons.Settings} 設定・編集</h2>
-                    <button onclick="setViewMode('input')" class="bg-blue-600 text-white px-4 py-2 rounded">完了</button>
+const InputView = () => {
+    const activeTeam = state.selectedTeam === 'A' ? state.teamA : state.teamB;
+    const players = activeTeam.players.filter(p => p.number); // 番号がある選手のみ表示
+    
+    return `
+    <div class="input-container ui-font">
+        <div style="display:flex; flex-direction:column; flex:1;">
+            <div class="scoreboard">
+                <div class="team-card ${state.selectedTeam==='A'?'active':''}" onclick="state.selectedTeam='A'; state.selectedPlayerId=null; render()">
+                    <div style="font-size:0.8rem; color:#9ca3af;">${state.teamA.name}</div>
+                    <div class="score-display">${calcScore('A')}</div>
+                    <div style="font-size:0.8rem;">Fouls: ${state.teamA.fouls[state.quarter]||0}</div>
                 </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 border-b pb-6">
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700">大会名</label>
-                        <input type="text" class="std-input" value="${state.gameInfo.competition}" onchange="updateGameInfo('competition', this.value)">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700">会場</label>
-                        <input type="text" class="std-input" value="${state.gameInfo.place}" onchange="updateGameInfo('place', this.value)">
-                    </div>
-                    <div class="flex gap-2">
-                         <div class="w-1_2"><label class="block text-sm font-bold text-gray-700">日付</label><input type="date" class="std-input" value="${state.gameInfo.date}" onchange="updateGameInfo('date', this.value)"></div>
-                         <div class="w-1_2"><label class="block text-sm font-bold text-gray-700">時間</label><input type="time" class="std-input" value="${state.gameInfo.time}" onchange="updateGameInfo('time', this.value)"></div>
-                    </div>
-                     <div>
-                        <label class="block text-sm font-bold text-gray-700">試合No</label>
-                        <input type="text" class="std-input" value="${state.gameInfo.gameNo}" onchange="updateGameInfo('gameNo', this.value)">
-                    </div>
+                <div style="text-align:center;">
+                    <div style="color:#ef4444; font-weight:bold; font-size:1.5rem;">Q${state.quarter}</div>
+                    <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.7rem;" onclick="state.quarter++; render()">Next Q</button>
                 </div>
-
-                <div class="grid grid-cols-2 gap-8">
-                    ${['A', 'B'].map(team => {
-                        const t = state[`team${team}`];
-                        return `
-                        <div>
-                            <h3 class="font-bold text-lg mb-2 text-blue-900 border-b">チーム ${team}</h3>
-                            <div class="mb-2">
-                                <label class="text-xs text-gray-500">チーム名</label>
-                                <input type="text" class="std-input" value="${t.name}" onchange="updateTeamInfo('team${team}', 'name', this.value)">
-                            </div>
-                            <div class="mb-2">
-                                <label class="text-xs text-gray-500">ユニフォーム色</label>
-                                <input type="text" class="std-input" value="${t.color}" onchange="updateTeamInfo('team${team}', 'color', this.value)">
-                            </div>
-                             <div class="mb-2">
-                                <label class="text-xs text-gray-500">コーチ</label>
-                                <input type="text" class="std-input" value="${t.coach}" onchange="updateTeamInfo('team${team}', 'coach', this.value)">
-                            </div>
-                             <div class="mb-2">
-                                <label class="text-xs text-gray-500">A.コーチ</label>
-                                <input type="text" class="std-input" value="${t.assistantCoach}" onchange="updateTeamInfo('team${team}', 'assistantCoach', this.value)">
-                            </div>
-                            
-                            <table class="w-full mt-4 text-sm border">
-                                <thead class="bg-gray-100"><tr><th class="w-8">C</th><th class="w-16">No.</th><th>氏名</th></tr></thead>
-                                <tbody>
-                                    ${t.players.map(p => `
-                                        <tr class="border-t">
-                                            <td class="text-center p-1 cursor-pointer" onclick="updatePlayer('team${team}', '${p.id}', 'isCaptain', ${!p.isCaptain}); renderSettingsPart();">
-                                                <span class="${p.isCaptain ? 'text-yellow-500' : 'text-gray-200'}">★</span>
-                                            </td>
-                                            <td class="p-1"><input type="text" class="std-input text-center p-1" value="${p.number}" onchange="updatePlayer('team${team}', '${p.id}', 'number', this.value)"></td>
-                                            <td class="p-1"><input type="text" class="std-input p-1" value="${p.name}" onchange="updatePlayer('team${team}', '${p.id}', 'name', this.value)"></td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                        `;
-                    }).join('')}
-                </div>
-                
-                <div class="mt-6 border-t pt-4">
-                     <h3 class="font-bold mb-2">審判・TO</h3>
-                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-                        ${['crewChief', 'umpire1', 'umpire2', 'scorer', 'assistantScorer', 'timer', 'shotClock'].map(role => `
-                            <div><label class="text-xs text-gray-500 block capitalize">${role}</label><input type="text" class="std-input text-sm p-1" value="${state.gameInfo[role]}" onchange="updateGameInfo('${role}', this.value)"></div>
-                        `).join('')}
-                     </div>
+                <div class="team-card ${state.selectedTeam==='B'?'active':''}" onclick="state.selectedTeam='B'; state.selectedPlayerId=null; render()">
+                    <div style="font-size:0.8rem; color:#9ca3af;">${state.teamB.name}</div>
+                    <div class="score-display">${calcScore('B')}</div>
+                    <div style="font-size:0.8rem;">Fouls: ${state.teamB.fouls[state.quarter]||0}</div>
                 </div>
             </div>
-        </div>
-        `;
-    };
-
-    // --- History View ---
-    const HistoryView = () => `
-        <div class="p-4 bg-gray-50 h-full overflow-y-auto no-print">
-            <div class="max-w-4xl mx-auto">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold flex items-center gap-2">${Icons.Folder} 保存データ</h2>
-                    <button onclick="setViewMode('input')" class="bg-gray-600 text-white px-4 py-2 rounded">戻る</button>
-                </div>
-                ${state.savedGames.length === 0 ? '<div class="bg-white p-8 text-center text-gray-500 rounded">保存データはありません</div>' : 
-                  state.savedGames.map(g => `
-                    <div class="bg-white p-4 rounded shadow mb-4 flex justify-between items-center">
-                        <div>
-                            <div class="font-bold text-lg text-blue-900">${g.title}</div>
-                            <div class="text-sm text-gray-500 flex items-center gap-2">${Icons.Clock} ${new Date(g.createdAt).toLocaleString()}</div>
-                            <div class="mt-1 font-mono font-bold text-gray-700">Q${g.quarter} | ${g.finalScoreA} - ${g.finalScoreB}</div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick='loadGame(${JSON.stringify(g).replace(/'/g, "&#39;")})' class="bg-blue-600 text-white px-3 py-2 rounded text-sm flex items-center gap-1">${Icons.Folder} 読込</button>
-                            <button onclick="deleteGame('${g.id}')" class="bg-red-100 text-red-600 px-3 py-2 rounded text-sm flex items-center gap-1">${Icons.Trash} 削除</button>
-                        </div>
-                    </div>
-                  `).join('')
-                }
-            </div>
-        </div>
-    `;
-
-    // --- Official Sheet View ---
-    const OfficialSheetView = () => {
-        const teamA = state.teamA;
-        const teamB = state.teamB;
-        
-        // Prepare Running Score Data
-        const runningData = [];
-        let curA = 0, curB = 0;
-        for(let i=1; i<=160; i++) runningData.push({ score: i, a: null, b: null });
-        
-        state.scores.forEach(s => {
-            const isA = s.team === 'A';
-            const start = isA ? curA : curB;
-            const end = start + s.points;
-            if (isA) {
-                if(runningData[end-1]) runningData[end-1].a = { number: s.playerNumber, quarter: s.quarter };
-                curA = end;
-            } else {
-                if(runningData[end-1]) runningData[end-1].b = { number: s.playerNumber, quarter: s.quarter };
-                curB = end;
-            }
-        });
-
-        const renderTeamSection = (key, team) => {
-            const players = team.players.filter(p => p.number);
-            const empties = Array.from({length: Math.max(0, 18 - players.length)});
             
-            return `
-            <div class="mb-2">
-                <div class="flex justify-between items-end border-b border-black mb-1">
-                    <div class="font-bold text-sm flex-1">
-                        <span class="text-xs mr-2">チーム${key}</span>
-                        <span class="text-base font-serif uppercase">${team.name}</span>
-                    </div>
-                    <div class="text-xs w-20 text-right">Color: ${team.color}</div>
-                </div>
-                <div class="flex text-xs mb-1 justify-between items-start">
-                    <div class="w-1_2">
-                        <div class="font-bold text-xs mb-1">タイムアウト</div>
-                        <div class="flex gap-1 mb-1">
-                            <div class="border border-black w-6 h-5 text-center leading-5 font-bold">${team.timeouts[1][0] || ''}</div>
-                            <div class="border border-black w-6 h-5 text-center leading-5 font-bold">${team.timeouts[1][1] || ''}</div>
+            <div class="player-grid">
+                ${players.length === 0 ? '<div style="grid-column:1/-1; text-align:center; padding:2rem; color:#666;">選手が登録されていません。<br>設定タブで選手情報を入力してください。</div>' : ''}
+                ${players.map(p => `
+                    <button class="player-btn ${state.selectedPlayerId===p.id?'active':''} ${p.fouls.length>=5?'fouled-out':''}" 
+                        onclick="state.selectedPlayerId='${p.id}'; render()">
+                        ${p.isCaptain ? '<div style="position:absolute; top:2px; left:4px; font-size:0.7rem; font-weight:bold; color:#eab308;">CAP</div>' : ''}
+                        <div style="font-size:1.5rem; font-family:monospace; font-weight:bold;">${p.number}</div>
+                        <div style="font-size:0.8rem; width:100%; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; text-align:center;">${p.name}</div>
+                        <div class="foul-dots">
+                            ${[1,2,3,4,5].map(i => `<div class="dot ${i<=p.fouls.length ? (state.selectedPlayerId===p.id?'active-selected':'active') : ''}"></div>`).join('')}
                         </div>
-                        <div class="flex gap-1">
-                            <div class="border border-black w-6 h-5 text-center leading-5 font-bold">${team.timeouts[2][0] || ''}</div>
-                            <div class="border border-black w-6 h-5 text-center leading-5 font-bold">${team.timeouts[2][1] || ''}</div>
-                            <div class="border border-black w-6 h-5 text-center leading-5 font-bold">${team.timeouts[2][2] || ''}</div>
-                        </div>
-                    </div>
-                    <div class="w-1_2">
-                        <div class="font-bold text-xs mb-1">チームファウル</div>
-                        <div class="flex gap-1 mb-1 items-center"><span class="w-4">1</span><div class="border border-black w-6 h-5 text-center leading-5">${team.teamFouls[1] > 0 ? Math.min(5, team.teamFouls[1]) : ''}</div><span class="w-4 ml-2">2</span><div class="border border-black w-6 h-5 text-center leading-5">${team.teamFouls[2] > 0 ? Math.min(5, team.teamFouls[2]) : ''}</div></div>
-                        <div class="flex gap-1 items-center"><span class="w-4">3</span><div class="border border-black w-6 h-5 text-center leading-5">${team.teamFouls[3] > 0 ? Math.min(5, team.teamFouls[3]) : ''}</div><span class="w-4 ml-2">4</span><div class="border border-black w-6 h-5 text-center leading-5">${team.teamFouls[4] > 0 ? Math.min(5, team.teamFouls[4]) : ''}</div></div>
-                    </div>
-                </div>
-                <div class="border border-black">
-                    <table class="w-full text-xs border-collapse table-fixed">
-                        <thead class="bg-gray-100 border-b border-black">
-                            <tr><th class="border-r border-black w-8">No.</th><th class="border-r border-black text-left pl-1">選手名</th><th class="border-r border-black w-8">No.</th><th class="w-20">Fouls</th></tr>
-                        </thead>
-                        <tbody>
-                            ${players.slice(0, 18).map((p, idx) => `
-                                <tr class="h-4 border-b border-gray-400">
-                                    <td class="border-r border-black text-center text-xs">${idx + 1}</td>
-                                    <td class="border-r border-black pl-1 truncate text-xs relative">${p.name} ${p.isCaptain ? '<span class="text-xs font-bold">(CAP)</span>' : ''}</td>
-                                    <td class="border-r border-black text-center font-bold font-mono text-xs">${p.number}</td>
-                                    <td class="text-center align-middle">
-                                        <div class="flex justify-center gap-0.5 h-full px-0.5 items-center">
-                                            ${[1,2,3,4,5].map(i => `<div class="w-3 h-3 border border-gray-400 flex items-center justify-center text-xs leading-none">${p.fouls[i-1] || ''}</div>`).join('')}
-                                        </div>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                            ${empties.map((_, idx) => `
-                                <tr class="h-4 border-b border-gray-400">
-                                    <td class="border-r border-black text-center text-xs">${players.length + idx + 1}</td>
-                                    <td class="border-r border-black"></td><td class="border-r border-black"></td>
-                                    <td class="flex justify-center gap-0.5 h-full px-0.5 items-center">${[1,2,3,4,5].map(() => `<div class="w-3 h-3 border border-gray-400"></div>`).join('')}</td>
-                                </tr>
-                            `).join('')}
-                            <tr class="h-5 border-t border-black"><td colspan="2" class="border-r border-black pl-1 text-xs"><span class="font-bold">Coach:</span> ${team.coach}</td><td colspan="2"></td></tr>
-                            <tr class="h-5 border-t border-gray-300"><td colspan="2" class="border-r border-black pl-1 text-xs"><span class="font-bold">A.Coach:</span> ${team.assistantCoach}</td><td colspan="2"></td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>`;
-        };
-
-        const renderRunningCol = (start, end) => `
-            <div class="running-score-col">
-                <div class="flex border-b border-black font-bold bg-gray-100 text-center h-6 items-center">
-                    <div class="w-1_4 text-xs">A</div><div class="w-2_4 text-xs">A - B</div><div class="w-1_4 text-xs">B</div>
-                </div>
-                ${runningData.slice(start-1, end).map(row => `
-                    <div class="flex border-b border-gray-300 h-4 items-center">
-                        <div class="w-1_4 text-center font-bold text-xs border-r border-gray-300 ${row.a && (row.a.quarter===1 || row.a.quarter===3) ? 'text-red-600' : ''}">${row.a ? row.a.number : ''}</div>
-                        <div class="w-2_4 flex text-center h-full">
-                            <div class="w-1_2 border-r border-gray-300 bg-gray-50 flex items-center justify-center">
-                                ${row.a ? `<span class="font-bold ${row.a.quarter%2!==0?'text-red-600':''}">${row.score}</span>` : `<span class="text-gray-300 text-xs">${row.score}</span>`}
-                            </div>
-                            <div class="w-1_2 bg-gray-50 flex items-center justify-center">
-                                ${row.b ? `<span class="font-bold ${row.b.quarter%2!==0?'text-red-600':''}">${row.score}</span>` : `<span class="text-gray-300 text-xs">${row.score}</span>`}
-                            </div>
-                        </div>
-                        <div class="w-1_4 text-center font-bold text-xs border-l border-gray-300 ${row.b && (row.b.quarter===1 || row.b.quarter===3) ? 'text-red-600' : ''}">${row.b ? row.b.number : ''}</div>
-                    </div>
+                    </button>
                 `).join('')}
             </div>
-        `;
+        </div>
 
-        const totalA = calculateTotalScore('A');
-        const totalB = calculateTotalScore('B');
-
-        return `
-        <div class="overflow-auto bg-gray-200 p-4 print-full flex justify-center h-full">
-            <div class="sheet-container">
-                <!-- Header -->
-                <div class="text-center border-b-2 border-black pb-2 mb-2">
-                    <h1 class="font-bold text-xl uppercase tracking-widest mb-2">OFFICIAL SCORESHEET</h1>
-                    <div class="flex justify-between items-end text-xs mb-2 px-2">
-                        <div class="text-left w-1_3">
-                            <div><span class="font-bold w-16 inline-block">チームA:</span> <span class="border-b border-gray-400 inline-block min-w-50">${state.teamA.name}</span></div>
-                            <div><span class="font-bold w-16 inline-block">大会名:</span> <span class="border-b border-gray-400 inline-block min-w-50">${state.gameInfo.competition}</span></div>
-                            <div><span class="font-bold w-16 inline-block">Game No.:</span> <span class="border-b border-gray-400 inline-block w-20">${state.gameInfo.gameNo}</span></div>
-                        </div>
-                        <div class="text-center w-1_3">
-                            <div class="mb-1"><span>日付:</span> <span class="border-b border-gray-400 mx-1">${state.gameInfo.date}</span> <span>時間:</span> <span class="border-b border-gray-400 mx-1">${state.gameInfo.time}</span></div>
-                            <div><span>場所:</span> <span class="border-b border-gray-400 mx-1">${state.gameInfo.place}</span></div>
-                        </div>
-                        <div class="text-right w-1_3">
-                            <div><span class="font-bold w-16 inline-block text-right">チームB:</span> <span class="border-b border-gray-400 inline-block text-left min-w-50">${state.teamB.name}</span></div>
-                        </div>
-                    </div>
-                    <div class="flex justify-between text-xs border border-black p-1 px-4">
-                        <span><span class="font-bold">クルーチーフ:</span> ${state.gameInfo.crewChief}</span>
-                        <span><span class="font-bold">Umpire 1:</span> ${state.gameInfo.umpire1}</span>
-                        <span><span class="font-bold">Umpire 2:</span> ${state.gameInfo.umpire2}</span>
-                    </div>
-                </div>
-
-                <!-- Main Body -->
-                <div class="flex flex-row h-full">
-                    <!-- Teams & Summary -->
-                    <div class="w-2_4 flex flex-col pr-2">
-                        <div>
-                            ${renderTeamSection('A', teamA)}
-                            ${renderTeamSection('B', teamB)}
-                        </div>
-                        <!-- Score Summary Table -->
-                        <div class="mt-2 border-2 border-black text-xs">
-                            <div class="grid grid-cols-11 text-center border-b border-black bg-gray-100 font-bold h-5 items-center">
-                                <div class="col-span-3 border-r border-black">スコア</div>
-                                <div class="col-span-2 border-r border-gray-300">1Q</div>
-                                <div class="col-span-2 border-r border-gray-300">2Q</div>
-                                <div class="col-span-2 border-r border-gray-300">3Q</div>
-                                <div class="col-span-2">4Q</div>
-                            </div>
-                            <div class="grid grid-cols-11 text-center border-b border-black h-6 items-center">
-                                <div class="col-span-3 border-r border-black font-bold">A</div>
-                                <div class="col-span-2 border-r border-gray-300">${calculateQuarterScore('A', 1)}</div>
-                                <div class="col-span-2 border-r border-gray-300">${calculateQuarterScore('A', 2)}</div>
-                                <div class="col-span-2 border-r border-gray-300">${calculateQuarterScore('A', 3)}</div>
-                                <div class="col-span-2">${calculateQuarterScore('A', 4)}</div>
-                            </div>
-                            <div class="grid grid-cols-11 text-center border-b border-black h-6 items-center">
-                                <div class="col-span-3 border-r border-black font-bold">B</div>
-                                <div class="col-span-2 border-r border-gray-300">${calculateQuarterScore('B', 1)}</div>
-                                <div class="col-span-2 border-r border-gray-300">${calculateQuarterScore('B', 2)}</div>
-                                <div class="col-span-2 border-r border-gray-300">${calculateQuarterScore('B', 3)}</div>
-                                <div class="col-span-2">${calculateQuarterScore('B', 4)}</div>
-                            </div>
-                             <div class="p-1 bg-gray-100 font-bold flex justify-between border-b border-black">
-                                <span>最終スコア</span> <span>A: ${totalA}</span> <span>B: ${totalB}</span>
-                            </div>
-                            <div class="p-1 text-xs border-b border-black">
-                                <span class="font-bold">勝者:</span> ${totalA > totalB ? teamA.name : (totalB > totalA ? teamB.name : '-')}
-                            </div>
-                             <div class="p-1 text-right text-xs">終了時間: ${state.gameInfo.endTime || '___:___'}</div>
-                        </div>
-                    </div>
-
-                    <!-- Running Score -->
-                    <div class="w-2_4 border-2 border-black flex flex-col h-full">
-                        <div class="text-center font-bold text-sm py-0.5 border-b border-black bg-gray-50">RUNNING SCORE</div>
-                        <div class="flex flex-1">
-                            ${renderRunningCol(1, 40)}
-                            ${renderRunningCol(41, 80)}
-                            ${renderRunningCol(81, 120)}
-                            ${renderRunningCol(121, 160)}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Footer Signatures -->
-                <div class="mt-2 border border-black p-1 text-xs flex flex-wrap gap-4">
-                    <div class="w-1_4">スコアラー: <span class="border-b border-gray-400 ml-1">${state.gameInfo.scorer}</span></div>
-                    <div class="w-1_4">タイマー: <span class="border-b border-gray-400 ml-1">${state.gameInfo.timer}</span></div>
-                    <div class="w-1_4">ショットクロック: <span class="border-b border-gray-400 ml-1">${state.gameInfo.shotClock}</span></div>
+        <div class="controls">
+            <div style="text-align:center; padding-bottom:1rem; border-bottom:1px solid #eee;">
+                <div style="font-size:0.8rem; color:#666;">選択中</div>
+                <div style="font-weight:bold; font-size:1.2rem; height:1.5rem;">
+                    ${(() => {
+                        if(!state.selectedPlayerId) return '未選択';
+                        const p = activeTeam.players.find(x => x.id === state.selectedPlayerId);
+                        return `#${p.number} ${p.name}`;
+                    })()}
                 </div>
             </div>
+            
+            <div style="font-weight:bold; color:#374151;">得点</div>
+            <div class="action-grid">
+                <button class="btn btn-success action-btn" onclick="addScore(1)">
+                    <span class="big-num">+1</span>
+                    <span class="sub-text">FT</span>
+                </button>
+                <button class="btn btn-success action-btn" onclick="addScore(2)">
+                    <span class="big-num">+2</span>
+                    <span class="sub-text">FG</span>
+                </button>
+                <button class="btn btn-success action-btn" onclick="addScore(3)">
+                    <span class="big-num">+3</span>
+                    <span class="sub-text">3P</span>
+                </button>
+            </div>
+
+            <div style="font-weight:bold; color:#374151; margin-top:1rem;">ファウル</div>
+            <div class="action-grid">
+                <button class="btn btn-warning action-btn" onclick="addFoul('P')">P</button>
+                <button class="btn btn-warning action-btn" onclick="addFoul('P1')">P1</button>
+                <button class="btn btn-warning action-btn" onclick="addFoul('P2')">P2</button>
+            </div>
+
+            <div style="margin-top:auto;">
+                <div class="grid-2">
+                    <button class="btn btn-secondary" onclick="addTimeout('A')">A タイムアウト</button>
+                    <button class="btn btn-secondary" onclick="addTimeout('B')">B タイムアウト</button>
+                </div>
+                <button class="btn btn-danger" style="width:100%; margin-top:1rem;" onclick="undo()">取り消し (Undo)</button>
+            </div>
+        </div>
+    </div>
+    `;
+};
+
+const SettingsView = () => {
+    // 描画コスト削減のため、inputのonchangeでstateを更新するが、
+    // ここではHTML文字列を再生成する方式をとる（シンプルさ優先）。
+    // 実際のアプリでは仮想DOMなどを使うべきだが、バニラJSなのでこれで行く。
+    
+    const renderTeamSettings = (teamKey, label) => `
+        <div style="margin-bottom:2rem;">
+            <h3 style="border-bottom:2px solid #ddd; padding-bottom:0.5rem; margin-bottom:1rem;">${label} 設定</h3>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label">チーム名</label>
+                    <input class="form-input" value="${state[teamKey].name}" onchange="update('${teamKey}.name', this.value)">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ユニフォーム色</label>
+                    <input class="form-input" value="${state[teamKey].color}" onchange="update('${teamKey}.color', this.value)">
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label">コーチ</label>
+                    <input class="form-input" value="${state[teamKey].coach}" onchange="update('${teamKey}.coach', this.value)">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">A.コーチ</label>
+                    <input class="form-input" value="${state[teamKey].assistantCoach}" onchange="update('${teamKey}.assistantCoach', this.value)">
+                </div>
+            </div>
+
+            <table style="width:100%; border-collapse:collapse; margin-top:1rem;">
+                <thead style="background:#f3f4f6; font-size:0.8rem;">
+                    <tr><th style="padding:4px;">No.</th><th style="padding:4px;">Lic No.</th><th>選手名</th><th style="width:50px;">CAP</th></tr>
+                </thead>
+                <tbody>
+                    ${state[teamKey].players.map((p, i) => `
+                        <tr style="border-bottom:1px solid #eee;">
+                            <td style="width:60px;"><input class="table-input" value="${p.number}" placeholder="No" onchange="update('${teamKey}.players.${i}.number', this.value)"></td>
+                            <td style="width:80px;"><input class="table-input" value="${p.license}" placeholder="Lic" onchange="update('${teamKey}.players.${i}.license', this.value)"></td>
+                            <td><input class="table-input" style="text-align:left;" value="${p.name}" placeholder="氏名" onchange="update('${teamKey}.players.${i}.name', this.value)"></td>
+                            <td style="text-align:center;"><input type="checkbox" ${p.isCaptain?'checked':''} onchange="update('${teamKey}.players.${i}.isCaptain', this.checked)"></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    return `
+    <div class="ui-font" style="background:#f3f4f6; height:100%; overflow:hidden;">
+        <div class="settings-container">
+            <h2 style="margin-top:0;">試合設定</h2>
+            <div class="form-group">
+                <label class="form-label">大会名</label>
+                <input class="form-input" value="${state.game.competition}" onchange="update('game.competition', this.value)">
+            </div>
+            <div class="grid-2">
+                <div class="form-group"><label class="form-label">Game No.</label><input class="form-input" value="${state.game.no}" onchange="update('game.no', this.value)"></div>
+                <div class="form-group"><label class="form-label">会場</label><input class="form-input" value="${state.game.place}" onchange="update('game.place', this.value)"></div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group"><label class="form-label">日付</label><input type="date" class="form-input" value="${state.game.date}" onchange="update('game.date', this.value)"></div>
+                <div class="form-group"><label class="form-label">時間</label><input type="time" class="form-input" value="${state.game.time}" onchange="update('game.time', this.value)"></div>
+            </div>
+            
+            <div style="margin: 2rem 0; border-top:1px solid #ddd;"></div>
+
+            ${renderTeamSettings('teamA', 'チームA')}
+            ${renderTeamSettings('teamB', 'チームB')}
+
+            <div style="margin: 2rem 0; border-top:1px solid #ddd;"></div>
+
+            <h3>審判・オフィシャル</h3>
+            <div class="grid-2">
+                <div class="form-group"><label class="form-label">クルーチーフ</label><input class="form-input" value="${state.game.crewChief}" onchange="update('game.crewChief', this.value)"></div>
+                <div class="form-group"><label class="form-label">1st アンパイア</label><input class="form-input" value="${state.game.umpire1}" onchange="update('game.umpire1', this.value)"></div>
+                <div class="form-group"><label class="form-label">2nd アンパイア</label><input class="form-input" value="${state.game.umpire2}" onchange="update('game.umpire2', this.value)"></div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group"><label class="form-label">スコアラー</label><input class="form-input" value="${state.game.scorer}" onchange="update('game.scorer', this.value)"></div>
+                <div class="form-group"><label class="form-label">A.スコアラー</label><input class="form-input" value="${state.game.assistantScorer}" onchange="update('game.assistantScorer', this.value)"></div>
+                <div class="form-group"><label class="form-label">タイマー</label><input class="form-input" value="${state.game.timer}" onchange="update('game.timer', this.value)"></div>
+                <div class="form-group"><label class="form-label">ショットクロック</label><input class="form-input" value="${state.game.shotClock}" onchange="update('game.shotClock', this.value)"></div>
+            </div>
+        </div>
+    </div>
+    `;
+};
+
+// --- Sheet Rendering Logic ---
+
+const SheetView = () => {
+    // ランニングスコアデータの構築
+    const runningData = [];
+    let curA = 0, curB = 0;
+    // 160点分確保
+    for(let i=1; i<=160; i++) runningData.push({ score: i, a: null, b: null });
+    
+    state.scores.forEach(s => {
+        // 現在の累積スコア
+        const isA = s.team === 'A';
+        const start = isA ? curA : curB;
+        const end = start + s.val;
+        
+        // 得点線の描画データ (斜線などをCSSで表現するのは難しいので、得点が入った行に番号を入れる方式)
+        // PDFの仕様に合わせる:
+        // Aチームが得点したら、A列に番号、A得点列に累積スコア。
+        // 同じ行のB側は空欄。
+        if(isA) {
+            // end点目の行のA側にデータをセット
+            if(runningData[end-1]) {
+                runningData[end-1].a = { no: s.playerNo, q: s.q };
+            }
+            curA = end;
+        } else {
+            if(runningData[end-1]) {
+                runningData[end-1].b = { no: s.playerNo, q: s.q };
+            }
+            curB = end;
+        }
+    });
+
+    const renderTeam = (tk) => {
+        const team = state[tk];
+        // 選手は18人分枠を確保
+        const rows = [];
+        for(let i=0; i<18; i++) {
+            const p = team.players[i] || { number:'', license:'', name:'', fouls:[] };
+            rows.push(p);
+        }
+
+        return `
+        <div class="team-section">
+            <div class="team-header">
+                <div style="font-size:9px;">チーム${tk === 'teamA' ? 'A' : 'B'}</div>
+                <div class="team-name">${team.name}</div>
+                <div style="font-size:9px; margin-left:auto;">Color: ${team.color}</div>
+            </div>
+            
+            <div class="team-meta">
+                <div style="width:45%;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                        <strong>タイムアウト</strong>
+                        <div class="timeout-grid">
+                            ${[0,1].map(i => `<div class="timeout-box">${team.timeouts[1][i]||''}</div>`).join('')}
+                            <span style="font-size:8px; line-height:14px;">(1·2)</span>
+                            ${[0,1,2].map(i => `<div class="timeout-box">${team.timeouts[2][i]||''}</div>`).join('')}
+                            <span style="font-size:8px; line-height:14px;">(3·4)</span>
+                        </div>
+                    </div>
+                </div>
+                <div style="width:50%;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <strong>チームファウル</strong>
+                        <div style="display:flex; gap:4px;">
+                            ${[1,2,3,4].map(q => `
+                                <div style="display:flex; align-items:center; gap:2px;">
+                                    <span style="font-size:8px;">${q}</span>
+                                    <div class="foul-box">${team.fouls[q]>0 ? (team.fouls[q]>4?5:team.fouls[q]) : ''}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <table class="player-table">
+                <thead>
+                    <tr>
+                        <th class="col-lic">Lic.</th>
+                        <th class="col-no">No.</th>
+                        <th class="col-name">選手氏名</th>
+                        <th class="col-no">No.</th>
+                        <th colspan="5">ファウル</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows.map((p, i) => `
+                        <tr>
+                            <td class="col-lic">${p.license}</td>
+                            <td class="col-no" style="font-size:8px; color:#888;">${i+1}</td>
+                            <td class="col-name">${p.name} ${p.isCaptain?'(CAP)':''}</td>
+                            <td class="col-no">${p.number}</td>
+                            <td class="col-foul">${p.fouls[0]||''}</td>
+                            <td class="col-foul">${p.fouls[1]||''}</td>
+                            <td class="col-foul">${p.fouls[2]||''}</td>
+                            <td class="col-foul">${p.fouls[3]||''}</td>
+                            <td class="col-foul col-foul-last">${p.fouls[4]||''}</td>
+                        </tr>
+                    `).join('')}
+                    <tr>
+                        <td colspan="4" style="text-align:left; border-right:none;"><span style="font-weight:bold;">コーチ:</span> ${team.coach}</td>
+                        <td colspan="5" style="border-left:none;"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" style="text-align:left; border-right:none;"><span style="font-weight:bold;">A.コーチ:</span> ${team.assistantCoach}</td>
+                        <td colspan="5" style="border-left:none;"></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
         `;
     };
 
-    // --- Main Render Loop ---
-    const app = document.getElementById('app');
-
-    function render() {
-        // Simple router logic
-        let mainContent = '';
-        if (state.viewMode === 'input') mainContent = InputView();
-        else if (state.viewMode === 'sheet') mainContent = OfficialSheetView();
-        else if (state.viewMode === 'settings') mainContent = SettingsView();
-        else if (state.viewMode === 'history') mainContent = HistoryView();
-
-        app.innerHTML = Navbar() + mainContent;
-    }
-
-    // --- Initialization ---
-    loadSavedGames();
-    render();
-
-    // Prevent accidental navigation
-    window.onbeforeunload = () => {
-        if(calculateTotalScore('A') > 0 || calculateTotalScore('B') > 0) return "データが保存されていない可能性があります";
+    const renderRunningColumn = (startIdx, endIdx) => {
+        // 40行分
+        const slice = runningData.slice(startIdx, endIdx);
+        return `
+        <div class="running-col">
+            <div class="rc-header">
+                <div class="rc-cell">A</div>
+                <div class="rc-cell">Score</div>
+                <div class="rc-cell">B</div>
+            </div>
+            ${slice.map(row => `
+                <div class="rc-row">
+                    <div class="rc-num" style="${row.a && (row.a.q===1||row.a.q===3)?'color:red;':''}">${row.a ? row.a.no : ''}</div>
+                    <div class="rc-score ${row.a?'filled':''}" style="${row.a && (row.a.q===1||row.a.q===3)?'color:red;':''}">${row.score}</div>
+                    <div class="rc-score ${row.b?'filled':''}" style="${row.b && (row.b.q===1||row.b.q===3)?'color:red;':''}">${row.score}</div>
+                    <div class="rc-num" style="${row.b && (row.b.q===1||row.b.q===3)?'color:red;':''}">${row.b ? row.b.no : ''}</div>
+                </div>
+            `).join('')}
+        </div>
+        `;
     };
+
+    return `
+    <div class="sheet-wrapper">
+        <div class="sheet">
+            <div class="sheet-title">OFFICIAL SCORESHEET</div>
+            
+            <div class="sheet-header">
+                <div class="header-info-box">
+                    <div class="info-row"><span class="info-label">チームA:</span><div class="info-val">${state.teamA.name}</div></div>
+                    <div class="info-row"><span class="info-label">大会名:</span><div class="info-val">${state.game.competition}</div></div>
+                    <div class="info-row"><span class="info-label">Game No:</span><div class="info-val" style="width:30px; flex:none;">${state.game.no}</div></div>
+                </div>
+                
+                <div class="header-info-box" style="align-items:center;">
+                    <div class="info-row" style="width:100%;">
+                        <span class="info-label">日付:</span><div class="info-val">${state.game.date}</div>
+                        <span class="info-label" style="margin-left:5px;">時間:</span><div class="info-val">${state.game.time}</div>
+                    </div>
+                    <div class="info-row" style="width:100%;"><span class="info-label">場所:</span><div class="info-val">${state.game.place}</div></div>
+                </div>
+
+                <div class="header-info-box">
+                    <div class="info-row"><span class="info-label">チームB:</span><div class="info-val">${state.teamB.name}</div></div>
+                    <div class="referee-box">
+                        <div>
+                            <div><span style="font-weight:bold;">クルーチーフ:</span> ${state.game.crewChief}</div>
+                            <div><span style="font-weight:bold;">Umpire 1:</span> ${state.game.umpire1}</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div><span style="font-weight:bold;">Umpire 2:</span> ${state.game.umpire2}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sheet-body">
+                <div class="col-left">
+                    ${renderTeam('teamA')}
+                    ${renderTeam('teamB')}
+
+                    <div class="score-summary">
+                        <div class="summary-row summary-header">
+                            <div class="s-wide s-cell">スコア</div>
+                            <div class="s-cell">1Q</div>
+                            <div class="s-cell">2Q</div>
+                            <div class="s-cell">3Q</div>
+                            <div class="s-cell">4Q</div>
+                            <div class="s-cell">OT</div>
+                        </div>
+                        <div class="summary-row">
+                            <div class="s-wide s-cell" style="font-weight:bold;">A</div>
+                            <div class="s-cell">${calcQuarterScore('A', 1)}</div>
+                            <div class="s-cell">${calcQuarterScore('A', 2)}</div>
+                            <div class="s-cell">${calcQuarterScore('A', 3)}</div>
+                            <div class="s-cell">${calcQuarterScore('A', 4)}</div>
+                            <div class="s-cell">-</div>
+                        </div>
+                        <div class="summary-row">
+                            <div class="s-wide s-cell" style="font-weight:bold;">B</div>
+                            <div class="s-cell">${calcQuarterScore('B', 1)}</div>
+                            <div class="s-cell">${calcQuarterScore('B', 2)}</div>
+                            <div class="s-cell">${calcQuarterScore('B', 3)}</div>
+                            <div class="s-cell">${calcQuarterScore('B', 4)}</div>
+                            <div class="s-cell">-</div>
+                        </div>
+                        <div class="summary-row" style="background:#f0f0f0;">
+                            <div class="s-cell" style="flex:4; justify-content:space-around; font-weight:bold;">
+                                <span>最終スコア</span>
+                                <span>A: ${calcScore('A')}</span>
+                                <span>B: ${calcScore('B')}</span>
+                            </div>
+                        </div>
+                        <div class="summary-row" style="height:24px;">
+                            <div class="s-cell" style="flex:4; justify-content:flex-start; padding-left:5px;">
+                                <span style="font-weight:bold; margin-right:5px;">勝者チーム:</span> 
+                                ${calcScore('A') > calcScore('B') ? state.teamA.name : (calcScore('B') > calcScore('A') ? state.teamB.name : '')}
+                            </div>
+                        </div>
+                        <div class="summary-row" style="border-bottom:none;">
+                            <div class="s-cell" style="flex:4; justify-content:flex-end; padding-right:5px; font-size:8px;">
+                                試合終了時間: ${state.game.endTime}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-right">
+                    <div class="running-header">RUNNING SCORE</div>
+                    <div class="running-body">
+                        ${renderRunningColumn(0, 40)}
+                        ${renderRunningColumn(40, 80)}
+                        ${renderRunningColumn(80, 120)}
+                        ${renderRunningColumn(120, 160)}
+                    </div>
+                </div>
+            </div>
+
+            <div class="sheet-footer">
+                <div class="footer-item"><span style="font-weight:bold;">スコアラー:</span> <div style="border-bottom:1px solid black; flex:1; text-align:center;">${state.game.scorer}</div></div>
+                <div class="footer-item"><span style="font-weight:bold;">A.スコアラー:</span> <div style="border-bottom:1px solid black; flex:1; text-align:center;">${state.game.assistantScorer}</div></div>
+                <div class="footer-item"><span style="font-weight:bold;">タイマー:</span> <div style="border-bottom:1px solid black; flex:1; text-align:center;">${state.game.timer}</div></div>
+                <div class="footer-item"><span style="font-weight:bold;">ショットクロック:</span> <div style="border-bottom:1px solid black; flex:1; text-align:center;">${state.game.shotClock}</div></div>
+                <div style="width:100%; text-align:right; font-size:8px; margin-top:5px;">
+                    JBA Official Score Sheet Layout (Compatible)
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+};
+
+// --- App Mount ---
+
+function render() {
+    const app = document.getElementById('app');
+    let content = '';
+    
+    if(state.view === 'input') content = InputView();
+    else if(state.view === 'sheet') content = SheetView();
+    else if(state.view === 'settings') content = SettingsView();
+    
+    app.innerHTML = Navbar() + content;
+}
+
+// 初期ロード
+loadState();
+render();
 
 </script>
 </body>
 </html>
-
 
