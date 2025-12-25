@@ -2,34 +2,33 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BasketScore Final (History Print)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BasketScore Perfect Fit Fixed</title>
 <style>
     /* --- CSS Reset & Base --- */
     * { box-sizing: border-box; }
     body { 
         margin: 0; padding: 0; 
-        font-family: "Times New Roman", "YuMincho", "Hiragino Mincho ProN", "Yu Mincho", "MS PMincho", serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         background-color: #333; 
         color: #000;
         -webkit-font-smoothing: antialiased;
-        height: 100vh; overflow: hidden;
+        height: 100vh; width: 100vw; overflow: hidden;
     }
     
-    .ui-font { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-
     /* --- Navbar --- */
     nav { 
-        background-color: #111; color: white; padding: 0 10px; 
+        background-color: #111; color: white; padding: 0 8px; 
         display: flex; justify-content: space-between; align-items: center;
-        height: 40px; border-bottom: 1px solid #444; flex-shrink: 0;
+        height: 44px; border-bottom: 1px solid #444; flex-shrink: 0;
+        position: relative; z-index: 1000; width: 100%;
     }
-    .nav-title { font-weight: bold; font-size: 1rem; }
+    .nav-title { font-weight: bold; font-size: 0.9rem; margin-right: 5px; }
     .nav-group { display: flex; gap: 2px; background: #222; padding: 2px; border-radius: 4px; }
     
     .btn { 
-        padding: 4px 10px; border-radius: 4px; border: none; cursor: pointer; 
-        font-size: 0.85rem; font-weight: bold; transition: background 0.1s;
+        padding: 6px 10px; border-radius: 4px; border: none; cursor: pointer; 
+        font-size: 0.8rem; font-weight: bold; transition: background 0.1s;
         display: inline-flex; align-items: center; justify-content: center; gap: 4px; text-decoration: none;
         white-space: nowrap;
     }
@@ -42,269 +41,383 @@
     
     /* --- Main Container --- */
     #app-container {
-        height: calc(100vh - 40px);
-        display: flex; flex-direction: column; background: #f0f0f0;
+        position: relative;
+        width: 100%; height: calc(100vh - 44px);
+        background: #f0f0f0; overflow: hidden;
+        display: flex; justify-content: center; align-items: flex-start;
+    }
+    
+    #scaler {
+        transform-origin: top center;
+        width: 100%; height: 100%; 
+        display: flex; flex-direction: column;
     }
 
     /* --- INPUT VIEW --- */
     #input-view {
         display: grid;
-        grid-template-columns: 1fr 150px 1fr;
+        grid-template-columns: minmax(0, 1fr) 140px minmax(0, 1fr);
         gap: 2px; height: 100%; background: #ccc; overflow: hidden;
     }
-    .team-col { background: #fff; display: flex; flex-direction: column; overflow: hidden; }
+    @media (max-width: 450px) {
+        #input-view { grid-template-columns: minmax(0, 1fr) 120px minmax(0, 1fr); }
+    }
+
+    .team-col { background: #fff; display: flex; flex-direction: column; overflow: hidden; height: 100%; }
     .team-header {
-        padding: 5px 10px; background: #222; color: white;
+        padding: 0 4px; background: #222; color: white;
         display: flex; justify-content: space-between; align-items: center;
         height: 40px; flex-shrink: 0;
     }
-    .th-name { font-weight: bold; font-size: 0.9rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-    .th-score { font-size: 1.5rem; font-weight: bold; color: #fbbf24; line-height: 1; }
-    .th-sub { font-size: 0.7rem; color: #aaa; }
+    .th-name { font-weight: bold; font-size: 0.85rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 60%; }
+    .th-score { font-size: 1.6rem; font-weight: bold; color: #fbbf24; line-height: 1; }
+    .th-sub { font-size: 0.65rem; color: #aaa; }
 
     .player-list {
-        flex: 1; overflow-y: auto; padding: 5px;
-        display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-        grid-auto-rows: minmax(70px, 1fr); gap: 5px; align-content: start;
+        flex: 1; overflow-y: auto; padding: 2px;
+        display: grid; 
+        grid-template-columns: repeat(auto-fill, minmax(55px, 1fr));
+        grid-auto-rows: minmax(55px, 1fr); 
+        gap: 2px; align-content: start;
     }
+    
     .p-btn {
         background: #f9fafb; border: 1px solid #ddd; border-radius: 4px;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         cursor: pointer; position: relative; user-select: none;
-        transition: transform 0.05s, background 0.1s;
+        transition: transform 0.05s; overflow: hidden;
+        height: 100%; width: 100%;
     }
-    .p-btn:active { transform: scale(0.98); }
-    
-    /* Active States for Colors */
-    .p-btn.active-a { background: #2563eb; color: white; border-color: #1d4ed8; box-shadow: inset 0 0 5px rgba(0,0,0,0.2); }
-    .p-btn.active-b { background: #dc2626; color: white; border-color: #b91c1c; box-shadow: inset 0 0 5px rgba(0,0,0,0.2); }
-    
+    .p-btn:active { transform: scale(0.96); }
+    .p-btn.active-a { background: #2563eb; color: white; border-color: #1d4ed8; }
+    .p-btn.active-b { background: #dc2626; color: white; border-color: #b91c1c; }
     .p-btn.out { opacity: 0.5; background: #fee2e2; }
-    .p-no { font-size: 1.4rem; font-weight: bold; font-family: monospace; line-height: 1; }
-    .p-name { font-size: 0.7rem; width: 100%; text-align: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-    .p-dots { display: flex; gap: 2px; margin-top: 2px; height: 5px; }
-    .dot { width: 5px; height: 5px; border-radius: 50%; background: #e5e7eb; }
-    .dot.on { background: #eab308; }
-    .p-mark { position: absolute; top: 2px; left: 2px; font-size: 0.6rem; font-weight: bold; color: #eab308; }
-
-    .center-col { background: #e5e7eb; display: flex; flex-direction: column; padding: 5px; gap: 5px; overflow-y: auto; }
-    .q-box { display: flex; justify-content: space-between; align-items: center; background: #333; color: white; padding: 5px; border-radius: 4px; flex-shrink: 0; }
-    .info-box { background: white; border-radius: 4px; padding: 5px; text-align: center; border: 1px solid #ccc; flex-shrink: 0; }
     
-    .sel-info { height: 1.2rem; font-weight: bold; font-size: 0.9rem; color: #666; overflow: hidden; white-space: nowrap; }
+    .p-no { font-size: 1.2rem; font-weight: bold; font-family: monospace; line-height: 1; }
+    .p-name { font-size: 0.6rem; width: 100%; text-align: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin-top:1px; }
+    .p-dots { display: flex; gap: 1px; margin-top: 1px; height: 3px; }
+    .dot { width: 3px; height: 3px; border-radius: 50%; background: #e5e7eb; }
+    .dot.on { background: #eab308; }
+    .p-mark { position: absolute; top: 1px; left: 1px; font-size: 0.5rem; font-weight: bold; color: #eab308; }
+
+    .center-col { 
+        background: #e5e7eb; display: flex; flex-direction: column; 
+        padding: 2px; gap: 2px; height: 100%; overflow: hidden;
+    }
+    
+    .q-box { 
+        display: flex; justify-content: space-between; align-items: center; 
+        background: #333; color: white; padding: 0 4px; border-radius: 4px; 
+        height: 36px; flex-shrink: 0; 
+    }
+    .info-box { 
+        background: white; border-radius: 4px; padding: 2px; text-align: center; 
+        border: 1px solid #ccc; flex-shrink: 0; height: 32px; 
+        display:flex; flex-direction:column; justify-content:center;
+    }
+    .sel-info { height: 1rem; font-weight: bold; font-size: 0.8rem; color: #666; overflow: hidden; white-space: nowrap; line-height:1rem; }
     .sel-info.team-a { color: #2563eb; }
     .sel-info.team-b { color: #dc2626; }
     
-    .btn-col { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-    .grp-lbl { font-size: 0.7rem; font-weight: bold; color: #555; text-align: center; margin-bottom: 2px; }
-    .act-btn {
-        flex: 1; min-height: 40px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: background 0.1s;
+    .actions-area {
+        flex: 1; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; min-height: 0;
     }
-    .act-score { background: #16a34a; color: white; font-size: 1.1rem; }
-    .act-score span { font-size: 0.6rem; opacity: 0.9; font-weight: normal; }
-    .act-foul { background: #eab308; color: white; font-size: 0.9rem; }
-    .act-spec { background: #f59e0b; color: white; font-size: 0.8rem; }
+    .btn-group { display: flex; flex-direction: column; gap: 2px; flex: 1; justify-content:center; min-height: 60px; }
+    .grp-lbl { font-size: 0.65rem; font-weight: bold; color: #555; text-align: center; margin-bottom: 1px; }
     
-    .bottom-ctrl { margin-top: auto; display: flex; flex-direction: column; gap: 5px; }
-    .to-row { display: flex; gap: 2px; }
-    .to-btn { flex: 1; font-size: 0.7rem; padding: 8px 0; background: #fff; border: 1px solid #ccc; }
+    .act-btn {
+        flex: 1; min-height: 0;
+        border-radius: 4px; border: none; cursor: pointer; font-weight: bold;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1); padding: 0;
+    }
+    .act-score { background: #16a34a; color: white; font-size: 1rem; }
+    .act-score span { font-size: 0.55rem; opacity: 0.9; font-weight: normal; }
+    .act-foul { background: #eab308; color: white; font-size: 0.85rem; }
+    .act-spec { background: #f59e0b; color: white; font-size: 0.75rem; }
+    
+    .bottom-ctrl { margin-top: auto; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; padding-top: 2px;}
+    .to-row { display: flex; gap: 2px; height: 36px; }
+    .to-btn { flex: 1; font-size: 0.7rem; padding: 0; background: #fff; border: 1px solid #ccc; height: 100%; }
 
     /* --- SETTINGS VIEW --- */
-    #settings-view { overflow-y: auto; padding: 20px; display: none; background: #f3f4f6; }
-    .set-box { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    #settings-view { 
+        display: none; background: #f3f4f6; 
+        height: 100%; width: 100%; 
+        padding: 10px; overflow: hidden; 
+    }
+    .settings-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-rows: 1fr; 
+        gap: 10px;
+        height: 100%;
+    }
+    @media (max-width: 800px) {
+        .settings-layout { grid-template-columns: 1fr; grid-template-rows: auto auto auto; overflow-y: auto; }
+    }
+    .set-panel {
+        background: white; padding: 10px; border-radius: 8px; 
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        display: flex; flex-direction: column;
+        overflow: hidden; 
+    }
+    .set-panel h3 { margin: 0 0 8px 0; font-size: 0.9rem; border-bottom: 2px solid #eee; padding-bottom: 4px; flex-shrink: 0; }
+    .scroll-content { flex: 1; overflow-y: auto; }
+    .form-row { display: flex; gap: 6px; margin-bottom: 6px; }
     .form-grp { flex: 1; }
-    .form-lbl { font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 2px; }
-    .form-inp { width: 100%; padding: 5px; font-size: 0.9rem; border: 1px solid #ccc; border-radius: 4px; }
-    .tbl-set { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    .tbl-set th { background: #eee; padding: 4px; text-align: center; font-weight: bold; }
+    .form-lbl { font-size: 0.65rem; font-weight: bold; display: block; margin-bottom: 1px; color:#555; }
+    .form-inp { width: 100%; padding: 4px; font-size: 0.85rem; border: 1px solid #ccc; border-radius: 4px; }
+    .tbl-container { flex: 1; overflow-y: auto; border: 1px solid #eee; margin-top: 5px; }
+    .tbl-set { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+    .tbl-set th { background: #eee; padding: 4px; text-align: center; font-weight: bold; position: sticky; top: 0; z-index: 10; }
     .tbl-set td { border-bottom: 1px solid #eee; padding: 2px; text-align: center; }
-    .inp-cell { width: 100%; border: 1px solid transparent; padding: 4px; text-align: center; }
+    .inp-cell { width: 100%; border: 1px solid transparent; padding: 2px; text-align: center; background:transparent; font-size: 0.8rem; }
     .inp-cell:focus { border-color: #2563eb; background: #eff6ff; }
 
     /* --- HISTORY VIEW --- */
-    #history-view { display: none; padding: 20px; overflow-y: auto; background: #f3f4f6; }
-    .hist-list { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
-    .hist-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
-    
-    /* --- SHEET VIEW --- */
-    #sheet-view { display: none; justify-content: center; padding: 20px; overflow: auto; background: #525659; }
-    .paper-a4 {
-        width: 210mm; height: 297mm; background: white; padding: 10mm;
-        box-shadow: 0 0 15px rgba(0,0,0,0.5); box-sizing: border-box;
-        display: flex; flex-direction: column; font-size: 10px; line-height: 1.1;
+    #history-view { 
+        display: none; background: #f3f4f6; 
+        height: 100%; width: 100%; padding: 10px;
+        overflow-y: hidden;
+    }
+    .hist-container {
+        max-width: 800px; margin: 0 auto; 
+        height: 100%; overflow-y: auto; 
+        display: flex; flex-direction: column; gap: 10px;
+    }
+    .hist-card { 
+        background: white; padding: 12px; border-radius: 8px; 
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+        display: flex; justify-content: space-between; align-items: center; 
+        flex-shrink: 0;
     }
     
-    /* Sheet Utils */
-    .s-row { display: flex; width: 100%; }
+    /* --- SHEET VIEW (Fix for Overlap) --- */
+    #sheet-view { 
+        display: none; 
+        width: 100%; height: 100%;
+        background: white; 
+        padding: 0; margin: 0;
+        overflow: hidden; 
+        flex-direction: column;
+    }
+    
+    /* The Sheet Wrapper */
+    .sheet-wrapper {
+        width: 100%; height: 100%;
+        display: flex; flex-direction: column;
+        padding: 5px; 
+        /* Use vmin to keep aspect ratio sane on extreme screens, or just use smaller vh */
+        font-size: 1.2vh; 
+        background: white;
+    }
+
+    /* Common Sheet Utils */
+    .flex-row { display: flex; width: 100%; }
+    .flex-col { display: flex; flex-direction: column; }
+    .flex-1 { flex: 1; min-height: 0; min-width: 0; }
+    
     .bd { border: 1px solid #000; }
     .bt { border-top: 1px solid #000; }
     .bb { border-bottom: 1px solid #000; }
     .bl { border-left: 1px solid #000; }
     .br { border-right: 1px solid #000; }
+    
     .txt-c { text-align: center; }
     .txt-b { font-weight: bold; }
     .bg-g { background: #eee; }
     .text-red { color: #dc2626 !important; }
     
-    /* Visual Symbols for Running Score */
-    .slash { 
-        background: linear-gradient(to top right, transparent calc(50% - 0.5px), black calc(50% - 0.5px), black calc(50% + 0.5px), transparent calc(50% + 0.5px)); 
+    .center-v { display: flex; align-items: center; justify-content: center; }
+    
+    /* Sheet Header Grid Layout to avoid Absolute Positioning overlap */
+    .sheet-header-grid {
+        display: grid;
+        grid-template-columns: 35% 30% 35%;
+        grid-template-rows: auto auto auto;
+        gap: 2px;
+        width: 100%;
+        margin-bottom: 5px;
+        border-bottom: 2px solid #000;
+        padding-bottom: 5px;
+        flex-shrink: 0;
     }
-    .slash-red {
-        background: linear-gradient(to top right, transparent calc(50% - 0.5px), #dc2626 calc(50% - 0.5px), #dc2626 calc(50% + 0.5px), transparent calc(50% + 0.5px)); 
-    }
-    .circle-num {
-        border: 1px solid black; border-radius: 50%; width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; margin: 0 auto;
-    }
-    .circle-num-red {
-        border: 1px solid #dc2626; color: #dc2626; border-radius: 50%; width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; margin: 0 auto;
-    }
-    .filled-dot {
-        width: 6px; height: 6px; background: black; border-radius: 50%; margin: auto;
-    }
-    .filled-dot-red {
-        width: 6px; height: 6px; background: #dc2626; border-radius: 50%; margin: auto;
-    }
+    .sh-title { grid-column: 1 / 4; text-align: center; font-weight: bold; font-size: 1.5em; letter-spacing: 2px; margin-bottom: 5px; }
+    .sh-left { grid-column: 1; }
+    .sh-center { grid-column: 2; text-align: center; }
+    .sh-right { grid-column: 3; }
+    .sh-bottom { grid-column: 1 / 4; display: flex; justify-content: space-between; margin-top: 5px; }
 
-    /* Pl-in Circle for Starter */
-    .starter-mark {
-        width: 12px; height: 12px; border: 1px solid #dc2626; border-radius: 50%; color: #dc2626; font-size: 9px; line-height: 11px; text-align: center; display: inline-block;
-    }
+    /* Visual Symbols */
+    .slash { background: linear-gradient(to top right, transparent calc(50% - 0.5px), black calc(50% - 0.5px), black calc(50% + 0.5px), transparent calc(50% + 0.5px)); }
+    .slash-red { background: linear-gradient(to top right, transparent calc(50% - 0.5px), #dc2626 calc(50% - 0.5px), #dc2626 calc(50% + 0.5px), transparent calc(50% + 0.5px)); }
+    
+    .circle-num { border: 1px solid black; border-radius: 50%; width: 1.6em; height: 1.6em; display: inline-flex; align-items: center; justify-content: center; line-height: 1; margin: 0 auto; }
+    .circle-num-red { border: 1px solid #dc2626; color: #dc2626; border-radius: 50%; width: 1.6em; height: 1.6em; display: inline-flex; align-items: center; justify-content: center; line-height: 1; margin: 0 auto; }
+    .filled-dot { width: 0.6em; height: 0.6em; background: black; border-radius: 50%; margin: auto; }
+    .filled-dot-red { width: 0.6em; height: 0.6em; background: #dc2626; border-radius: 50%; margin: auto; }
+    .starter-mark { width: 1.2em; height: 1.2em; border: 1px solid #dc2626; border-radius: 50%; color: #dc2626; font-size: 0.9em; line-height: 1.2; text-align: center; display: inline-block; }
 
+    /* Print Overrides */
     @media print {
         @page { size: A4 portrait; margin: 0; }
-        body { background: white; height: auto; overflow: visible; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        nav, #input-view, #settings-view, #history-view { display: none !important; }
-        #app-container { height: auto; display: block; }
+        body { background: white; height: auto; overflow: visible; width:auto; transform:none !important; }
+        nav { display: none !important; }
+        #app-container { height: auto; display: block; overflow:visible; width:auto; transform:none !important; margin:0; padding:0; }
+        #scaler { transform:none !important; width:auto; height:auto; display:block; }
+        #input-view, #settings-view, #history-view { display: none !important; }
+        
         #sheet-view { display: block !important; padding: 0; margin: 0; overflow: visible; height: auto; }
-        .paper-a4 { box-shadow: none; margin: 0; width: 210mm; height: 297mm; page-break-after: always; }
+        .sheet-wrapper {
+            width: 210mm !important; height: 297mm !important;
+            padding: 10mm !important; margin: 0; 
+            font-size: 10px !important;
+            display: flex !important;
+        }
+        .sheet-header-grid { display: grid !important; } /* Force grid print */
     }
 </style>
 </head>
 <body>
 
 <nav class="ui-font">
-    <div class="nav-title">BasketScore</div>
-    <div class="nav-group">
-        <button class="btn btn-nav active" id="nav-input" onclick="setView('input')">入力</button>
-        <button class="btn btn-nav" id="nav-sheet" onclick="setView('sheet')">シート</button>
-        <button class="btn btn-nav" id="nav-settings" onclick="setView('settings')">設定</button>
-        <button class="btn btn-nav" id="nav-history" onclick="setView('history')">履歴</button>
+    <div style="display:flex; align-items:center;">
+        <div class="nav-title">BasketScore</div>
+        <div class="nav-group">
+            <button class="btn btn-nav active" id="nav-input" onclick="setView('input')">入力</button>
+            <button class="btn btn-nav" id="nav-sheet" onclick="setView('sheet')">シート</button>
+            <button class="btn btn-nav" id="nav-settings" onclick="setView('settings')">設定</button>
+            <button class="btn btn-nav" id="nav-history" onclick="setView('history')">履歴</button>
+        </div>
     </div>
     <div style="display:flex; gap:5px;">
         <button class="btn btn-secondary" onclick="newGame()">新規</button>
+        <button class="btn btn-warning" id="btn-print" onclick="window.print()" style="display:none;">印刷</button>
         <button class="btn btn-primary" onclick="saveGame()">保存</button>
     </div>
 </nav>
 
 <div id="app-container" class="ui-font">
+    <div id="scaler">
 
-    <!-- INPUT VIEW -->
-    <div id="input-view">
-        <div class="team-col">
-            <div class="team-header">
-                <div style="width:70%;">
-                    <div class="th-name" id="name-a">TEAM A</div>
-                    <div class="th-sub">Fouls: <span id="foul-a">0</span></div>
+        <!-- INPUT VIEW -->
+        <div id="input-view">
+            <div class="team-col">
+                <div class="team-header">
+                    <div style="width:65%;">
+                        <div class="th-name" id="name-a">TEAM A</div>
+                        <div class="th-sub">Fouls: <span id="foul-a">0</span></div>
+                    </div>
+                    <div class="th-score" id="score-a">0</div>
                 </div>
-                <div class="th-score" id="score-a">0</div>
+                <div id="list-a" class="player-list"></div>
             </div>
-            <div id="list-a" class="player-list"></div>
+
+            <div class="center-col">
+                <div class="q-box">
+                    <div style="font-weight:bold; font-size:1.2rem; color:#ef4444;" id="disp-q">Q1</div>
+                    <button class="btn btn-secondary" onclick="nextQ()">Next</button>
+                </div>
+                <div class="info-box">
+                    <div style="font-size:0.6rem; color:#666;">SELECT</div>
+                    <div class="sel-info" id="sel-name">---</div>
+                </div>
+                
+                <div class="actions-area">
+                    <div class="btn-group">
+                        <div class="grp-lbl">SCORE</div>
+                        <button class="act-btn act-score" onclick="actScore(1)">+1 <span>FT ●</span></button>
+                        <button class="act-btn act-score" onclick="actScore(2)">+2 <span>FG ／</span></button>
+                        <button class="act-btn act-score" onclick="actScore(3)">+3 <span>3P ○</span></button>
+                    </div>
+                    <div class="btn-group" style="flex-grow: 1.2;">
+                        <div class="grp-lbl">FOUL</div>
+                        <div style="display:flex; gap:2px; flex:1; width:100%;">
+                            <button class="act-btn act-foul" onclick="actFoul('P')">P</button>
+                            <button class="act-btn act-foul" onclick="actFoul('P1')">P1</button>
+                            <button class="act-btn act-foul" onclick="actFoul('P2')">P2</button>
+                        </div>
+                        <div style="display:flex; gap:2px; flex:1; width:100%;">
+                            <button class="act-btn act-spec" onclick="actFoul('T1')">T1</button>
+                            <button class="act-btn act-spec" onclick="actFoul('U2')">U2</button>
+                            <button class="act-btn act-spec" onclick="actFoul('D2')">D2</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bottom-ctrl">
+                    <div class="to-row">
+                        <button class="btn to-btn" onclick="actTO('A')">A TO</button>
+                        <button class="btn to-btn" onclick="actTO('B')">B TO</button>
+                    </div>
+                    <button class="btn btn-danger" style="width:100%; padding:0; height:36px;" onclick="actUndo()">Undo</button>
+                </div>
+            </div>
+
+            <div class="team-col">
+                <div class="team-header">
+                    <div class="th-score" id="score-b">0</div>
+                    <div style="width:65%; text-align:right;">
+                        <div class="th-name" id="name-b">TEAM B</div>
+                        <div class="th-sub">Fouls: <span id="foul-b">0</span></div>
+                    </div>
+                </div>
+                <div id="list-b" class="player-list"></div>
+            </div>
         </div>
 
-        <div class="center-col">
-            <div class="q-box">
-                <div style="font-weight:bold; font-size:1.2rem; color:#ef4444;" id="disp-q">Q1</div>
-                <button class="btn btn-secondary" onclick="nextQ()">Next</button>
-            </div>
-            <div class="info-box">
-                <div style="font-size:0.65rem; color:#666;">SELECT</div>
-                <div class="sel-info" id="sel-name">---</div>
-            </div>
-            
-            <div class="btn-col" style="flex:1;">
-                <div class="grp-lbl">SCORE (得点)</div>
-                <button class="act-btn act-score" onclick="actScore(1)">+1 <span>FT ●</span></button>
-                <button class="act-btn act-score" onclick="actScore(2)">+2 <span>FG ／</span></button>
-                <button class="act-btn act-score" onclick="actScore(3)">+3 <span>3P ○</span></button>
-            </div>
-
-            <div class="btn-col" style="flex:1.2;">
-                <div class="grp-lbl">FOUL (ファウル)</div>
-                <div style="display:flex; gap:2px; flex:1;">
-                    <button class="act-btn act-foul" onclick="actFoul('P')">P</button>
-                    <button class="act-btn act-foul" onclick="actFoul('P1')">P1</button>
-                    <button class="act-btn act-foul" onclick="actFoul('P2')">P2</button>
+        <!-- SETTINGS VIEW (Multi-Col) -->
+        <div id="settings-view">
+            <div class="settings-layout">
+                <!-- Panel 1: Info -->
+                <div class="set-panel">
+                    <h3>GAME INFO</h3>
+                    <div class="scroll-content">
+                        <div class="form-row"><div class="form-grp"><label class="form-lbl">大会名</label><input class="form-inp" id="inp-comp" onchange="upMeta('competition', this.value)"></div></div>
+                        <div class="form-row">
+                            <div class="form-grp"><label class="form-lbl">日付</label><input type="date" class="form-inp" id="inp-date" onchange="upMeta('date', this.value)"></div>
+                            <div class="form-grp"><label class="form-lbl">時間</label><input type="time" class="form-inp" id="inp-time" onchange="upMeta('time', this.value)"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-grp"><label class="form-lbl">会場</label><input class="form-inp" id="inp-place" onchange="upMeta('place', this.value)"></div>
+                            <div class="form-grp"><label class="form-lbl">Game No</label><input class="form-inp" id="inp-no" onchange="upMeta('no', this.value)"></div>
+                        </div>
+                        <div style="margin-top:10px; border-top:1px solid #eee; padding-top:5px;">
+                            <div class="form-row"><div class="form-grp"><label class="form-lbl">Crew Chief</label><input class="form-inp" id="inp-cc" onchange="upMeta('crewChief', this.value)"></div></div>
+                            <div class="form-row">
+                                <div class="form-grp"><label class="form-lbl">Umpire 1</label><input class="form-inp" id="inp-u1" onchange="upMeta('umpire1', this.value)"></div>
+                                <div class="form-grp"><label class="form-lbl">Umpire 2</label><input class="form-inp" id="inp-u2" onchange="upMeta('umpire2', this.value)"></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-grp"><label class="form-lbl">Scorer</label><input class="form-inp" id="inp-sc" onchange="upMeta('scorer', this.value)"></div>
+                                <div class="form-grp"><label class="form-lbl">A.Scorer</label><input class="form-inp" id="inp-asc" onchange="upMeta('assistantScorer', this.value)"></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-grp"><label class="form-lbl">Timer</label><input class="form-inp" id="inp-tm" onchange="upMeta('timer', this.value)"></div>
+                                <div class="form-grp"><label class="form-lbl">Shot Clock</label><input class="form-inp" id="inp-scc" onchange="upMeta('shotClock', this.value)"></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-grp"><label class="form-lbl">試合終了時間</label><input type="time" class="form-inp" id="inp-end" onchange="upMeta('gameEndedAt', this.value)"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div style="display:flex; gap:2px; flex:1;">
-                    <button class="act-btn act-spec" onclick="actFoul('T1')">T1</button>
-                    <button class="act-btn act-spec" onclick="actFoul('U2')">U2</button>
-                    <button class="act-btn act-spec" onclick="actFoul('D2')">D2</button>
-                </div>
-            </div>
-
-            <div class="bottom-ctrl">
-                <div class="to-row">
-                    <button class="btn to-btn" onclick="actTO('A')">A TimeOut</button>
-                    <button class="btn to-btn" onclick="actTO('B')">B TimeOut</button>
-                </div>
-                <button class="btn btn-danger" style="width:100%; padding:10px 0;" onclick="actUndo()">Undo (取消)</button>
+                <!-- Panel 2: Team A -->
+                <div id="set-team-A" class="set-panel"></div>
+                <!-- Panel 3: Team B -->
+                <div id="set-team-B" class="set-panel"></div>
             </div>
         </div>
 
-        <div class="team-col">
-            <div class="team-header">
-                <div class="th-score" id="score-b">0</div>
-                <div style="width:70%; text-align:right;">
-                    <div class="th-name" id="name-b">TEAM B</div>
-                    <div class="th-sub">Fouls: <span id="foul-b">0</span></div>
-                </div>
-            </div>
-            <div id="list-b" class="player-list"></div>
+        <!-- HISTORY VIEW -->
+        <div id="history-view">
+            <div class="hist-container" id="hist-container"></div>
         </div>
-    </div>
 
-    <!-- SETTINGS VIEW -->
-    <div id="settings-view">
-        <div class="set-box">
-            <h3>試合設定</h3>
-            <div class="form-row">
-                <div class="form-grp"><label class="form-lbl">大会名</label><input class="form-inp" id="inp-comp" onchange="upMeta('competition', this.value)"></div>
-            </div>
-            <div class="form-row">
-                <div class="form-grp"><label class="form-lbl">日付</label><input type="date" class="form-inp" id="inp-date" onchange="upMeta('date', this.value)"></div>
-                <div class="form-grp"><label class="form-lbl">時間</label><input type="time" class="form-inp" id="inp-time" onchange="upMeta('time', this.value)"></div>
-                <div class="form-grp"><label class="form-lbl">会場</label><input class="form-inp" id="inp-place" onchange="upMeta('place', this.value)"></div>
-                <div class="form-grp"><label class="form-lbl">Game No</label><input class="form-inp" id="inp-no" onchange="upMeta('no', this.value)"></div>
-            </div>
-            <hr style="border:0; border-top:1px solid #ddd; margin:15px 0;">
-            <div id="team-settings"></div>
-            <hr style="border:0; border-top:1px solid #ddd; margin:15px 0;">
-            <h3>審判・オフィシャル</h3>
-            <div class="form-row">
-                <div class="form-grp"><label class="form-lbl">クルーチーフ</label><input class="form-inp" id="inp-cc" onchange="upMeta('crewChief', this.value)"></div>
-                <div class="form-grp"><label class="form-lbl">Umpire 1</label><input class="form-inp" id="inp-u1" onchange="upMeta('umpire1', this.value)"></div>
-                <div class="form-grp"><label class="form-lbl">Umpire 2</label><input class="form-inp" id="inp-u2" onchange="upMeta('umpire2', this.value)"></div>
-            </div>
-            <div class="form-row">
-                <div class="form-grp"><label class="form-lbl">スコアラー</label><input class="form-inp" id="inp-sc" onchange="upMeta('scorer', this.value)"></div>
-                <div class="form-grp"><label class="form-lbl">タイマー</label><input class="form-inp" id="inp-tm" onchange="upMeta('timer', this.value)"></div>
-            </div>
-        </div>
-    </div>
+        <!-- SHEET VIEW -->
+        <div id="sheet-view"></div>
 
-    <!-- HISTORY VIEW -->
-    <div id="history-view">
-        <div class="hist-list" id="hist-container"></div>
-    </div>
-
-    <!-- SHEET VIEW -->
-    <div id="sheet-view">
-        <button class="btn btn-warning" onclick="window.print()" style="position:fixed; bottom:20px; right:20px; box-shadow:0 2px 10px rgba(0,0,0,0.3); z-index:100;">印刷 (PDF)</button>
-        <div id="sheet-paper" class="paper-a4"></div>
     </div>
 </div>
 
@@ -318,10 +431,10 @@ const initSt = () => ({
     gameId: genId(), lastSaved: null,
     view: 'input', selT: null, selId: null,
     q: 1,
-    meta: { competition:'', date:todayStr(), time:'', place:'', no:'', crewChief:'', umpire1:'', umpire2:'', scorer:'', timer:'', shotClock:'' },
+    meta: { competition:'', date:todayStr(), time:'', place:'', no:'', crewChief:'', umpire1:'', umpire2:'', scorer:'', assistantScorer: '', timer:'', shotClock:'', gameEndedAt:'' },
     teamA: { name:'TEAM A', color:'', coach:'', ac:'', players:Array.from({length:18},(_,i)=>createP(i)), timeouts:{1:[],2:[]}, fouls:{1:0,2:0,3:0,4:0} },
     teamB: { name:'TEAM B', color:'', coach:'', ac:'', players:Array.from({length:18},(_,i)=>createP(i)), timeouts:{1:[],2:[]}, fouls:{1:0,2:0,3:0,4:0} },
-    logs: [] // {q, team, pid, no, val, type} type: score(1,2,3), foul
+    logs: [] 
 });
 let st = initSt();
 
@@ -329,13 +442,13 @@ let st = initSt();
 function saveGame() {
     st.lastSaved = new Date().toISOString();
     let hist = [];
-    try { hist = JSON.parse(localStorage.getItem('bss_hist_v2') || '[]'); } catch(e){}
+    try { hist = JSON.parse(localStorage.getItem('bss_hist_v6') || '[]'); } catch(e){}
     const idx = hist.findIndex(g => g.gameId === st.gameId);
     if(idx >= 0) hist[idx] = st; else hist.unshift(st);
-    localStorage.setItem('bss_hist_v2', JSON.stringify(hist));
-    alert('保存しました (履歴に追加)');
+    localStorage.setItem('bss_hist_v6', JSON.stringify(hist));
+    alert('保存しました');
 }
-function loadGameList() { try { return JSON.parse(localStorage.getItem('bss_hist_v2') || '[]'); } catch(e){return[];} }
+function loadGameList() { try { return JSON.parse(localStorage.getItem('bss_hist_v6') || '[]'); } catch(e){return[];} }
 function loadGame(id) {
     if(!confirm('編集中の内容は破棄されます。よろしいですか？')) return;
     const g = loadGameList().find(x => x.gameId === id);
@@ -344,17 +457,13 @@ function loadGame(id) {
 function deleteGame(id) {
     if(!confirm('削除しますか？')) return;
     const hist = loadGameList().filter(g => g.gameId !== id);
-    localStorage.setItem('bss_hist_v2', JSON.stringify(hist));
+    localStorage.setItem('bss_hist_v6', JSON.stringify(hist));
     renHistory();
 }
 function printGame(id) {
-    if(!confirm('現在の画面を閉じて、選択した試合の記録を開き、印刷しますか？\n(未保存の入力は消えます)')) return;
+    if(!confirm('画面を閉じて印刷しますか？')) return;
     const g = loadGameList().find(x => x.gameId === id);
-    if(g) {
-        st = g;
-        setView('sheet');
-        setTimeout(() => { window.print(); }, 500);
-    }
+    if(g) { st = g; setView('sheet'); setTimeout(() => { window.print(); }, 500); }
 }
 function newGame() {
     if(!confirm('新規作成しますか？')) return;
@@ -366,43 +475,47 @@ function setView(v) {
     st.view = v;
     ['input','sheet','settings','history'].forEach(k => {
         const el = document.getElementById(k+'-view');
-        if(el) el.style.display = k===v ? (k==='input'?'grid':(k==='sheet'?'flex':'block')) : 'none';
+        if(el) el.style.display = k===v ? (k==='input'?'grid':(k==='settings'?'block':(k==='sheet'?'flex':'block'))) : 'none';
         document.getElementById('nav-'+k).classList.toggle('active', k===v);
     });
+    document.getElementById('btn-print').style.display = v==='sheet'?'inline-flex':'none';
+    
     if(v==='input') renInput();
     if(v==='settings') renSettings();
     if(v==='history') renHistory();
-    if(v==='sheet') { renSheet(); fitSheet(); window.onresize = fitSheet; }
-    else window.onresize = null;
+    if(v==='sheet') renSheet();
+    autoScale();
 }
+
+// AUTO SCALER
+function autoScale() {
+    const scaler = document.getElementById('scaler');
+    scaler.style.width = '100%';
+    scaler.style.height = '100%';
+    scaler.style.transform = 'none';
+}
+window.addEventListener('resize', () => { autoScale(); });
 
 function selP(tm, pid) { st.selT = tm; st.selId = pid; renInput(); }
+function markPlayed(tm, pid) { const p = getP(tm, pid); if(p && !p.played) p.played = true; }
 
-function markPlayed(tm, pid) {
-    const p = getP(tm, pid);
-    if(p && !p.played) p.played = true;
-}
-
-function actScore(val) { // val: 1(FT), 2(FG), 3(3P)
+function actScore(val) {
     if(!st.selId) return;
     const p = getP(st.selT, st.selId);
     if(!p.no) return alert('背番号がありません');
-    
     markPlayed(st.selT, st.selId);
     st.logs.push({ q:st.q, team:st.selT, pid:st.selId, no:p.no, val:val, type:'score' });
     renInput();
 }
 
-function actFoul(code) { // P, P1, P2, T1, U2, D2...
+function actFoul(code) {
     if(!st.selId) return;
     const p = getP(st.selT, st.selId);
     if(p.fouls.length>=5) return alert('5ファウル済み');
-    
     markPlayed(st.selT, st.selId);
     p.fouls.push(code); 
     const qMap = st.q>4?4:st.q;
     st[st.selT==='A'?'teamA':'teamB'].fouls[qMap]++;
-    
     st.logs.push({ q:st.q, team:st.selT, pid:st.selId, no:p.no, val:0, type:'foul', code:code });
     renInput();
 }
@@ -410,7 +523,7 @@ function actFoul(code) { // P, P1, P2, T1, U2, D2...
 function actTO(tm) {
     const tk = tm==='A'?'teamA':'teamB';
     const h = st.q<=2?1:2;
-    const min = prompt("経過時間(分)を入力してください (例: 5)", "");
+    const min = prompt("経過時間(分)", "");
     st[tk].timeouts[h].push(min || 'X');
     renInput();
 }
@@ -471,65 +584,69 @@ function renInput() {
             return `
             <div class="p-btn ${activeClass} ${p.fouls.length>=5?'out':''}" onclick="selP('${tm}','${p.id}')">
                 ${p.capt?'<div class="p-mark">CAP</div>':''}
-                ${p.start?'<div style="position:absolute; bottom:2px; left:2px; font-size:0.6rem; color:red;">ST</div>':''}
+                ${p.start?'<div style="position:absolute; bottom:2px; left:2px; font-size:0.5rem; color:red;">ST</div>':''}
                 <div class="p-no">${p.no}</div>
                 <div class="p-name">${p.name||'-'}</div>
                 <div class="p-dots">
                     ${[1,2,3,4,5].map(i=>`<div class="dot ${i<=p.fouls.length?'on':''}"></div>`).join('')}
                 </div>
-            </div>
-            `;
+            </div>`;
         }).join('');
         document.getElementById('list-'+tm.toLowerCase()).innerHTML = html;
     });
+    autoScale();
 }
 
 function renSettings() {
-    ['comp','date','time','place','no','cc','u1','u2','sc','tm'].forEach(k => {
+    ['comp','date','time','place','no','cc','u1','u2','sc','asc','tm','scc','end'].forEach(k => {
         const el = document.getElementById('inp-'+k);
         if(el) {
-            const mk = k==='comp'?'competition':(k==='cc'?'crewChief':(k==='u1'?'umpire1':(k==='u2'?'umpire2':(k==='sc'?'scorer':(k==='tm'?'timer':k)))));
-            el.value = st.meta[mk];
+            const mk = k==='comp'?'competition':(k==='cc'?'crewChief':(k==='u1'?'umpire1':(k==='u2'?'umpire2':(k==='sc'?'scorer':(k==='asc'?'assistantScorer':(k==='tm'?'timer':(k==='scc'?'shotClock':(k==='end'?'gameEndedAt':k))))))));
+            el.value = st.meta[mk] || '';
         }
     });
 
-    let html = '';
     ['teamA','teamB'].forEach(tk => {
-        html += `
-        <div style="margin-bottom:20px;">
-            <div style="font-weight:bold; border-bottom:1px solid #ddd; margin-bottom:10px;">${tk==='teamA'?'TEAM A':'TEAM B'}</div>
-            <div class="form-row">
-                <div class="form-grp"><label class="form-lbl">Team Name</label><input class="form-inp" value="${st[tk].name}" onchange="upTeam('${tk}','name',this.value)"></div>
-                <div class="form-grp"><label class="form-lbl">Color</label><input class="form-inp" value="${st[tk].color}" onchange="upTeam('${tk}','color',this.value)"></div>
-                <div class="form-grp"><label class="form-lbl">Coach</label><input class="form-inp" value="${st[tk].coach}" onchange="upTeam('${tk}','coach',this.value)"></div>
-            </div>
-            <table class="tbl-set">
-                <thead><tr><th width="50">No</th><th>Name</th><th width="40">CAP</th><th width="40">Start</th></tr></thead>
-                <tbody>
-                ${st[tk].players.map((p,i) => `
-                    <tr>
-                        <td>
-                            <select class="inp-cell" onchange="upPlayer('${tk}',${i},'no',this.value)">
-                                <option value="">-</option>
-                                ${Array.from({length:101},(_,n)=>`<option value="${n}" ${String(p.no)===String(n)?'selected':''}>${n}</option>`).join('')}
-                            </select>
-                        </td>
-                        <td><input class="inp-cell" style="text-align:left;" value="${p.name}" onchange="upPlayer('${tk}',${i},'name',this.value)"></td>
-                        <td><input type="checkbox" ${p.capt?'checked':''} onchange="upPlayer('${tk}',${i},'capt',this.checked)"></td>
-                        <td><input type="checkbox" ${p.start?'checked':''} onchange="upPlayer('${tk}',${i},'start',this.checked)"></td>
-                    </tr>
-                `).join('')}
-                </tbody>
-            </table>
-        </div>`;
+        const html = `
+            <h3>${tk==='teamA'?'TEAM A':'TEAM B'}</h3>
+            <div class="scroll-content">
+                <div class="form-row">
+                    <div class="form-grp"><label class="form-lbl">Name</label><input class="form-inp" value="${st[tk].name}" onchange="upTeam('${tk}','name',this.value)"></div>
+                    <div class="form-grp"><label class="form-lbl">Color</label><input class="form-inp" value="${st[tk].color}" onchange="upTeam('${tk}','color',this.value)"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-grp"><label class="form-lbl">Coach</label><input class="form-inp" value="${st[tk].coach}" onchange="upTeam('${tk}','coach',this.value)"></div>
+                    <div class="form-grp"><label class="form-lbl">A.Coach</label><input class="form-inp" value="${st[tk].ac}" onchange="upTeam('${tk}','ac',this.value)"></div>
+                </div>
+                <div class="tbl-container">
+                    <table class="tbl-set">
+                        <thead><tr><th width="40">No</th><th>Name</th><th width="25">C</th><th width="25">S</th></tr></thead>
+                        <tbody>
+                        ${st[tk].players.map((p,i) => `
+                            <tr>
+                                <td>
+                                    <select class="inp-cell" onchange="upPlayer('${tk}',${i},'no',this.value)">
+                                        <option value="">-</option>
+                                        ${Array.from({length:101},(_,n)=>`<option value="${n}" ${String(p.no)===String(n)?'selected':''}>${n}</option>`).join('')}
+                                    </select>
+                                </td>
+                                <td><input class="inp-cell" style="text-align:left;" value="${p.name}" onchange="upPlayer('${tk}',${i},'name',this.value)"></td>
+                                <td><input type="checkbox" ${p.capt?'checked':''} onchange="upPlayer('${tk}',${i},'capt',this.checked)"></td>
+                                <td><input type="checkbox" ${p.start?'checked':''} onchange="upPlayer('${tk}',${i},'start',this.checked)"></td>
+                            </tr>
+                        `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>`;
+        document.getElementById(tk==='teamA'?'set-team-A':'set-team-B').innerHTML = html;
     });
-    document.getElementById('team-settings').innerHTML = html;
 }
 
 function renHistory() {
     const hist = loadGameList();
     const cont = document.getElementById('hist-container');
-    if(hist.length===0) { cont.innerHTML = '<div style="text-align:center; color:#666;">保存なし</div>'; return; }
+    if(hist.length===0) { cont.innerHTML = '<div style="text-align:center; color:#666; margin-top:20px;">保存なし</div>'; return; }
     cont.innerHTML = hist.map(g => {
         const sc = getScore(g.logs);
         return `
@@ -559,7 +676,6 @@ function renSheet() {
             const s = isA?cA:cB; 
             const e = s+l.val;
             if(l.q<=4) (isA?sumA:sumB)[l.q]+=l.val;
-            
             const item = { no:l.no, q:l.q, type:l.val }; 
             if(isA) { if(run[e-1]) run[e-1].a=item; cA=e; }
             else    { if(run[e-1]) run[e-1].b=item; cB=e; }
@@ -567,52 +683,52 @@ function renSheet() {
     });
 
     const getP = (p) => `
-        <div class="s-row bb" style="height:4.8mm;">
-            <div class="br txt-c" style="width:20px; font-weight:bold; line-height:4.8mm;">${p.no}</div>
-            <div class="br txt-c" style="width:16px; font-size:9px; line-height:4.8mm; color:#dc2626;">
-                ${p.start ? '<span class="starter-mark">✕</span>' : (p.played ? '✕' : '')}
-            </div>
-            <div class="br" style="flex:1; overflow:hidden; white-space:nowrap; padding-left:2px; font-size:8px; line-height:4.8mm;">
+        <div class="flex-row bb center-v flex-1" style="min-height:0;">
+            <div class="br txt-c" style="width:2.5em; font-size:0.8em;"></div>
+            <div class="br txt-l" style="flex:1; overflow:hidden; white-space:nowrap; padding-left:4px; font-size:0.9em;">
                 ${p.name} ${p.capt?'(CAP)':''}
             </div>
-            <div class="br txt-c" style="width:20px; font-weight:bold; line-height:4.8mm;">${p.no}</div>
-            ${[0,1,2,3,4].map(i=>`<div class="br txt-c" style="width:14px; font-size:8px; line-height:4.8mm;">${p.fouls[i]||''}</div>`).join('')}
+            <div class="br txt-c" style="width:2.5em; font-weight:bold;">${p.no}</div>
+            <div class="br txt-c" style="width:1.8em; font-size:0.9em; color:#dc2626;">
+                ${p.start ? '<span class="starter-mark">✕</span>' : (p.played ? '✕' : '')}
+            </div>
+            ${[0,1,2,3,4].map(i=>`<div class="br txt-c" style="width:1.6em; font-size:0.8em;">${p.fouls[i]||''}</div>`).join('')}
         </div>`;
     
     const getTm = (tk, ttl) => `
-        <div style="margin-bottom:3mm;">
-            <div class="s-row bb" style="align-items:end; margin-bottom:1px;">
-                <div style="font-size:9px;">${ttl}</div>
-                <div style="font-weight:bold; font-size:12px; margin-left:10px; text-transform:uppercase;">${st[tk].name}</div>
-                <div style="font-size:8px; margin-left:auto;">Color: ${st[tk].color}</div>
+        <div class="flex-col flex-1" style="margin-bottom:0.3em; min-height:0;">
+            <div class="flex-row bb" style="align-items:end; margin-bottom:1px; flex-shrink:0;">
+                <div style="font-size:0.9em; width:4em;">${ttl}</div>
+                <div style="font-weight:bold; font-size:1.2em; margin-left:5px; text-transform:uppercase; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${st[tk].name}</div>
             </div>
-            <div class="s-row" style="font-size:8px; margin-bottom:2px; justify-content:space-between;">
-                <div style="display:flex; gap:2px;">
-                    <strong>TO:</strong>
-                    ${[0,1].map(i=> {
-                        const v = st[tk].timeouts[1][i];
-                        return `<div class="bd txt-c" style="width:12px;">${v||''}</div>`;
-                    }).join('')}
-                    <span style="font-size:7px;">(1-2)</span>
-                    ${[0,1,2].map(i=>`<div class="bd txt-c" style="width:12px;">${st[tk].timeouts[2][i]||''}</div>`).join('')}
-                    <span style="font-size:7px;">(3-4)</span>
+            <div class="flex-row" style="font-size:0.8em; margin-bottom:2px; justify-content:space-between; flex-shrink:0;">
+                <div style="display:flex; align-items:center;">
+                    <strong style="width:5em;">Time-outs</strong>
+                    ${[0,1].map(i=> `<div class="bd txt-c" style="width:1.5em; height:1.2em; margin-right:1px;">${st[tk].timeouts[1][i]||''}</div>`).join('')}
+                    <span style="margin:0 4px;"></span>
+                    ${[0,1,2].map(i=>`<div class="bd txt-c" style="width:1.5em; height:1.2em; margin-right:1px;">${st[tk].timeouts[2][i]||''}</div>`).join('')}
                 </div>
-                <div style="display:flex; gap:2px;">
-                    <strong>Fouls:</strong>
-                    ${[1,2,3,4].map(q=>`<span style="margin-left:2px;">${q}</span><div class="bd txt-c ${(q===1||q===3)?'text-red':''}" style="width:12px;">${st[tk].fouls[q]>0?(st[tk].fouls[q]>4?5:st[tk].fouls[q]):''}</div>`).join('')}
+                <div style="display:flex; align-items:center;">
+                    <strong style="margin-right:2px;">Team fouls</strong>
+                    ${[1,2,3,4].map(q=>`<div class="bd txt-c ${(q===1||q===3)?'text-red':''}" style="width:1.5em; height:1.2em; margin-left:1px;">${st[tk].fouls[q]>0?(st[tk].fouls[q]>4?5:st[tk].fouls[q]):''}</div>`).join('')}
                 </div>
             </div>
-            <div class="bd">
-                <div class="s-row bb bg-g" style="font-size:7px; font-weight:bold; height:5mm; align-items:center;">
-                    <div class="br txt-c" style="width:20px;">No</div>
-                    <div class="br txt-c" style="width:16px;">Pl-in</div>
-                    <div class="br txt-c" style="flex:1;">Name</div>
-                    <div class="br txt-c" style="width:20px;">No</div>
-                    <div class="txt-c" style="flex:0 0 70px;">Fouls</div>
+            <div class="bd flex-col flex-1" style="min-height:0;">
+                <div class="flex-row bb bg-g center-v" style="font-size:0.6em; font-weight:bold; height:1.6em; flex-shrink:0; text-align:center;">
+                    <div class="br" style="width:2.5em;">Licence<br>No.</div>
+                    <div class="br" style="flex:1;">Players</div>
+                    <div class="br" style="width:2.5em;">No.</div>
+                    <div class="br" style="width:1.8em;">Player<br>in</div>
+                    <div class="" style="flex:0 0 8em;">Fouls</div>
                 </div>
-                ${st[tk].players.map(p=>getP(p)).join('')}
-                <div class="s-row bb" style="height:5mm; font-size:8px; padding-left:2px;"><strong>Coach:</strong> ${st[tk].coach}</div>
-                <div class="s-row" style="height:5mm; font-size:8px; padding-left:2px;"><strong>A.Coach:</strong> ${st[tk].ac}</div>
+                <div class="flex-row bb center-v" style="height:1em; font-size:0.6em; flex-shrink:0; background:#eee;">
+                     <div style="flex:1;"></div><div class="br" style="width:1.6em;">1</div><div class="br" style="width:1.6em;">2</div><div class="br" style="width:1.6em;">3</div><div class="br" style="width:1.6em;">4</div><div style="width:1.6em;">5</div>
+                </div>
+                <div class="flex-col flex-1" style="min-height:0;">
+                    ${st[tk].players.map(p=>getP(p)).join('')}
+                </div>
+                <div class="flex-row bb center-v" style="height:1.5em; font-size:0.8em; padding-left:2px; flex-shrink:0;"><strong>Coach:</strong> <span style="margin-left:5px;">${st[tk].coach}</span></div>
+                <div class="flex-row center-v" style="height:1.5em; font-size:0.8em; padding-left:2px; flex-shrink:0;"><strong>A.Coach:</strong> <span style="margin-left:5px;">${st[tk].ac}</span></div>
             </div>
         </div>`;
 
@@ -626,18 +742,15 @@ function renSheet() {
     }
 
     const getRun = (s,e) => `
-        <div class="br" style="flex:1; display:flex; flex-direction:column;">
-            <div class="s-row bb bg-g txt-b txt-c" style="font-size:8px; height:5mm; align-items:center;">
-                <div style="flex:1;">A</div><div style="flex:1;">S</div><div style="flex:1;">B</div>
+        <div class="br flex-col flex-1" style="min-width:0;">
+            <div class="flex-row bb bg-g txt-b txt-c center-v" style="font-size:0.8em; height:1.8em; flex-shrink:0;">
+                <div style="flex:1;">A</div><div style="flex:1;">B</div><div style="flex:1;">A</div><div style="flex:1;">B</div>
             </div>
-            <div style="flex:1; display:flex; flex-direction:column;">
+            <div class="flex-col flex-1" style="min-height:0;">
                 ${run.slice(s,e).map(r=> {
                     const isRedA = r.a && (r.a.q===1 || r.a.q===3);
                     const isRedB = r.b && (r.b.q===1 || r.b.q===3);
-                    
-                    let symA = r.sc;
-                    let symB = r.sc;
-                    
+                    let symA = r.sc, symB = r.sc;
                     if(r.a) {
                         if(r.a.type===1) symA = `<div class="${isRedA?'filled-dot-red':'filled-dot'}"></div>`;
                         else if(r.a.type===2 || r.a.type===3) symA = `<div class="${isRedA?'slash-red':'slash'}" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">${r.sc}</div>`;
@@ -646,81 +759,99 @@ function renSheet() {
                         if(r.b.type===1) symB = `<div class="${isRedB?'filled-dot-red':'filled-dot'}"></div>`;
                         else if(r.b.type===2 || r.b.type===3) symB = `<div class="${isRedB?'slash-red':'slash'}" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">${r.sc}</div>`;
                     }
-                    
                     return `
-                    <div class="s-row" style="height:2.5%; border-bottom:1px solid ${r.sc%5===0?'#000':'#ccc'}; align-items:center; font-size:8px;">
+                    <div class="flex-row flex-1" style="border-bottom:1px solid ${r.sc%5===0?'#000':'#ccc'}; align-items:center; font-size:0.8em; min-height:0;">
                         ${getRunNum(r.a)}
-                        <div class="txt-c" style="flex:1; ${r.a?'font-weight:bold;':(r.b?'':'color:#ccc; font-size:6px;')}">${symA}</div>
-                        <div class="txt-c" style="flex:1; ${r.b?'font-weight:bold;':(r.a?'':'color:#ccc; font-size:6px;')}">${symB}</div>
+                        <div class="txt-c" style="flex:1; ${r.a?'font-weight:bold;':(r.b?'':'color:#ccc; font-size:0.6em;')}">${symA}</div>
+                        <div class="txt-c" style="flex:1; ${r.b?'font-weight:bold;':(r.a?'':'color:#ccc; font-size:0.6em;')}">${symB}</div>
                         ${getRunNum(r.b)}
                     </div>`;
                 }).join('')}
             </div>
         </div>`;
 
-    document.getElementById('sheet-paper').innerHTML = `
-        <div style="height:30mm; position:relative; border-bottom:2px solid #000; margin-bottom:2mm;">
-            <div class="txt-c txt-b" style="font-size:14pt; letter-spacing:2px; position:absolute; width:100%; top:8mm;">OFFICIAL SCORESHEET</div>
-            <div style="display:flex; justify-content:space-between; align-items:end; height:100%; padding-bottom:2px; font-size:9px;">
-                <div style="width:30%;">
-                    <div><strong>Tm A:</strong> ${st.teamA.name}</div>
-                    <div><strong>Comp:</strong> ${st.meta.competition}</div>
-                    <div><strong>No:</strong> ${st.meta.no}</div>
+    document.getElementById('sheet-view').innerHTML = `
+        <div class="sheet-wrapper">
+            <!-- HEADER (Using Grid Layout to prevent overlap) -->
+            <div class="sheet-header-grid">
+                <div class="sh-title">OFFICIAL SCORESHEET</div>
+                
+                <div class="sh-left">
+                    <div class="flex-row"><span style="width:4em;">Team A</span> <span class="bb" style="flex:1; font-weight:bold;">${st.teamA.name}</span></div>
+                    <div class="flex-row" style="margin-top:2px;"><span style="width:5em;">Competition</span> <span class="bb" style="flex:1;">${st.meta.competition}</span></div>
+                    <div class="flex-row" style="margin-top:2px;"><span style="width:4.5em;">Game No.</span> <span class="bb" style="width:4em;">${st.meta.no}</span></div>
                 </div>
-                <div style="width:30%; text-align:center;">
-                    <div>${st.meta.date} ${st.meta.time}</div>
-                    <div>${st.meta.place}</div>
+
+                <div class="sh-center">
+                   <div style="font-size:0.9em; margin-bottom:2px;">
+                       <span class="bb" style="padding:0 4px;">${st.meta.date}</span> <span class="bb" style="padding:0 4px;">${st.meta.time}</span>
+                   </div>
+                   <div style="font-size:0.9em;">
+                       <span class="bb" style="padding:0 8px;">${st.meta.place}</span>
+                   </div>
                 </div>
-                <div style="width:30%;">
-                    <div><strong>Tm B:</strong> ${st.teamB.name}</div>
-                    <div class="bd" style="padding:2px;">
-                        <div><strong>CC:</strong> ${st.meta.crewChief}</div>
-                        <div style="display:flex; justify-content:space-between;">
-                            <span><strong>U1:</strong> ${st.meta.umpire1}</span>
-                            <span><strong>U2:</strong> ${st.meta.umpire2}</span>
+
+                <div class="sh-right">
+                    <div class="flex-row"><span style="width:4em;">Team B</span> <span class="bb" style="flex:1; font-weight:bold;">${st.teamB.name}</span></div>
+                    <div class="flex-row" style="margin-top:2px;"><span style="width:5.5em;">Crew Chief</span> <span class="bb" style="flex:1;">${st.meta.crewChief}</span></div>
+                </div>
+
+                <div class="sh-bottom">
+                   <div class="flex-row" style="width:45%;"><span style="width:5em;">Umpire 1</span> <span class="bb" style="flex:1;">${st.meta.umpire1}</span></div>
+                   <div class="flex-row" style="width:45%;"><span style="width:5em;">Umpire 2</span> <span class="bb" style="flex:1;">${st.meta.umpire2}</span></div>
+                </div>
+            </div>
+            
+            <!-- BODY -->
+            <div class="flex-row flex-1" style="gap:0.5em; overflow:hidden; min-height:0;">
+                
+                <!-- LEFT COL (Teams & Score Summary) -->
+                <div class="flex-col" style="width:46%;">
+                    ${getTm('teamA','Team A')}
+                    ${getTm('teamB','Team B')}
+                    
+                    <!-- SCORE SUMMARY -->
+                    <div class="bd flex-col" style="margin-top:auto; font-size:0.85em; border-width:2px; flex-shrink:0;">
+                        <div class="flex-row bb bg-g txt-b txt-c center-v" style="height:1.5em;"><div style="flex:1.5; text-align:left; padding-left:4px;">Scores</div><div class="br" style="flex:1;">Quarter 1</div><div class="br" style="flex:1;">Quarter 2</div><div class="br" style="flex:1;">Quarter 3</div><div class="br" style="flex:1;">Quarter 4</div><div style="flex:1;">Overtime</div></div>
+                        <div class="flex-row bb txt-c center-v" style="height:1.5em;"><div style="flex:1.5; text-align:left; padding-left:4px;">A</div><div class="br" style="flex:1;">${sumA[1]}</div><div class="br" style="flex:1;">${sumA[2]}</div><div class="br" style="flex:1;">${sumA[3]}</div><div class="br" style="flex:1;">${sumA[4]}</div><div style="flex:1;">0</div></div>
+                        <div class="flex-row bb txt-c center-v" style="height:1.5em;"><div style="flex:1.5; text-align:left; padding-left:4px;">B</div><div class="br" style="flex:1;">${sumB[1]}</div><div class="br" style="flex:1;">${sumB[2]}</div><div class="br" style="flex:1;">${sumB[3]}</div><div class="br" style="flex:1;">${sumB[4]}</div><div style="flex:1;">0</div></div>
+                        
+                        <div class="flex-row bb" style="height:1.8em; align-items:center; padding:0 4px;">
+                            <div style="width:50%; display:flex;"><strong style="width:6em;">Final Score</strong> Team A <span class="bb txt-c" style="width:3em;">${cA}</span> Team B <span class="bb txt-c" style="width:3em;">${cB}</span></div>
+                            <div style="width:50%; display:flex;"><strong style="width:8em;">Winning Team</strong> <span class="bb" style="flex:1;">${cA>cB?st.teamA.name:(cB>cA?st.teamB.name:'')}</span></div>
+                        </div>
+                         <div class="flex-row" style="height:1.8em; align-items:center; padding:0 4px;">
+                             <strong style="width:8em;">Game Ended at</strong> <span class="bb" style="width:6em; text-align:center;">${st.meta.gameEndedAt}</span>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        <div style="flex:1; display:flex; gap:3mm; overflow:hidden;">
-            <div style="width:50%; display:flex; flex-direction:column;">
-                ${getTm('teamA','Team A')}
-                ${getTm('teamB','Team B')}
-                <div class="bd" style="margin-top:auto; font-size:9px; border-width:2px;">
-                    <div class="s-row bb bg-g txt-b txt-c"><div style="flex:2;" class="br">SCORES</div><div class="br" style="flex:1;">1Q</div><div class="br" style="flex:1;">2Q</div><div class="br" style="flex:1;">3Q</div><div style="flex:1;">4Q</div></div>
-                    <div class="s-row bb txt-c"><div style="flex:2;" class="br txt-b">A</div><div class="br" style="flex:1;">${sumA[1]}</div><div class="br" style="flex:1;">${sumA[2]}</div><div class="br" style="flex:1;">${sumA[3]}</div><div style="flex:1;">${sumA[4]}</div></div>
-                    <div class="s-row bb txt-c"><div style="flex:2;" class="br txt-b">B</div><div class="br" style="flex:1;">${sumB[1]}</div><div class="br" style="flex:1;">${sumB[2]}</div><div class="br" style="flex:1;">${sumB[3]}</div><div style="flex:1;">${sumB[4]}</div></div>
-                    <div class="s-row bb bg-g" style="padding:2px; justify-content:space-around;"><strong>Final</strong> <span>A: ${cA}</span> <span>B: ${cB}</span></div>
-                    <div class="s-row" style="padding:2px;"><strong>Winner:</strong> ${cA>cB?st.teamA.name:(cB>cA?st.teamB.name:'')}</div>
+
+                <!-- RIGHT COL (Running Score) -->
+                <div class="flex-col" style="width:54%; border:2px solid #000;">
+                    <div class="bb bg-g txt-c txt-b" style="padding:2px; letter-spacing:2px; font-size:1em; flex-shrink:0;">RUNNING SCORE</div>
+                    <div class="flex-1 flex-row" style="min-height:0;">
+                        ${getRun(0,40)} ${getRun(40,80)} ${getRun(80,120)} ${getRun(120,160).replace('border-right:1px solid #000;','border:none;')}
+                    </div>
                 </div>
             </div>
-            <div style="width:50%; border:2px solid #000; display:flex; flex-direction:column;">
-                <div class="bb bg-g txt-c txt-b" style="padding:2px; letter-spacing:2px; font-size:10px;">RUNNING SCORE</div>
-                <div style="flex:1; display:flex;">
-                    ${getRun(0,40)} ${getRun(40,80)} ${getRun(80,120)} ${getRun(120,160).replace('border-right:1px solid #000;','border:none;')}
+            
+            <!-- FOOTER SIGNATURES -->
+            <div class="bd flex-row" style="margin-top:0.3em; padding:2px; font-size:0.8em; flex-shrink:0; align-items:center;">
+                <div style="flex:1; display:flex; flex-direction:column; gap:2px;">
+                    <div class="flex-row"><span style="width:5em;">Scorer</span> <span class="bb" style="flex:1;">${st.meta.scorer}</span></div>
+                    <div class="flex-row"><span style="width:5em;">A. Scorer</span> <span class="bb" style="flex:1;">${st.meta.assistantScorer}</span></div>
+                </div>
+                <div style="flex:1; display:flex; flex-direction:column; gap:2px; margin-left:10px;">
+                    <div class="flex-row"><span style="width:5em;">Timer</span> <span class="bb" style="flex:1;">${st.meta.timer}</span></div>
+                    <div class="flex-row"><span style="width:5em;">Shot Clock</span> <span class="bb" style="flex:1;">${st.meta.shotClock}</span></div>
+                </div>
+                <div style="flex:1.2; display:flex; flex-direction:column; gap:2px; margin-left:10px;">
+                     <div class="flex-row"><span style="width:6em;">Crew Chief</span> <span class="bb" style="flex:1;"></span></div>
+                     <div class="flex-row"><span style="width:6em;">Umpire 1</span> <span class="bb" style="flex:1;"></span> <span style="width:5em; text-align:right; margin-right:4px;">Umpire 2</span> <span class="bb" style="flex:1;"></span></div>
                 </div>
             </div>
-        </div>
-        <div class="bd" style="margin-top:2mm; padding:2px; display:flex; gap:10px; font-size:8px;">
-            <div style="flex:1;"><strong>Scorer:</strong> ${st.meta.scorer}</div>
-            <div style="flex:1;"><strong>Timer:</strong> ${st.meta.timer}</div>
-            <div style="flex:1;"><strong>ShotClock:</strong> ${st.meta.shotClock}</div>
         </div>
     `;
-}
-
-function fitSheet() {
-    const v = document.getElementById('sheet-view');
-    const p = document.getElementById('sheet-paper');
-    if(!v || !p) return;
-    p.style.transform = 'none';
-    const s = Math.min((v.clientWidth-40)/p.offsetWidth, (v.clientHeight-40)/p.offsetHeight);
-    if(s<1) {
-        p.style.transformOrigin = 'top center';
-        p.style.transform = `scale(${s})`;
-        p.style.marginBottom = `-${p.offsetHeight*(1-s)}px`;
-    }
 }
 
 // Init
@@ -728,4 +859,5 @@ renInput();
 </script>
 </body>
 </html>
+
 
