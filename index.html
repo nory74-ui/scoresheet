@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Basketball Score Sheet (Offline)</title>
+    <title>Basketball Score Sheet (Responsive)</title>
     <style>
         /* --- CSS Reset & Base Styles --- */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -12,7 +12,7 @@
         button { cursor: pointer; border: none; background: none; }
         table { border-collapse: collapse; width: 100%; }
         
-        /* --- Utility Classes (Mimicking Tailwind) --- */
+        /* --- Utility Classes --- */
         .flex { display: flex; }
         .flex-col { flex-direction: column; }
         .flex-row { flex-direction: row; }
@@ -179,6 +179,7 @@
         
         .transform { transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y)); }
         .scale-105 { transform: scale(1.05); }
+        .origin-top-left { transform-origin: top left; }
         .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
         
         .hidden { display: none; }
@@ -194,6 +195,7 @@
             .md\:border-l { border-left-width: 1px; }
             .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .md\:col-span-2 { grid-column: span 2 / span 2; }
+            .md\:hidden { display: none; }
         }
         @media (min-width: 1024px) {
             .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -204,12 +206,34 @@
         .animate-bounce { animation: bounce 1s infinite; }
         @keyframes bounce { 0%, 100% { transform: translateY(-25%); } 50% { transform: translateY(0); } }
 
+        /* Sheet Scale Wrapper Styles */
+        #sheet-container-inner {
+            transform-origin: top center;
+            transition: transform 0.2s ease-out;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            /* Fixed dimensions to prevent layout break */
+            width: 210mm; 
+            min-width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+        }
+
         /* Print Specifics */
         @media print {
             @page { size: A4 portrait; margin: 10mm; }
             body { background: white; -webkit-print-color-adjust: exact; color-adjust: exact; height: auto; overflow: visible; display: block; }
             nav, .notification, .modal-overlay, .no-print { display: none !important; }
-            main { height: auto !important; overflow: visible !important; display: block !important; }
+            main { height: auto !important; overflow: visible !important; display: block !important; background: white !important; }
+            /* Reset transforms for print */
+            #sheet-viewport { overflow: visible !important; display: block !important; }
+            #sheet-container-inner { 
+                transform: none !important; 
+                width: 100% !important; 
+                min-width: auto !important; 
+                margin: 0 !important; 
+                box-shadow: none !important;
+            }
             .print\:hidden { display: none !important; }
             .print\:block { display: block !important; }
             .print\:p-0 { padding: 0 !important; }
@@ -448,54 +472,60 @@
             };
             const renderRunningCol = (start, end) => `<div class="flex flex-col border-r border-black last:border-r-0 w-1_4 text-xs"><div class="flex border-b border-black font-bold bg-gray-100 text-center h-6 items-center"><div class="w-1_4 text-xs">A</div><div class="w-2_4 text-xs">A-B</div><div class="w-1_4 text-xs">B</div></div>${runningData.slice(start-1, end).map(r => `<div class="flex border-b border-gray-300 h-[15px] items-center"><div class="w-1_4 text-center font-bold text-xs ${r.a ? getCurrentQuarterColor(r.a.quarter) : ''} h-full border-r border-gray-300">${r.a ? r.a.number : ''}</div><div class="w-2_4 flex text-center h-full"><div class="w-1_2 flex items-center justify-center border-r border-gray-300 bg-gray-50">${r.a ? `<span class="text-xs font-bold ${getCurrentQuarterColor(r.a.quarter)}">${r.score}</span>` : `<span class="text-xs text-gray-300">${r.score}</span>`}</div><div class="w-1_2 flex items-center justify-center bg-gray-50">${r.b ? `<span class="text-xs font-bold ${getCurrentQuarterColor(r.b.quarter)}">${r.score}</span>` : `<span class="text-xs text-gray-300">${r.score}</span>`}</div></div><div class="w-1_4 text-center font-bold text-xs ${r.b ? getCurrentQuarterColor(r.b.quarter) : ''} h-full border-l border-gray-300">${r.b ? r.b.number : ''}</div></div>`).join('')}</div>`;
 
-            // Updated wrapper: Added flex-1, w-full, overflow-auto to ensure scroll bars appear when needed
+            // Responsive Wrapper:
+            // 1. sheet-viewport: Handles the scroll area and centering
+            // 2. sheet-container-inner: Fixed physical size (210mm wide) so layout NEVER breaks.
+            //    We scale this element using JS to fit the viewport if the screen is small.
             return `
-                <div class="flex-1 w-full overflow-auto p-4 flex justify-center items-start print:p-0 print:overflow-visible print:block">
-                    <div class="bg-white text-black font-serif mx-auto w-full max-w-[210mm] min-h-[297mm] p-4 relative print:p-0 print:w-full print:h-screen print:overflow-hidden box-border flex flex-col">
-                         <div class="text-center border-b-2 border-black pb-2 mb-2">
-                            <h1 class="font-bold text-xl uppercase tracking-widest mb-2">OFFICIAL SCORESHEET</h1>
-                            <div class="flex justify-between items-end text-xs mb-2 px-2">
-                                <div class="flex flex-col gap-1 text-left w-1_3">
-                                    <div class="flex"><span class="font-bold w-16">Team A:</span> <span class="border-b border-gray-400 flex-1">${gameState.teamA.name}</span></div>
-                                    <div class="flex"><span class="font-bold w-16">Competition:</span> <span class="border-b border-gray-400 flex-1">${gameState.gameInfo.competition}</span></div>
-                                    <div class="flex"><span class="font-bold w-16">Game No:</span> <span class="border-b border-gray-400 w-20">${gameState.gameInfo.gameNo}</span></div>
+                <div class="flex-1 w-full h-full bg-gray-100 relative overflow-hidden flex flex-col">
+                    <div id="sheet-viewport" class="flex-1 overflow-auto relative flex justify-center origin-top-left print:block print:overflow-visible">
+                         <div id="sheet-container-inner" class="bg-white text-black font-serif p-4 relative box-border flex flex-col">
+                             <div class="text-center border-b-2 border-black pb-2 mb-2">
+                                <h1 class="font-bold text-xl uppercase tracking-widest mb-2">OFFICIAL SCORESHEET</h1>
+                                <div class="flex justify-between items-end text-xs mb-2 px-2">
+                                    <div class="flex flex-col gap-1 text-left w-1_3">
+                                        <div class="flex"><span class="font-bold w-16">Team A:</span> <span class="border-b border-gray-400 flex-1">${gameState.teamA.name}</span></div>
+                                        <div class="flex"><span class="font-bold w-16">Competition:</span> <span class="border-b border-gray-400 flex-1">${gameState.gameInfo.competition}</span></div>
+                                        <div class="flex"><span class="font-bold w-16">Game No:</span> <span class="border-b border-gray-400 w-20">${gameState.gameInfo.gameNo}</span></div>
+                                    </div>
+                                    <div class="flex flex-col gap-1 text-center w-1_3 items-center">
+                                        <div class="flex gap-2 w-full justify-center"><span>Date:</span> <span class="border-b border-gray-400 min-w-[80px]">${gameState.gameInfo.date}</span><span>Time:</span> <span class="border-b border-gray-400 min-w-[50px]">${gameState.gameInfo.time}</span></div>
+                                        <div class="flex w-full justify-center"><span>Place:</span> <span class="border-b border-gray-400 min-w-[150px]">${gameState.gameInfo.place}</span></div>
+                                    </div>
+                                    <div class="flex flex-col gap-1 text-right w-1_3 items-end">
+                                        <div class="flex w-full justify-end"><span class="font-bold w-16 text-right mr-1">Team B:</span> <span class="border-b border-gray-400 flex-1 text-left">${gameState.teamB.name}</span></div>
+                                    </div>
                                 </div>
-                                <div class="flex flex-col gap-1 text-center w-1_3 items-center">
-                                    <div class="flex gap-2 w-full justify-center"><span>Date:</span> <span class="border-b border-gray-400 min-w-[80px]">${gameState.gameInfo.date}</span><span>Time:</span> <span class="border-b border-gray-400 min-w-[50px]">${gameState.gameInfo.time}</span></div>
-                                    <div class="flex w-full justify-center"><span>Place:</span> <span class="border-b border-gray-400 min-w-[150px]">${gameState.gameInfo.place}</span></div>
-                                </div>
-                                <div class="flex flex-col gap-1 text-right w-1_3 items-end">
-                                    <div class="flex w-full justify-end"><span class="font-bold w-16 text-right mr-1">Team B:</span> <span class="border-b border-gray-400 flex-1 text-left">${gameState.teamB.name}</span></div>
-                                </div>
-                            </div>
-                            <div class="flex justify-between text-xs border border-black p-1 px-4">
-                                <div><span class="font-bold">Crew Chief:</span> ${gameState.gameInfo.crewChief}</div>
-                                <div><span class="font-bold">Umpire 1:</span> ${gameState.gameInfo.umpire1}</div>
-                                <div><span class="font-bold">Umpire 2:</span> ${gameState.gameInfo.umpire2}</div>
-                            </div>
-                        </div>
-                        <div class="flex flex-row h-full">
-                            <div class="w-[45%] flex flex-col pr-2">
-                                <div class="flex-grow">${renderTeamSection('A')} <div class="h-2"></div> ${renderTeamSection('B')}</div>
-                                <div class="mt-2 border-2 border-black">
-                                    <div class="grid grid-cols-11 text-center border-b border-black text-xs h-5 items-center bg-gray-100 font-bold"><div class="col-span-3 border-r border-black">Score</div><div class="col-span-2 border-r border-gray-300">1Q</div><div class="col-span-2 border-r border-gray-300">2Q</div><div class="col-span-2 border-r border-gray-300">3Q</div><div class="col-span-2">4Q</div></div>
-                                    <div class="grid grid-cols-11 text-center border-b border-black text-xs h-6 items-center"><div class="col-span-3 border-r border-black font-bold">A</div><div class="col-span-2 border-r border-gray-300">${calculateQuarterScore(gameState.scores,'A',1)}</div><div class="col-span-2 border-r border-gray-300">${calculateQuarterScore(gameState.scores,'A',2)}</div><div class="col-span-2 border-r border-gray-300">${calculateQuarterScore(gameState.scores,'A',3)}</div><div class="col-span-2">${calculateQuarterScore(gameState.scores,'A',4)}</div></div>
-                                    <div class="grid grid-cols-11 text-center border-b border-black text-xs h-6 items-center"><div class="col-span-3 border-r border-black font-bold">B</div><div class="col-span-2 border-r border-gray-300">${calculateQuarterScore(gameState.scores,'B',1)}</div><div class="col-span-2 border-r border-gray-300">${calculateQuarterScore(gameState.scores,'B',2)}</div><div class="col-span-2 border-r border-gray-300">${calculateQuarterScore(gameState.scores,'B',3)}</div><div class="col-span-2">${calculateQuarterScore(gameState.scores,'B',4)}</div></div>
-                                    <div class="p-1 bg-gray-100 font-bold text-xs flex justify-between"><span>Final</span><span>A: ${calculateTotalScore(gameState.scores,'A')}</span><span>B: ${calculateTotalScore(gameState.scores,'B')}</span></div>
+                                <div class="flex justify-between text-xs border border-black p-1 px-4">
+                                    <div><span class="font-bold">Crew Chief:</span> ${gameState.gameInfo.crewChief}</div>
+                                    <div><span class="font-bold">Umpire 1:</span> ${gameState.gameInfo.umpire1}</div>
+                                    <div><span class="font-bold">Umpire 2:</span> ${gameState.gameInfo.umpire2}</div>
                                 </div>
                             </div>
-                            <div class="w-[55%] border-2 border-black flex flex-col h-full">
-                                <div class="text-center font-bold uppercase text-sm py-0.5 border-b border-black bg-gray-50 tracking-widest">RUNNING SCORE</div>
-                                <div class="flex flex-1">${renderRunningCol(1,40)}${renderRunningCol(41,80)}${renderRunningCol(81,120)}${renderRunningCol(121,160)}</div>
+                            <div class="flex flex-row h-full">
+                                <div class="w-[45%] flex flex-col pr-2">
+                                    <div class="flex-grow">${renderTeamSection('A')} <div class="h-2"></div> ${renderTeamSection('B')}</div>
+                                    <div class="mt-2 border-2 border-black">
+                                        <div class="grid grid-cols-11 text-center border-b border-black text-xs h-5 items-center bg-gray-100 font-bold"><div class="col-span-3 border-r border-black">Score</div><div class="col-span-2 border-r border-gray-300">1Q</div><div class="col-span-2 border-r border-gray-300">2Q</div><div class="col-span-2 border-r border-gray-300">3Q</div><div class="col-span-2">4Q</div></div>
+                                        <div class="grid grid-cols-11 text-center border-b border-black text-xs h-6 items-center"><div class="col-span-3 border-r border-black font-bold">A</div><div class="col-span-2 border-r border-gray-300">${calculateQuarterScore(gameState.scores,'A',1)}</div><div class="col-span-2 border-r border-gray-300">${calculateQuarterScore(gameState.scores,'A',2)}</div><div class="col-span-2 border-r border-gray-300">${calculateQuarterScore(gameState.scores,'A',3)}</div><div class="col-span-2">${calculateQuarterScore(gameState.scores,'A',4)}</div></div>
+                                        <div class="grid grid-cols-11 text-center border-b border-black text-xs h-6 items-center"><div class="col-span-3 border-r border-black font-bold">B</div><div class="col-span-2 border-r border-gray-300">${calculateQuarterScore(gameState.scores,'B',1)}</div><div class="col-span-2 border-r border-gray-300">${calculateQuarterScore(gameState.scores,'B',2)}</div><div class="col-span-2 border-r border-gray-300">${calculateQuarterScore(gameState.scores,'B',3)}</div><div class="col-span-2">${calculateQuarterScore(gameState.scores,'B',4)}</div></div>
+                                        <div class="p-1 bg-gray-100 font-bold text-xs flex justify-between"><span>Final</span><span>A: ${calculateTotalScore(gameState.scores,'A')}</span><span>B: ${calculateTotalScore(gameState.scores,'B')}</span></div>
+                                    </div>
+                                </div>
+                                <div class="w-[55%] border-2 border-black flex flex-col h-full">
+                                    <div class="text-center font-bold uppercase text-sm py-0.5 border-b border-black bg-gray-50 tracking-widest">RUNNING SCORE</div>
+                                    <div class="flex flex-1">${renderRunningCol(1,40)}${renderRunningCol(41,80)}${renderRunningCol(81,120)}${renderRunningCol(121,160)}</div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="mt-2 border border-black p-1 text-xs">
-                             <div class="flex flex-wrap gap-x-4 gap-y-1 justify-between">
-                                <div class="flex items-end w-1_3"><span class="font-bold w-20">Scorer:</span> <span class="border-b border-gray-400 flex-1">${gameState.gameInfo.scorer}</span></div>
-                                <div class="flex items-end w-1_3"><span class="font-bold w-20">A.Scorer:</span> <span class="border-b border-gray-400 flex-1">${gameState.gameInfo.assistantScorer}</span></div>
-                                <div class="flex items-end w-1_3"><span class="font-bold w-20">Timer:</span> <span class="border-b border-gray-400 flex-1">${gameState.gameInfo.timer}</span></div>
-                                <div class="flex items-end w-1_3"><span class="font-bold w-24">Shot Clock:</span> <span class="border-b border-gray-400 flex-1">${gameState.gameInfo.shotClock}</span></div>
-                             </div>
+                            <div class="mt-2 border border-black p-1 text-xs">
+                                 <div class="flex flex-wrap gap-x-4 gap-y-1 justify-between">
+                                    <div class="flex items-end w-1_3"><span class="font-bold w-20">Scorer:</span> <span class="border-b border-gray-400 flex-1">${gameState.gameInfo.scorer}</span></div>
+                                    <div class="flex items-end w-1_3"><span class="font-bold w-20">A.Scorer:</span> <span class="border-b border-gray-400 flex-1">${gameState.gameInfo.assistantScorer}</span></div>
+                                    <div class="flex items-end w-1_3"><span class="font-bold w-20">Timer:</span> <span class="border-b border-gray-400 flex-1">${gameState.gameInfo.timer}</span></div>
+                                    <div class="flex items-end w-1_3"><span class="font-bold w-24">Shot Clock:</span> <span class="border-b border-gray-400 flex-1">${gameState.gameInfo.shotClock}</span></div>
+                                 </div>
+                            </div>
+                            <div class="hidden print:block text-[8px] text-center mt-1 text-gray-400 absolute bottom-0 w-full left-0">Basketball Score Sheet App</div>
                         </div>
                     </div>
                 </div>
@@ -538,7 +568,6 @@
         // --- 6. Main Render ---
         function render() {
             const app = document.getElementById('app');
-            // Updated Main Wrapper: Added 'flex', 'flex-col', 'overflow-hidden' to ensuring main takes full height and manages its own overflow context
             let content = renderNav() + '<main class="flex-1 flex flex-col overflow-hidden relative bg-gray-100 print:bg-white print:block print:h-auto print:overflow-visible">';
             
             if (appState.viewMode === 'input') content += renderInputPanel();
@@ -550,10 +579,46 @@
             app.innerHTML = content;
 
             if (appState.viewMode === 'settings') attachSettingsListeners();
+            if (appState.viewMode === 'sheet') adjustSheetScale(); // Call scale logic immediately
             if (appState.confirmModal.isOpen) document.getElementById('btn-confirm-action').onclick = appState.confirmModal.onConfirm;
         }
 
-        // --- 7. Listeners ---
+        // --- 7. Listeners & Logic ---
+        
+        // Auto-Scale Logic for Sheet
+        function adjustSheetScale() {
+            const viewport = document.getElementById('sheet-viewport');
+            const sheet = document.getElementById('sheet-container-inner');
+            if (!viewport || !sheet) return;
+
+            // Reset transform to measure true width
+            sheet.style.transform = 'none';
+            
+            const viewportWidth = viewport.clientWidth;
+            const sheetWidth = 794; // approx 210mm in pixels at 96dpi (actually 793.7px)
+            const padding = 32;
+
+            if (viewportWidth < (sheetWidth + padding)) {
+                // Determine scale ratio
+                const scale = (viewportWidth - 10) / sheetWidth;
+                sheet.style.transform = `scale(${scale})`;
+                // Compensate for height shrinkage to prevent massive white space at bottom
+                // The scaled element takes up original space in flow, so we negative margin bottom?
+                // Or better: Let user scroll naturally. But we can center it nicely.
+                sheet.style.marginBottom = `-${(297 * 3.78 * (1 - scale))}px`; // Approx height adjustment if needed
+            } else {
+                sheet.style.transform = 'none';
+                sheet.style.marginBottom = '0px';
+            }
+        }
+
+        // Re-calculate scale on resize
+        window.addEventListener('resize', () => {
+            if (appState.viewMode === 'sheet') {
+                requestAnimationFrame(adjustSheetScale);
+            }
+        });
+
         window.changeView = (mode) => setState({ viewMode: mode });
         window.changeTeam = (team) => setState({ selectedTeam: team, selectedPlayerId: null });
         window.selectPlayer = (id) => setState({ selectedPlayerId: id });
