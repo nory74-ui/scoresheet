@@ -1,1012 +1,589 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Basketball Score Sheet (Mobile Offline)</title>
-<style>
-    /* --- Base Styles --- */
-    :root {
-        --bg-color: #f3f4f6;
-        --text-color: #111827;
-        --primary-color: #1e3a8a; /* Blue 900 */
-        --primary-light: #3b82f6; /* Blue 500 */
-        --accent-color: #fbbf24; /* Amber 400 */
-        --danger-color: #ef4444; /* Red 500 */
-        --success-color: #10b981; /* Emerald 500 */
-        --border-color: #d1d5db;
-        --white: #ffffff;
-    }
-
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body {
-        margin: 0;
-        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        background-color: var(--bg-color);
-        color: var(--text-color);
-        height: 100vh; /* Fallback */
-        height: 100dvh; /* Dynamic viewport height for mobile */
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
-
-    button { cursor: pointer; border: none; font-family: inherit; outline: none; }
-    button:active { transform: scale(0.98); }
-    input, select { border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem; width: 100%; font-size: 16px; /* Prevent zoom on iPhone */ }
-
-    /* --- Utility Classes --- */
-    .hidden { display: none !important; }
-    .flex { display: flex; }
-    .flex-col { flex-direction: column; }
-    .items-center { align-items: center; }
-    .justify-between { justify-content: space-between; }
-    .justify-center { justify-content: center; }
-    .justify-end { justify-content: flex-end; }
-    .gap-1 { gap: 0.25rem; }
-    .gap-2 { gap: 0.5rem; }
-    .gap-4 { gap: 1rem; }
-    .p-1 { padding: 0.25rem; }
-    .p-2 { padding: 0.5rem; }
-    .p-4 { padding: 1rem; }
-    .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
-    .px-4 { padding-left: 1rem; padding-right: 1rem; }
-    .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-    .m-1 { margin: 0.25rem; }
-    .mt-1 { margin-top: 0.25rem; }
-    .mt-2 { margin-top: 0.5rem; }
-    .mb-2 { margin-bottom: 0.5rem; }
-    .w-full { width: 100%; }
-    .h-full { height: 100%; }
-    .text-center { text-align: center; }
-    .text-right { text-align: right; }
-    .text-left { text-align: left; }
-    .font-bold { font-weight: bold; }
-    .text-sm { font-size: 0.875rem; }
-    .text-xs { font-size: 0.75rem; }
-    .text-lg { font-size: 1.125rem; }
-    .text-xl { font-size: 1.25rem; }
-    .text-white { color: white; }
-    .text-red { color: var(--danger-color); }
-    .text-gray-300 { color: #d1d5db; }
-    .text-gray-400 { color: #9ca3af; }
-    .text-gray-500 { color: #6b7280; }
-    .bg-white { background-color: var(--white); }
-    .bg-gray-100 { background-color: #f3f4f6; }
-    .bg-gray-700 { background-color: #374151; }
-    .border { border: 1px solid var(--border-color); }
-    .border-b { border-bottom: 1px solid var(--border-color); }
-    .border-t { border-top: 1px solid var(--border-color); }
-    .border-r { border-right: 1px solid var(--border-color); }
-    .border-l { border-left: 1px solid var(--border-color); }
-    .border-black { border-color: black; }
-    .rounded { border-radius: 0.375rem; }
-    .rounded-full { border-radius: 9999px; }
-    .shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
-    .grid { display: grid; }
-    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .overflow-auto { overflow: auto; }
-    .relative { position: relative; }
-    .absolute { position: absolute; }
-    .top-0 { top: 0; }
-    .top-1 { top: 0.25rem; }
-    .left-1 { left: 0.25rem; }
-    .bottom-0 { bottom: 0; }
-    .z-10 { z-index: 10; }
-
-    /* --- Responsive Layout Styles --- */
-    
-    /* Navigation */
-    nav {
-        background-color: var(--primary-color);
-        color: white;
-        padding: 0.5rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        z-index: 20;
-        flex-shrink: 0;
-    }
-    
-    .nav-title-area { display: flex; align-items: center; gap: 0.5rem; }
-    .nav-title { font-weight: bold; font-size: 1.125rem; white-space: nowrap; }
-    
-    .nav-menu { display: flex; gap: 0.25rem; background-color: rgba(255,255,255,0.1); padding: 0.25rem; border-radius: 0.375rem; overflow-x: auto; }
-    .nav-btn {
-        background: none; color: #bfdbfe; padding: 0.5rem 0.75rem; border-radius: 0.25rem;
-        display: flex; align-items: center; gap: 0.25rem; font-weight: bold; font-size: 0.875rem; white-space: nowrap;
-    }
-    .nav-btn.active { background-color: white; color: var(--primary-color); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-    
-    /* Input Panel Layout */
-    .input-main-layout {
-        display: flex;
-        height: 100%;
-        overflow: hidden;
-        flex-direction: row; /* Default: Horizontal split for Desktop/Tablet */
-    }
-    
-    .player-area {
-        flex: 1;
-        overflow-y: auto;
-        background-color: white;
-        border-right: 1px solid var(--border-color);
-        padding: 0.5rem;
-        padding-bottom: 5rem; /* Space for scrolling */
-    }
-    
-    .controls-area {
-        width: 350px; /* Fixed width for controls on desktop */
-        background-color: #f3f4f6;
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: 1rem;
-        border-left: 1px solid var(--border-color);
-        flex-shrink: 0;
-    }
-
-    /* Score Header */
-    .score-header {
-        background-color: #111827; color: white; padding: 0.5rem;
-        display: flex; justify-content: space-between; align-items: center;
-        flex-shrink: 0;
-    }
-    .team-card {
-        flex: 1; padding: 0.5rem; border-radius: 0.5rem; text-align: center; cursor: pointer;
-        border: 2px solid transparent; transition: background-color 0.2s;
-        max-width: 45%;
-    }
-    .team-card.selected { background-color: #374151; border-color: #60a5fa; }
-    .score-display { font-size: 2rem; font-weight: bold; color: #facc15; font-family: monospace; line-height: 1; }
-    
-    /* Player Grid */
-    .player-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-        gap: 0.5rem;
-    }
-    .player-btn {
-        background-color: white; border: 1px solid var(--border-color); color: #1f2937;
-        padding: 0.5rem; border-radius: 0.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center;
-        height: 80px; position: relative; transition: all 0.1s;
-    }
-    .player-btn.selected { background-color: var(--primary-light); color: white; border-color: var(--primary-light); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-    .player-btn.disabled { opacity: 0.5; background-color: #fef2f2; border-color: #fecaca; }
-
-    /* Control Buttons */
-    .control-btn {
-        color: white; padding: 1rem; border-radius: 0.5rem; font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        font-size: 1rem;
-    }
-    .control-btn:active { transform: scale(0.96); }
-    .control-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    
-    .btn-green { background-color: var(--success-color); }
-    .btn-yellow { background-color: #eab308; color: white; }
-    .btn-gray { background-color: #6b7280; }
-    .btn-orange-outline { background-color: #ffedd5; color: #7c2d12; border: 1px solid #fdba74; padding: 0.5rem; }
-
-    /* --- MOBILE RESPONSIVE QUERIES --- */
-    @media (max-width: 768px) {
-        /* Adjust Nav */
-        nav { padding: 0.5rem; }
-        .nav-title { display: none; } /* Hide title on small screens */
-        .nav-menu { width: 100%; justify-content: space-around; }
-        .nav-btn { padding: 0.5rem; flex: 1; justify-content: center; font-size: 0.75rem; flex-direction: column; gap: 0.1rem; }
-        .nav-btn svg { width: 1.25rem; height: 1.25rem; }
-
-        /* Stack Input Layout vertically */
-        .input-main-layout { flex-direction: column; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basketball Score Sheet (Offline)</title>
+    <style>
+        /* --- CSS Reset & Base Styles --- */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #e5e7eb; color: #111827; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        button, input, select { font: inherit; outline: none; }
+        button { cursor: pointer; border: none; background: none; }
+        table { border-collapse: collapse; width: 100%; }
         
-        /* Player Area takes remaining space */
-        .player-area {
-            flex: 1;
-            border-right: none;
-            border-bottom: 1px solid var(--border-color);
-            padding: 0.5rem;
-            overflow-y: auto;
+        /* --- Utility Classes (Mimicking Tailwind) --- */
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .flex-row { flex-direction: row; }
+        .flex-1 { flex: 1 1 0%; }
+        .shrink-0 { flex-shrink: 0; }
+        .items-center { align-items: center; }
+        .items-start { align-items: flex-start; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .justify-end { justify-content: flex-end; }
+        .gap-1 { gap: 0.25rem; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-3 { gap: 0.75rem; }
+        .gap-4 { gap: 1rem; }
+        
+        .grid { display: grid; }
+        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .grid-cols-11 { grid-template-columns: repeat(11, minmax(0, 1fr)); }
+        
+        .w-full { width: 100%; }
+        .w-1_2 { width: 50%; }
+        .w-1_3 { width: 33.333%; }
+        .w-1_4 { width: 25%; }
+        .w-2_4 { width: 50%; }
+        .h-full { height: 100%; }
+        .h-auto { height: auto; }
+        
+        .p-1 { padding: 0.25rem; }
+        .p-2 { padding: 0.5rem; }
+        .p-3 { padding: 0.75rem; }
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+        .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        
+        .m-1 { margin: 0.25rem; }
+        .m-2 { margin: 0.5rem; }
+        .mb-1 { margin-bottom: 0.25rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mt-1 { margin-top: 0.25rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mr-1 { margin-right: 0.25rem; }
+        .mr-2 { margin-right: 0.5rem; }
+        .ml-1 { margin-left: 0.25rem; }
+        .ml-2 { margin-left: 0.5rem; }
+        
+        .text-xs { font-size: 0.75rem; line-height: 1rem; }
+        .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+        .text-base { font-size: 1rem; line-height: 1.5rem; }
+        .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+        .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+        .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+        .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+        .font-bold { font-weight: 700; }
+        .font-normal { font-weight: 400; }
+        .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        .font-serif { font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif; }
+        .uppercase { text-transform: uppercase; }
+        .capitalize { text-transform: capitalize; }
+        .tracking-widest { letter-spacing: 0.1em; }
+        .leading-none { line-height: 1; }
+        .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        
+        /* Colors */
+        .bg-white { background-color: #ffffff; }
+        .bg-gray-50 { background-color: #f9fafb; }
+        .bg-gray-100 { background-color: #f3f4f6; }
+        .bg-gray-200 { background-color: #e5e7eb; }
+        .bg-gray-700 { background-color: #374151; }
+        .bg-gray-800 { background-color: #1f2937; }
+        .bg-gray-900 { background-color: #111827; }
+        .bg-blue-600 { background-color: #2563eb; }
+        .bg-blue-700 { background-color: #1d4ed8; }
+        .bg-blue-800 { background-color: #1e40af; }
+        .bg-blue-900 { background-color: #1e3a8a; }
+        .bg-green-100 { background-color: #dcfce7; }
+        .bg-green-600 { background-color: #16a34a; }
+        .bg-green-700 { background-color: #15803d; }
+        .bg-yellow-50 { background-color: #fefce8; }
+        .bg-yellow-200 { background-color: #fef08a; }
+        .bg-yellow-300 { background-color: #fde047; }
+        .bg-yellow-400 { background-color: #facc15; }
+        .bg-yellow-500 { background-color: #eab308; }
+        .bg-yellow-600 { background-color: #ca8a04; }
+        .bg-red-50 { background-color: #fef2f2; }
+        .bg-red-100 { background-color: #fee2e2; }
+        .bg-red-500 { background-color: #ef4444; }
+        .bg-red-600 { background-color: #dc2626; }
+        .bg-orange-100 { background-color: #ffedd5; }
+        
+        .text-white { color: #ffffff; }
+        .text-black { color: #000000; }
+        .text-gray-300 { color: #d1d5db; }
+        .text-gray-400 { color: #9ca3af; }
+        .text-gray-500 { color: #6b7280; }
+        .text-gray-600 { color: #4b5563; }
+        .text-gray-700 { color: #374151; }
+        .text-gray-800 { color: #1f2937; }
+        .text-blue-200 { color: #bfdbfe; }
+        .text-blue-600 { color: #2563eb; }
+        .text-blue-800 { color: #1e40af; }
+        .text-blue-900 { color: #1e3a8a; }
+        .text-red-500 { color: #ef4444; }
+        .text-red-600 { color: #dc2626; }
+        .text-red-800 { color: #991b1b; }
+        .text-green-800 { color: #166534; }
+        .text-yellow-400 { color: #facc15; }
+        .text-yellow-500 { color: #eab308; }
+        .text-orange-900 { color: #7c2d12; }
+        
+        .border { border: 1px solid #e5e7eb; }
+        .border-b { border-bottom: 1px solid #e5e7eb; }
+        .border-t { border-top: 1px solid #e5e7eb; }
+        .border-r { border-right: 1px solid #e5e7eb; }
+        .border-l { border-left: 1px solid #e5e7eb; }
+        .border-2 { border-width: 2px; }
+        .border-black { border-color: #000; }
+        .border-gray-300 { border-color: #d1d5db; }
+        .border-gray-400 { border-color: #9ca3af; }
+        .border-blue-400 { border-color: #60a5fa; }
+        .border-blue-600 { border-color: #2563eb; }
+        .border-orange-300 { border-color: #fdba74; }
+        
+        .rounded { border-radius: 0.25rem; }
+        .rounded-lg { border-radius: 0.5rem; }
+        .rounded-full { border-radius: 9999px; }
+        
+        .shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+        
+        .opacity-30 { opacity: 0.3; }
+        .opacity-50 { opacity: 0.5; }
+        .opacity-80 { opacity: 0.8; }
+        
+        .cursor-pointer { cursor: pointer; }
+        .cursor-not-allowed { cursor: not-allowed; }
+        
+        .absolute { position: absolute; }
+        .relative { position: relative; }
+        .sticky { position: sticky; }
+        .top-0 { top: 0; }
+        .top-1 { top: 0.25rem; }
+        .left-1 { left: 0.25rem; }
+        .bottom-0 { bottom: 0; }
+        .left-0 { left: 0; }
+        .z-10 { z-index: 10; }
+        .z-50 { z-index: 50; }
+        
+        .overflow-hidden { overflow: hidden; }
+        .overflow-auto { overflow: auto; }
+        .overflow-y-auto { overflow-y: auto; }
+        .overflow-visible { overflow: visible; }
+        
+        .transform { transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y)); }
+        .scale-105 { transform: scale(1.05); }
+        .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+        
+        .hidden { display: none; }
+        @media (min-width: 640px) {
+            .sm\:inline { display: inline; }
+        }
+        @media (min-width: 768px) {
+            .md\:block { display: block; }
+            .md\:flex-row { flex-direction: row; }
+            .md\:w-1_3 { width: 33.333%; }
+            .md\:w-auto { width: auto; }
+            .md\:border-t-0 { border-top-width: 0; }
+            .md\:border-l { border-left-width: 1px; }
+            .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .md\:col-span-2 { grid-column: span 2 / span 2; }
+        }
+        @media (min-width: 1024px) {
+            .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         }
         
-        /* Controls Area sits at the bottom */
-        .controls-area {
-            width: 100%;
-            height: auto;
-            border-left: none;
-            border-top: 1px solid var(--border-color);
-            padding: 0.5rem;
-            gap: 0.5rem;
-            background-color: white;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        /* Modal & Animations */
+        .modal-overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 50; }
+        .animate-bounce { animation: bounce 1s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(-25%); } 50% { transform: translateY(0); } }
+
+        /* Print Specifics */
+        @media print {
+            @page { size: A4 portrait; margin: 10mm; }
+            body { background: white; -webkit-print-color-adjust: exact; color-adjust: exact; height: auto; overflow: visible; display: block; }
+            nav, .notification, .modal-overlay, .no-print { display: none !important; }
+            main { height: auto !important; overflow: visible !important; display: block !important; }
+            .print\:hidden { display: none !important; }
+            .print\:block { display: block !important; }
+            .print\:p-0 { padding: 0 !important; }
+            .print\:w-full { width: 100% !important; max-width: 100% !important; }
+            .print\:h-screen { height: 100vh !important; }
+            .print\:bg-white { background-color: white !important; }
+            .print\:overflow-visible { overflow: visible !important; }
+            /* Force borders to print */
+            * { border-color: #000 !important; }
+            .text-red-600 { color: #dc2626 !important; }
         }
 
-        /* Adjust Header */
-        .score-header { padding: 0.25rem; }
-        .score-display { font-size: 1.75rem; }
-        .team-card { padding: 0.25rem; }
-        .team-name { font-size: 0.75rem; }
-        .stat-text { font-size: 0.7rem; }
-
-        /* Adjust Grid for Mobile */
-        .player-grid { grid-template-columns: repeat(4, 1fr); gap: 0.35rem; } /* 4 columns on mobile */
-        .player-btn { height: 70px; padding: 0.25rem; }
-        .player-btn .text-xl { font-size: 1.125rem; } /* Smaller numbers */
-        
-        /* Adjust Controls */
-        .control-group-score { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; }
-        .control-group-action { display: grid; grid-template-columns: 2fr 1fr; gap: 0.5rem; margin-top: 0.5rem; }
-        .control-btn { padding: 0.75rem; font-size: 0.9rem; }
-        .control-btn span.sub { font-size: 0.65rem; }
-        
-        /* Hide selected player text to save space, show in highlight */
-        .selected-player-display { font-size: 0.875rem; height: 1.5rem; margin-bottom: 0.25rem; text-align: center; }
-    }
-
-    /* Print Specifics (Restored from previous version) */
-    .sheet-container {
-        background-color: white; width: 210mm; min-height: 297mm; margin: 0 auto; padding: 15mm;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        font-family: "Times New Roman", "YuMincho", "Hiragino Mincho ProN", serif;
-        color: black;
-    }
-    .sheet-table { width: 100%; border-collapse: collapse; font-size: 10px; table-layout: fixed; }
-    .sheet-table th, .sheet-table td { border: 1px solid black; padding: 2px; }
-    .sheet-table th { background-color: #f3f4f6; text-align: center; text-transform: uppercase; }
-    .text-red-print { color: red; }
-    
-    .running-score-grid { display: flex; width: 100%; border: 2px solid black; }
-    .running-col { width: 25%; border-right: 1px solid black; display: flex; flex-direction: column; }
-    .running-col:last-child { border-right: none; }
-    .running-row { display: flex; height: 15px; border-bottom: 1px solid #d1d5db; align-items: center; font-size: 10px; }
-    .running-cell { flex: 1; text-align: center; height: 100%; display: flex; align-items: center; justify-content: center; }
-    .running-cell.num { font-weight: bold; width: 25%; flex: none; }
-    .running-cell.score { width: 25%; flex: none; }
-    
-    @media print {
-        @page { size: A4 portrait; margin: 0; }
-        body { background-color: white; height: auto; display: block; overflow: visible; }
-        nav, #panel-input, #panel-settings, #panel-history, #notification { display: none !important; }
-        #panel-sheet { display: block !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: 100% !important; }
-        .sheet-container { box-shadow: none; margin: 0; padding: 10mm; width: 100%; min-height: 100vh; }
-        .print-hidden { display: none !important; }
-        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    }
-
-    /* Icons */
-    .icon { width: 1.25rem; height: 1.25rem; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-    
-    /* Notification */
-    #notification {
-        position: fixed; top: 1rem; left: 50%; transform: translateX(-50%);
-        padding: 0.75rem 1.5rem; border-radius: 2rem; color: white; font-weight: bold;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 100;
-        animation: fadeOut 3s forwards;
-    }
-    @keyframes fadeOut { 0% { opacity: 0; top: 0; } 10% { opacity: 1; top: 1rem; } 80% { opacity: 1; } 100% { opacity: 0; display: none; } }
-    .toast-success { background-color: var(--success-color); }
-    .toast-error { background-color: var(--danger-color); }
-
-</style>
+        /* Input Styling */
+        input:focus { box-shadow: 0 0 0 2px #60a5fa; border-color: #60a5fa; }
+    </style>
 </head>
 <body>
+    <div id="app" class="h-full flex flex-col"></div>
 
-<!-- Navigation -->
-<nav>
-    <div class="nav-title-area">
-        <svg class="icon" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-        <span class="nav-title">Score Sheet</span>
-    </div>
-    <div class="nav-menu">
-        <button class="nav-btn active" onclick="app.setViewMode('input')" id="btn-input">
-            <svg class="icon" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> 入力
-        </button>
-        <button class="nav-btn" onclick="app.setViewMode('sheet')" id="btn-sheet">
-            <svg class="icon" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg> 公式シート
-        </button>
-        <button class="nav-btn" onclick="app.setViewMode('settings')" id="btn-settings">
-            <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> 設定
-        </button>
-        <button class="nav-btn" onclick="app.setViewMode('history')" id="btn-history">
-            <svg class="icon" viewBox="0 0 24 24"><path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg> 保存
-        </button>
-    </div>
-</nav>
+    <script>
+        // --- 1. Icons ---
+        const Icons = {
+            Activity: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
+            FileText: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>',
+            Settings: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>',
+            FolderOpen: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg>',
+            Save: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>',
+            Printer: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>',
+            RotateCcw: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>',
+            Timer: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>',
+            CheckCircle: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+            AlertCircle: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>',
+            Trash2: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>',
+            ArrowLeft: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" x2="5" y1="12" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>',
+            Clock: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+            Crown: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>'
+        };
 
-<!-- Main App Area -->
-<main id="app-container" class="flex-1 bg-gray-100 relative">
-    
-    <!-- Input Panel -->
-    <div id="panel-input" class="h-full flex flex-col">
-        <!-- Score Header -->
-        <div class="score-header">
-            <div id="team-a-card" class="team-card" onclick="app.selectTeam('A')">
-                <div class="team-name text-gray-400" id="input-team-a-name">Team A</div>
-                <div class="score-display" id="input-score-a">0</div>
-                <div class="stat-text mt-1 flex justify-center gap-2 text-xs">
-                    <span>F: <span id="input-foul-a">0</span></span>
-                    <span>TO: <span id="input-to-a">0</span></span>
-                </div>
-            </div>
-            
-            <div class="text-center px-2">
-                <div class="text-xl font-bold text-red" id="input-quarter">Q1</div>
-                <button onclick="app.nextQuarter()" class="mt-1 bg-gray-700 active:bg-gray-600 text-white text-xs px-2 py-1 rounded">Next Q</button>
-            </div>
+        function getIcon(name, size = 24, className = '') {
+            const svg = Icons[name];
+            if (!svg) return '';
+            return svg.replace('width="24"', `width="${size}"`).replace('height="24"', `height="${size}"`).replace('<svg ', `<svg class="${className}" `);
+        }
 
-            <div id="team-b-card" class="team-card" onclick="app.selectTeam('B')">
-                <div class="team-name text-gray-400" id="input-team-b-name">Team B</div>
-                <div class="score-display" id="input-score-b">0</div>
-                <div class="stat-text mt-1 flex justify-center gap-2 text-xs">
-                    <span>F: <span id="input-foul-b">0</span></span>
-                    <span>TO: <span id="input-to-b">0</span></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Content Split -->
-        <div class="input-main-layout">
-            
-            <!-- Player List Area -->
-            <div class="player-area">
-                <div class="mb-2 font-bold text-gray-500 text-sm flex justify-between">
-                    <span id="player-list-title">選手選択</span>
-                </div>
-                <div id="player-grid" class="player-grid">
-                    <!-- Players rendered by JS -->
-                </div>
-            </div>
-
-            <!-- Controls Area (Bottom on Mobile) -->
-            <div class="controls-area">
-                <div class="selected-player-display">
-                    <span class="text-xs text-gray-500">選択中:</span>
-                    <span class="font-bold text-lg" id="selected-player-name">未選択</span>
-                </div>
-
-                <div class="control-group-score">
-                    <button class="control-btn btn-green" onclick="app.addScore(1)">
-                        <span>+1</span><span class="sub text-xs font-normal opacity-80">FT</span>
-                    </button>
-                    <button class="control-btn btn-green" onclick="app.addScore(2)">
-                        <span>+2</span><span class="sub text-xs font-normal opacity-80">FG</span>
-                    </button>
-                    <button class="control-btn btn-green" onclick="app.addScore(3)">
-                        <span>+3</span><span class="sub text-xs font-normal opacity-80">3P</span>
-                    </button>
-                </div>
-
-                <div class="control-group-action">
-                    <button class="control-btn btn-yellow" onclick="app.addFoul('P')">P ファウル</button>
-                    <button class="control-btn btn-gray" onclick="app.undo()">
-                        <div class="flex items-center gap-1 justify-center">
-                            <svg class="icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> 戻る
-                        </div>
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2 pt-2 border-t border-gray-300">
-                    <button class="control-btn btn-orange-outline" onclick="app.addTimeout('A')">
-                        <div class="flex items-center gap-1 text-xs"><svg class="icon" style="width:14px;height:14px" viewBox="0 0 24 24"><circle cx="12" cy="14" r="8"/><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/></svg> Team A</div>
-                        <span class="text-xs font-normal" id="to-btn-text-a">TO</span>
-                    </button>
-                    <button class="control-btn btn-orange-outline" onclick="app.addTimeout('B')">
-                        <div class="flex items-center gap-1 text-xs"><svg class="icon" style="width:14px;height:14px" viewBox="0 0 24 24"><circle cx="12" cy="14" r="8"/><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/></svg> Team B</div>
-                        <span class="text-xs font-normal" id="to-btn-text-b">TO</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Official Sheet Panel -->
-    <div id="panel-sheet" class="hidden overflow-auto p-2 bg-gray-200 h-full">
-        <div class="flex justify-end mb-2 print-hidden">
-            <button onclick="window.print()" class="bg-yellow-500 text-white px-4 py-2 rounded font-bold shadow flex items-center gap-2">
-                <svg class="icon" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-                印刷 / PDF
-            </button>
-        </div>
-        <div class="sheet-container" id="sheet-content"></div>
-        <div class="print-hidden text-xs text-center text-gray-500 mt-2">Basketball Score Sheet App - Mobile & Print Ready</div>
-    </div>
-
-    <!-- Settings Panel -->
-    <div id="panel-settings" class="hidden p-4 overflow-auto h-full">
-        <div class="max-w-4xl mx-auto bg-white shadow rounded p-4">
-            <div class="flex justify-between items-center mb-4 border-b pb-2">
-                <h2 class="text-lg font-bold flex items-center gap-2">設定・編集</h2>
-                <button onclick="app.setViewMode('input')" class="bg-blue-600 text-white px-3 py-2 rounded flex items-center gap-1 text-sm font-bold">
-                     完了
-                </button>
-            </div>
-            
-            <div class="flex border-b mb-4 text-sm">
-                <button onclick="app.setSettingsTab('Info')" class="flex-1 py-2 font-bold border-b-2 text-center" id="tab-info">Info</button>
-                <button onclick="app.setSettingsTab('A')" class="flex-1 py-2 font-bold text-center" id="tab-a">Team A</button>
-                <button onclick="app.setSettingsTab('B')" class="flex-1 py-2 font-bold text-center" id="tab-b">Team B</button>
-            </div>
-
-            <div id="settings-content"></div>
-        </div>
-    </div>
-
-    <!-- History Panel -->
-    <div id="panel-history" class="hidden p-4 overflow-auto h-full">
-        <div class="max-w-4xl mx-auto">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold flex items-center gap-2">保存データ (Local)</h2>
-                <button onclick="app.saveGameData()" class="bg-blue-600 text-white px-3 py-2 rounded text-sm font-bold">新規保存</button>
-            </div>
-            <div id="history-list" class="grid gap-4"></div>
-        </div>
-    </div>
-
-</main>
-
-<div id="notification" class="hidden"></div>
-
-<script>
-/**
- * Basketball Score Sheet App (Mobile Optimized)
- */
-class ScoreApp {
-    constructor() {
-        this.STORAGE_KEY = 'basketball_score_sheet_data_v13';
-        this.initialPlayers = (teamName) => Array.from({ length: 18 }, (_, i) => ({
-            id: `${teamName}-${i + 1}`,
-            number: '', name: "", isCaptain: false, fouls: [], points: 0
+        // --- 2. State & Data ---
+        const initialPlayers = (teamName) => Array.from({ length: 18 }, (_, i) => ({
+            id: `${teamName}-${i + 1}`, number: '', name: "", isCaptain: false, fouls: [], points: 0
         }));
 
-        this.state = {
-            viewMode: 'input',
-            settingsTab: 'Info',
-            selectedTeam: 'A',
-            selectedPlayerId: null,
+        const initialGameState = {
             quarter: 1,
-            gameInfo: {
-                competition: '令和__年度 大会', date: new Date().toISOString().split('T')[0], time: '10:00', place: '体育館',
-                gameNo: '', crewChief: '', umpire1: '', umpire2: '', scorer: '', assistantScorer: '', timer: '', shotClock: '', endTime: ''
-            },
-            teamA: { name: 'Team A', color: '', coach: '', assistantCoach: '', players: this.initialPlayers('A'), timeouts: { 1: [], 2: [] }, teamFouls: { 1: 0, 2: 0, 3: 0, 4: 0 } },
-            teamB: { name: 'Team B', color: '', coach: '', assistantCoach: '', players: this.initialPlayers('B'), timeouts: { 1: [], 2: [] }, teamFouls: { 1: 0, 2: 0, 3: 0, 4: 0 } },
+            gameInfo: { competition: '令和__年度 バスケットボール大会', date: new Date().toISOString().split('T')[0], time: '10:00', place: '〇〇体育館', gameNo: '', crewChief: '', umpire1: '', umpire2: '', scorer: '', assistantScorer: '', timer: '', shotClock: '', endTime: '' },
+            teamA: { name: 'Team A', color: '', coach: '', assistantCoach: '', players: initialPlayers('A'), timeouts: { 1: [], 2: [] }, teamFouls: { 1: 0, 2: 0, 3: 0, 4: 0 } },
+            teamB: { name: 'Team B', color: '', coach: '', assistantCoach: '', players: initialPlayers('B'), timeouts: { 1: [], 2: [] }, teamFouls: { 1: 0, 2: 0, 3: 0, 4: 0 } },
             scores: [], history: []
         };
 
-        this.savedGames = [];
-        this.loadSavedGames();
-        this.render();
-    }
-
-    getHalfKey(quarter) { return quarter <= 2 ? 1 : 2; }
-    
-    calculateTotalScore(team) {
-        return this.state.scores.filter(s => s.team === team).reduce((sum, s) => sum + s.points, 0);
-    }
-
-    calculateQuarterScore(team, q) {
-        return this.state.scores.filter(s => s.team === team && s.quarter === q).reduce((sum, s) => sum + s.points, 0);
-    }
-
-    saveStateForUndo() {
-        const currentState = JSON.parse(JSON.stringify(this.state));
-        delete currentState.history;
-        this.state.history.push(currentState);
-        if(this.state.history.length > 20) this.state.history.shift();
-    }
-
-    showNotification(type, message) {
-        const el = document.getElementById('notification');
-        el.className = type === 'success' ? 'toast-success' : 'toast-error';
-        el.innerText = message;
-        el.style.display = 'block';
-        el.style.animation = 'none';
-        el.offsetHeight; /* trigger reflow */
-        el.style.animation = 'fadeOut 3s forwards';
-    }
-
-    setViewMode(mode) {
-        this.state.viewMode = mode;
-        this.render();
-    }
-
-    setSettingsTab(tab) {
-        this.state.settingsTab = tab;
-        this.renderSettings();
-    }
-
-    selectTeam(team) {
-        this.state.selectedTeam = team;
-        this.state.selectedPlayerId = null;
-        this.renderInput();
-    }
-
-    selectPlayer(id) {
-        const teamKey = this.state.selectedTeam === 'A' ? 'teamA' : 'teamB';
-        const player = this.state[teamKey].players.find(p => p.id === id);
-        if (player.fouls.length >= 5) return;
-        this.state.selectedPlayerId = id;
-        this.renderInputControls();
-        this.renderPlayerGrid();
-    }
-
-    addScore(points) {
-        if (!this.state.selectedPlayerId) return alert('選手を選択してください');
-        this.saveStateForUndo();
-        const teamKey = this.state.selectedTeam === 'A' ? 'teamA' : 'teamB';
-        const player = this.state[teamKey].players.find(p => p.id === this.state.selectedPlayerId);
-        player.points += points;
-        this.state.scores.push({
-            quarter: this.state.quarter, team: this.state.selectedTeam, playerNumber: player.number, points: points
-        });
-        this.renderInput();
-    }
-
-    addFoul(type) {
-        if (!this.state.selectedPlayerId) return alert('選手を選択してください');
-        this.saveStateForUndo();
-        const teamKey = this.state.selectedTeam === 'A' ? 'teamA' : 'teamB';
-        const player = this.state[teamKey].players.find(p => p.id === this.state.selectedPlayerId);
-        if (player.fouls.length < 5) {
-            player.fouls.push(type);
-            this.state[teamKey].teamFouls[this.state.quarter] = (this.state[teamKey].teamFouls[this.state.quarter] || 0) + 1;
-        }
-        this.renderInput();
-    }
-
-    addTimeout(targetTeam) {
-        const teamKey = targetTeam === 'A' ? 'teamA' : 'teamB';
-        const half = this.getHalfKey(this.state.quarter);
-        const limit = half === 1 ? 2 : 3;
-        if (this.state[teamKey].timeouts[half].length >= limit) return alert(`タイムアウト回数制限(${limit}回)に達しています。`);
-        this.saveStateForUndo();
-        this.state[teamKey].timeouts[half].push("X");
-        this.renderInput();
-    }
-
-    nextQuarter() {
-        this.saveStateForUndo();
-        this.state.quarter += 1;
-        this.renderInput();
-    }
-
-    undo() {
-        if (this.state.history.length === 0) return;
-        const prev = this.state.history.pop();
-        const history = this.state.history;
-        this.state = { ...prev, history };
-        this.render();
-    }
-
-    updateGameInfo(field, value) { this.state.gameInfo[field] = value; }
-    updateTeamInfo(t, field, value) { 
-        this.state[t==='A'?'teamA':'teamB'][field] = value; 
-        if(field==='name') this.renderInput();
-    }
-    updatePlayer(t, id, field, value) {
-        const player = this.state[t==='A'?'teamA':'teamB'].players.find(p => p.id === id);
-        if(player) player[field] = value;
-    }
-    toggleCaptain(t, id) {
-        const team = this.state[t==='A'?'teamA':'teamB'];
-        team.players.forEach(p => p.isCaptain = (p.id === id ? !p.isCaptain : false));
-        this.renderSettings();
-    }
-
-    saveGameData() {
-        const id = Date.now().toString();
-        const data = {
-            id, title: `${this.state.teamA.name} vs ${this.state.teamB.name}`,
-            gameState: JSON.parse(JSON.stringify(this.state)), createdAt: new Date().toISOString(),
-            finalScoreA: this.calculateTotalScore('A'), finalScoreB: this.calculateTotalScore('B'), quarter: this.state.quarter
+        const STORAGE_KEY = 'basketball_score_sheet_data_v13_offline';
+        let appState = {
+            gameState: JSON.parse(JSON.stringify(initialGameState)),
+            viewMode: 'input',
+            selectedTeam: 'A',
+            selectedPlayerId: null,
+            savedGames: [],
+            notification: null,
+            confirmModal: { isOpen: false, message: '', onConfirm: null },
+            settingsTab: 'Info'
         };
-        data.gameState.history = [];
-        this.savedGames = [data, ...this.savedGames];
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.savedGames));
-        this.showNotification('success', '保存しました');
-        if(this.state.viewMode === 'history') this.renderHistory();
-    }
 
-    loadSavedGames() {
-        try { this.savedGames = JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]'); } catch (e) { console.error(e); }
-    }
+        // --- 3. Helpers ---
+        const getHalfKey = (q) => (q <= 2 ? 1 : 2);
+        const calculateTotalScore = (scores, team) => scores.filter(s => s.team === team).reduce((sum, s) => sum + s.points, 0);
+        const calculateQuarterScore = (scores, team, q) => scores.filter(s => s.team === team && s.quarter === q).reduce((sum, s) => sum + s.points, 0);
+        const getCurrentQuarterColor = (q) => (q === 1 || q === 3) ? 'text-red-600' : 'text-black';
 
-    loadGame(id) {
-        const g = this.savedGames.find(g => g.id === id);
-        if (g) {
-            this.state = JSON.parse(JSON.stringify(g.gameState));
-            this.state.history = [];
-            this.state.viewMode = 'input';
-            this.render();
-            this.showNotification('success', '読み込みました');
+        // --- 4. Logic ---
+        function setState(updates, skipRender = false) {
+            appState = { ...appState, ...updates };
+            if (!skipRender) render();
         }
-    }
-
-    deleteGame(id) {
-        if(!confirm('削除しますか？')) return;
-        this.savedGames = this.savedGames.filter(g => g.id !== id);
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.savedGames));
-        this.renderHistory();
-        this.showNotification('success', '削除しました');
-    }
-
-    render() {
-        ['input', 'sheet', 'settings', 'history'].forEach(mode => {
-            const el = document.getElementById(`panel-${mode}`);
-            if(this.state.viewMode === mode) {
-                el.classList.remove('hidden');
-                if(mode==='input') this.renderInput();
-                if(mode==='sheet') this.renderSheet();
-                if(mode==='settings') this.renderSettings();
-                if(mode==='history') this.renderHistory();
-            } else {
-                el.classList.add('hidden');
-            }
-        });
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById(`btn-${this.state.viewMode}`).classList.add('active');
-    }
-
-    renderInput() {
-        const teamA = this.state.teamA, teamB = this.state.teamB;
-        document.getElementById('input-team-a-name').innerText = teamA.name;
-        document.getElementById('input-team-b-name').innerText = teamB.name;
-        document.getElementById('input-score-a').innerText = this.calculateTotalScore('A');
-        document.getElementById('input-score-b').innerText = this.calculateTotalScore('B');
-        document.getElementById('input-foul-a').innerText = teamA.teamFouls[this.state.quarter] || 0;
-        document.getElementById('input-foul-b').innerText = teamB.teamFouls[this.state.quarter] || 0;
-        const half = this.getHalfKey(this.state.quarter);
-        document.getElementById('input-to-a').innerText = (teamA.timeouts[half] || []).length;
-        document.getElementById('input-to-b').innerText = (teamB.timeouts[half] || []).length;
-        document.getElementById('input-quarter').innerText = `Q${this.state.quarter}`;
-
-        const cardA = document.getElementById('team-a-card'), cardB = document.getElementById('team-b-card');
-        if(this.state.selectedTeam === 'A') { cardA.classList.add('selected'); cardB.classList.remove('selected'); }
-        else { cardB.classList.add('selected'); cardA.classList.remove('selected'); }
-
-        this.renderPlayerGrid();
-        this.renderInputControls();
-    }
-
-    renderPlayerGrid() {
-        const team = this.state[this.state.selectedTeam === 'A' ? 'teamA' : 'teamB'];
-        const displayPlayers = team.players.filter(p => p.number);
-        const grid = document.getElementById('player-grid');
-        document.getElementById('player-list-title').innerText = `${team.name} 選手`;
-
-        if (displayPlayers.length === 0) {
-            grid.innerHTML = '<div class="text-center text-gray-500 py-4 text-sm col-span-3">登録選手なし<br>設定で番号を入力</div>';
-            return;
+        function updateGameState(updates) { setState({ gameState: { ...appState.gameState, ...updates } }); }
+        function saveHistory() {
+            const history = [...appState.gameState.history, JSON.parse(JSON.stringify(appState.gameState))];
+            if (history.length > 50) history.shift();
+            return history;
         }
+        function addScore(points) {
+            const { selectedPlayerId, selectedTeam, gameState } = appState;
+            if (!selectedPlayerId) return showNotification('error', '選手を選択してください');
+            const teamKey = selectedTeam === 'A' ? 'teamA' : 'teamB';
+            const player = gameState[teamKey].players.find(p => p.id === selectedPlayerId);
+            if (!player) return;
+            const newScoreEntry = { quarter: gameState.quarter, team: selectedTeam, playerNumber: player.number, points: points, scoreA: calculateTotalScore(gameState.scores, 'A') + (selectedTeam === 'A' ? points : 0), scoreB: calculateTotalScore(gameState.scores, 'B') + (selectedTeam === 'B' ? points : 0), timestamp: new Date().toLocaleTimeString() };
+            const updatedPlayers = gameState[teamKey].players.map(p => p.id === selectedPlayerId ? { ...p, points: p.points + points } : p);
+            updateGameState({ [teamKey]: { ...gameState[teamKey], players: updatedPlayers }, scores: [...gameState.scores, newScoreEntry], history: saveHistory() });
+        }
+        function addFoul(type) {
+            const { selectedPlayerId, selectedTeam, gameState } = appState;
+            if (!selectedPlayerId) return showNotification('error', '選手を選択してください');
+            const teamKey = selectedTeam === 'A' ? 'teamA' : 'teamB';
+            const updatedPlayers = gameState[teamKey].players.map(p => { if (p.id === selectedPlayerId) { if (p.fouls.length >= 5) return p; return { ...p, fouls: [...p.fouls, type] }; } return p; });
+            const updatedTeamFouls = { ...gameState[teamKey].teamFouls, [gameState.quarter]: (gameState[teamKey].teamFouls[gameState.quarter] || 0) + 1 };
+            updateGameState({ [teamKey]: { ...gameState[teamKey], players: updatedPlayers, teamFouls: updatedTeamFouls }, history: saveHistory() });
+        }
+        function addTimeout(targetTeam) {
+            const { gameState } = appState;
+            const teamKey = targetTeam === 'A' ? 'teamA' : 'teamB';
+            const half = getHalfKey(gameState.quarter);
+            const limit = half === 1 ? 2 : 3;
+            const currentCount = gameState[teamKey].timeouts[half] ? gameState[teamKey].timeouts[half].length : 0;
+            if (currentCount >= limit) return showNotification('error', '制限に達しています');
+            const updatedTimeouts = { ...gameState[teamKey].timeouts, [half]: [...(gameState[teamKey].timeouts[half] || []), "X"] };
+            updateGameState({ [teamKey]: { ...gameState[teamKey], timeouts: updatedTimeouts }, history: saveHistory() });
+        }
+        function undo() { const { gameState } = appState; if (gameState.history.length === 0) return; setState({ gameState: gameState.history[gameState.history.length - 1] }); }
+        function nextQuarter() { updateGameState({ quarter: appState.gameState.quarter + 1, history: saveHistory() }); }
+        function saveGameData() {
+            try {
+                const gameId = Date.now().toString();
+                const newGame = { id: gameId, title: `${appState.gameState.teamA.name} vs ${appState.gameState.teamB.name}`, gameState: appState.gameState, createdAt: new Date().toISOString(), finalScoreA: calculateTotalScore(appState.gameState.scores, 'A'), finalScoreB: calculateTotalScore(appState.gameState.scores, 'B'), quarter: appState.gameState.quarter };
+                const updatedGames = [newGame, ...appState.savedGames];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedGames));
+                setState({ savedGames: updatedGames });
+                showNotification('success', '保存しました');
+            } catch (e) { showNotification('error', '保存失敗'); }
+        }
+        function loadGameData(game) { setState({ gameState: game.gameState, viewMode: 'input' }); showNotification('success', '読み込みました'); }
+        function deleteGameData(id) {
+            const updated = appState.savedGames.filter(g => g.id !== id);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+            setState({ savedGames: updated });
+            showNotification('success', '削除しました');
+        }
+        function showNotification(type, message) { setState({ notification: { type, message } }); setTimeout(() => setState({ notification: null }), 3000); }
 
-        grid.innerHTML = displayPlayers.map(p => {
-            const isSel = this.state.selectedPlayerId === p.id;
-            const isOut = p.fouls.length >= 5;
-            const dots = p.fouls.map(() => `<div class="w-2 h-2 rounded-full ${isSel?'bg-yellow-200':'bg-yellow-500'}"></div>`).join('');
+        // --- 5. Renderers ---
+        function renderNav() {
+            const { viewMode } = appState;
+            const btnClass = (mode) => `px-3 py-1 rounded text-sm font-bold flex items-center gap-1 ${viewMode === mode ? 'bg-white text-blue-900' : 'text-blue-200'}`;
             return `
-                <button onclick="app.selectPlayer('${p.id}')" class="player-btn ${isSel?'selected':''} ${isOut?'disabled':''}">
-                    ${p.isCaptain ? `<span class="absolute top-1 left-1 text-[10px] font-bold px-1 rounded ${isSel?'bg-yellow-400 text-blue-900':'bg-yellow-200'}">C</span>` : ''}
+                <nav class="bg-blue-900 text-white p-2 shadow-md flex justify-between items-center z-10 shrink-0 print:hidden">
+                    <div class="flex items-center gap-2">${getIcon('Activity', 20)}<h1 class="font-bold text-lg hidden md:block">Score Sheet</h1></div>
+                    <div class="flex gap-2 bg-blue-800 rounded p-1">
+                        <button onclick="changeView('input')" class="${btnClass('input')}">${getIcon('Activity', 14)} <span class="hidden sm:inline">入力</span></button>
+                        <button onclick="changeView('sheet')" class="${btnClass('sheet')}">${getIcon('FileText', 14)} <span class="hidden sm:inline">公式</span></button>
+                        <button onclick="changeView('settings')" class="${btnClass('settings')}">${getIcon('Settings', 14)} <span class="hidden sm:inline">設定</span></button>
+                        <button onclick="changeView('history')" class="${btnClass('history')}">${getIcon('FolderOpen', 14)} <span class="hidden sm:inline">保存</span></button>
+                    </div>
+                    <div class="flex gap-2">
+                        ${viewMode === 'sheet' ? `<button onclick="window.print()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm font-bold flex items-center gap-1">${getIcon('Printer', 16)} 印刷</button>` : ''}
+                        <button onclick="saveGameData()" class="p-2 hover:bg-blue-800 rounded text-blue-200" title="保存">${getIcon('Save', 20)}</button>
+                    </div>
+                </nav>
+            `;
+        }
+
+        function renderInputPanel() {
+            const { gameState, selectedTeam, selectedPlayerId } = appState;
+            const activeTeamKey = selectedTeam === 'A' ? 'teamA' : 'teamB';
+            const team = gameState[activeTeamKey];
+            const players = team.players.filter(p => p.number);
+            const currentHalf = getHalfKey(gameState.quarter);
+            const toCount = { A: gameState.teamA.timeouts[currentHalf]?.length || 0, B: gameState.teamB.timeouts[currentHalf]?.length || 0 };
+            const limit = currentHalf === 1 ? 2 : 3;
+            const selectedPlayer = players.find(p => p.id === selectedPlayerId);
+            const teamHeaderClass = (t) => `text-center flex-1 p-2 rounded cursor-pointer transition-colors ${selectedTeam === t ? 'bg-gray-700 ring-2 ring-blue-400' : 'hover:bg-gray-800'}`;
+            const playerCard = (p) => `
+                <button onclick="selectPlayer('${p.id}')" class="p-3 rounded-lg flex flex-col items-center justify-center transition-all min-h-[80px] relative ${selectedPlayerId === p.id ? 'bg-blue-600 text-white shadow-md transform scale-105' : 'bg-white border hover:bg-gray-50 text-gray-800'} ${p.fouls.length >= 5 ? 'opacity-50 cursor-not-allowed bg-red-50' : ''}">
+                    ${p.isCaptain ? `<span class="absolute top-1 left-1 text-xs font-bold px-1 rounded ${selectedPlayerId === p.id ? 'bg-yellow-400 text-blue-900' : 'bg-yellow-200 text-gray-800'}">CAP</span>` : ''}
                     <span class="text-xl font-bold font-mono">#${p.number}</span>
-                    <span class="text-xs truncate w-full text-center">${p.name||'-'}</span>
-                    <div class="flex gap-1 mt-1 h-2">${dots} ${isOut?'<span class="text-red font-bold text-xs">OUT</span>':''}</div>
+                    <span class="text-xs truncate w-full text-center" style="min-height: 1rem;">${p.name || '<span class="opacity-30">-</span>'}</span>
+                    <div class="flex gap-0.5 mt-1" style="min-height: 6px;">
+                        ${p.fouls.map(() => `<div class="w-1.5 h-1.5 rounded-full ${selectedPlayerId === p.id ? 'bg-yellow-300' : 'bg-yellow-500'}"></div>`).join('')}
+                        ${p.fouls.length >= 5 ? '<span class="text-xs text-red-500 font-bold leading-none">OUT</span>' : ''}
+                    </div>
                 </button>
             `;
-        }).join('');
-    }
-
-    renderInputControls() {
-        const team = this.state[this.state.selectedTeam === 'A' ? 'teamA' : 'teamB'];
-        const player = team.players.find(p => p.id === this.state.selectedPlayerId);
-        document.getElementById('selected-player-name').innerText = player ? `#${player.number} ${player.name}` : '未選択';
-        
-        const disabled = !player || player.fouls.length >= 5;
-        document.querySelectorAll('.control-btn.btn-green, .control-btn.btn-yellow').forEach(b => b.disabled = disabled);
-        
-        const half = this.getHalfKey(this.state.quarter);
-        const limit = half === 1 ? 2 : 3;
-        document.getElementById('to-btn-text-a').innerText = `${this.state.teamA.timeouts[half].length}/${limit}`;
-        document.getElementById('to-btn-text-b').innerText = `${this.state.teamB.timeouts[half].length}/${limit}`;
-    }
-
-    renderSheet() {
-        const g = this.state;
-        
-        // Helper to render team section (Restored Logic)
-        const renderTeamSection = (teamKey) => {
-            const team = g[teamKey === 'A' ? 'teamA' : 'teamB'];
-            const registeredPlayers = team.players.filter(p => p.number);
-            
-            // Player rows (fixed 18 rows)
-            let playerRows = '';
-            for(let i=0; i<18; i++) {
-                const p = registeredPlayers[i];
-                if(p) {
-                    const foulCells = [1,2,3,4,5].map(n => 
-                        `<div class="flex-1 border border-gray-400 h-3 w-3 flex items-center justify-center text-[8px]">${p.fouls[n-1] || ''}</div>`
-                    ).join('');
-                    
-                    playerRows += `
-                        <tr style="height:14px; border-bottom:1px solid #9ca3af;">
-                            <td class="text-center font-mono">${i+1}</td>
-                            <td class="text-left pl-1 relative">
-                                ${p.name} ${p.isCaptain ? '<span class="text-[8px] font-bold">(CAP)</span>' : ''}
-                            </td>
-                            <td class="text-center font-bold font-mono">${p.number}</td>
-                            <td><div class="flex justify-center gap-1">${foulCells}</div></td>
-                        </tr>
-                    `;
-                } else {
-                    playerRows += `
-                        <tr style="height:14px; border-bottom:1px solid #9ca3af;">
-                            <td class="text-center">${registeredPlayers.length + (i - registeredPlayers.length) + 1}</td>
-                            <td></td><td></td>
-                            <td><div class="flex justify-center gap-1">${[1,2,3,4,5].map(()=>'<div class="h-3 w-3 border border-gray-400"></div>').join('')}</div></td>
-                        </tr>
-                    `;
-                }
-            }
-
-            // Team fouls and timeouts
-            const to1 = team.timeouts[1] || [];
-            const to2 = team.timeouts[2] || [];
-            const tf = team.teamFouls;
-
             return `
-                <div class="mb-2">
-                    <div class="flex justify-between items-end border-b border-black mb-1">
-                        <div class="font-bold text-sm pb-1">
-                            <span class="text-xs mr-2">チーム${teamKey}</span>
-                            <span class="text-xs mr-1">Team ${teamKey}:</span>
-                            <span class="text-lg font-serif uppercase">${team.name}</span>
+                <div class="flex flex-col h-full bg-gray-50 print:hidden">
+                    <div class="bg-gray-900 text-white p-4 flex justify-between items-center shadow-lg shrink-0">
+                        <div class="${teamHeaderClass('A')}" onclick="changeTeam('A')">
+                            <div class="text-sm text-gray-400">${gameState.teamA.name}</div><div class="text-4xl font-bold font-mono text-yellow-400">${calculateTotalScore(gameState.scores, 'A')}</div>
                         </div>
-                        <div class="text-[10px] pb-1">Color: ${team.color}</div>
+                        <div class="px-4 text-center shrink-0">
+                            <div class="text-xl font-bold text-red-500">Q${gameState.quarter}</div>
+                            <button onclick="nextQuarter()" class="text-xs bg-gray-700 px-3 py-1 rounded mt-1 hover:bg-gray-600 text-white">Next Q</button>
+                        </div>
+                        <div class="${teamHeaderClass('B')}" onclick="changeTeam('B')">
+                            <div class="text-sm text-gray-400">${gameState.teamB.name}</div><div class="text-4xl font-bold font-mono text-yellow-400">${calculateTotalScore(gameState.scores, 'B')}</div>
+                        </div>
                     </div>
-                    <div class="flex text-[10px] mb-1 justify-between items-start">
-                        <div class="w-[45%]">
-                            <div class="font-bold text-[9px] mb-1">タイムアウト Time-outs</div>
-                            <div class="flex gap-1 mb-1 items-center">
-                                <div class="border border-black w-6 h-4 text-center font-bold">${to1[0]||''}</div>
-                                <div class="border border-black w-6 h-4 text-center font-bold">${to1[1]||''}</div>
-                            </div>
-                            <div class="flex gap-1 items-center">
-                                <div class="border border-black w-6 h-4 text-center font-bold">${to2[0]||''}</div>
-                                <div class="border border-black w-6 h-4 text-center font-bold">${to2[1]||''}</div>
-                                <div class="border border-black w-6 h-4 text-center font-bold">${to2[2]||''}</div>
-                            </div>
+                    <div class="flex-1 overflow-hidden flex flex-col md:flex-row">
+                        <div class="flex-1 overflow-y-auto p-2 border-r bg-white">
+                            <h3 class="text-sm font-bold text-gray-500 mb-2 px-2 sticky top-0 bg-white z-10 py-2 border-b flex justify-between items-center"><span>${team.name} 選手選択</span></h3>
+                            ${players.length === 0 ? '<div class="p-4 text-center text-gray-500 text-sm">選手がいません。設定で登録してください。</div>' : `<div class="grid grid-cols-3 gap-2 md:grid-cols-2 lg:grid-cols-3">${players.map(playerCard).join('')}</div>`}
                         </div>
-                        <div class="w-[50%]">
-                            <div class="font-bold text-[9px] mb-1">チームファウル Team Fouls</div>
-                            <div class="flex gap-1 mb-1 items-center">
-                                <span class="w-4 text-right">1</span>
-                                <div class="border border-black w-6 h-4 text-center">${tf[1] > 0 ? (tf[1]>4?5:tf[1]) : ''}</div>
-                                <span class="w-4 text-right ml-2">2</span>
-                                <div class="border border-black w-6 h-4 text-center">${tf[2] > 0 ? (tf[2]>4?5:tf[2]) : ''}</div>
+                        <div class="h-auto md:w-1_3 bg-gray-100 p-4 border-t md:border-t-0 md:border-l flex flex-col justify-center gap-3 shrink-0">
+                            <div class="text-center mb-1"><span class="text-xs text-gray-500">選択中:</span><div class="font-bold text-lg h-7 truncate px-2">${selectedPlayer ? `#${selectedPlayer.number} ${selectedPlayer.name}` : '未選択'}</div></div>
+                            <div class="grid grid-cols-3 gap-3">
+                                ${[1, 2, 3].map(pt => `<button onclick="addScore(${pt})" ${!selectedPlayer ? 'disabled' : ''} class="bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold shadow flex flex-col items-center ${!selectedPlayer ? 'opacity-50 cursor-not-allowed' : ''}"><span>+${pt}</span><span class="text-xs font-normal opacity-80">${pt===1?'FT':pt===2?'FG':'3P'}</span></button>`).join('')}
                             </div>
-                            <div class="flex gap-1 items-center">
-                                <span class="w-4 text-right">3</span>
-                                <div class="border border-black w-6 h-4 text-center">${tf[3] > 0 ? (tf[3]>4?5:tf[3]) : ''}</div>
-                                <span class="w-4 text-right ml-2">4</span>
-                                <div class="border border-black w-6 h-4 text-center">${tf[4] > 0 ? (tf[4]>4?5:tf[4]) : ''}</div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button onclick="addFoul('P')" ${!selectedPlayer ? 'disabled' : ''} class="bg-yellow-500 hover:bg-yellow-600 text-white py-3 rounded-lg font-bold shadow text-sm ${!selectedPlayer ? 'opacity-50 cursor-not-allowed' : ''}">P ファウル</button>
+                                <button onclick="undo()" ${gameState.history.length === 0 ? 'disabled' : ''} class="bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-bold shadow flex items-center justify-center gap-2 text-sm ${gameState.history.length === 0 ? 'opacity-50' : ''}">${getIcon('RotateCcw', 16)} 戻る</button>
+                            </div>
+                             <div class="grid grid-cols-2 gap-3 pt-2 border-t border-gray-300">
+                                <button onclick="addTimeout('A')" ${toCount.A >= limit ? 'disabled' : ''} class="bg-orange-100 text-orange-900 py-2 rounded-lg font-bold shadow-sm flex flex-col items-center justify-center text-xs border border-orange-300 ${toCount.A >= limit ? 'opacity-50' : ''}"><div class="flex items-center gap-1 mb-0.5">${getIcon('Timer', 14)} Team A</div><span class="font-normal text-xs">TO (${toCount.A}/${limit})</span></button>
+                                <button onclick="addTimeout('B')" ${toCount.B >= limit ? 'disabled' : ''} class="bg-orange-100 text-orange-900 py-2 rounded-lg font-bold shadow-sm flex flex-col items-center justify-center text-xs border border-orange-300 ${toCount.B >= limit ? 'opacity-50' : ''}"><div class="flex items-center gap-1 mb-0.5">${getIcon('Timer', 14)} Team B</div><span class="font-normal text-xs">TO (${toCount.B}/${limit})</span></button>
                             </div>
                         </div>
                     </div>
-                    <table class="sheet-table">
-                        <thead>
-                            <tr>
-                                <th style="width:20px;">No.</th>
-                                <th>選手氏名 Name of Players</th>
-                                <th style="width:25px;">No.</th>
-                                <th style="width:70px;">ファウル Fouls</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${playerRows}
-                            <tr style="height:20px; border-top:2px solid black;">
-                                <td colspan="2" class="text-left pl-1 border-r border-black font-bold">コーチ Coach: <span class="font-normal ml-1">${team.coach}</span></td>
-                                <td colspan="2"></td>
-                            </tr>
-                            <tr style="height:20px;">
-                                <td colspan="2" class="text-left pl-1 border-r border-black font-bold">A.コーチ A.Coach: <span class="font-normal ml-1">${team.assistantCoach}</span></td>
-                                <td colspan="2"></td>
-                            </tr>
-                        </tbody>
-                    </table>
                 </div>
-            `;
-        };
-
-        // Helper for running score (Restored Logic)
-        const renderRunningScore = () => {
-            const data = [];
-            let cA = 0, cB = 0;
-            for(let i=1; i<=160; i++) data.push({s:i, a:null, b:null});
-            g.scores.forEach(s => {
-                const isA = s.team === 'A';
-                const score = (isA ? cA : cB) + s.points;
-                if(isA) { if(data[score-1]) data[score-1].a = s; cA = score; }
-                else { if(data[score-1]) data[score-1].b = s; cB = score; }
-            });
-
-            const renderCol = (start, end) => {
-                const rows = data.slice(start-1, end).map(d => {
-                    const qa = d.a ? (d.a.quarter===1||d.a.quarter===3 ? 'text-red-print' : '') : '';
-                    const qb = d.b ? (d.b.quarter===1||d.b.quarter===3 ? 'text-red-print' : '') : '';
-                    return `
-                        <div class="running-row">
-                            <div class="running-cell num ${qa}" style="border-right:1px solid #d1d5db;">${d.a ? d.a.playerNumber : ''}</div>
-                            <div class="running-cell score bg-gray-100 ${qa}" style="border-right:1px solid #d1d5db;">${d.a ? d.s : ''}</div>
-                            <div class="running-cell score bg-gray-100 ${qb}" style="border-right:1px solid #d1d5db;">${d.b ? d.s : ''}</div>
-                            <div class="running-cell num ${qb}">${d.b ? d.b.playerNumber : ''}</div>
-                        </div>
-                    `;
-                }).join('');
-                return `
-                    <div class="running-col">
-                        <div class="running-row bg-gray-100 font-bold border-b border-black">
-                            <div class="running-cell">A</div><div class="running-cell" style="flex:2">score</div><div class="running-cell">B</div>
-                        </div>
-                        ${rows}
-                    </div>
-                `;
-            };
-
-            return `
-                <div class="running-score-grid">
-                    ${renderCol(1,40)}
-                    ${renderCol(41,80)}
-                    ${renderCol(81,120)}
-                    ${renderCol(121,160)}
-                </div>
-            `;
-        };
-
-        const totalA = this.calculateTotalScore('A');
-        const totalB = this.calculateTotalScore('B');
-        const winner = totalA > totalB ? g.teamA.name : (totalB > totalA ? g.teamB.name : '');
-
-        const html = `
-            <div class="text-center border-b-2 border-black pb-2 mb-2">
-                <h1 class="font-bold text-xl uppercase tracking-widest mb-2">OFFICIAL SCORESHEET</h1>
-                <div class="flex justify-between items-end text-[10px] mb-2 px-2">
-                    <div class="flex flex-col gap-1 text-left w-1/3">
-                        <div><span class="font-bold w-16">チームA:</span> <span class="border-b border-gray-400 px-1">${g.teamA.name}</span></div>
-                        <div><span class="font-bold w-16">大会名:</span> <span class="border-b border-gray-400 px-1">${g.gameInfo.competition}</span></div>
-                        <div><span class="font-bold w-16">Game No.:</span> <span class="border-b border-gray-400 px-1">${g.gameInfo.gameNo}</span></div>
-                    </div>
-                    <div class="flex flex-col gap-1 text-center w-1/3">
-                        <div><span>日付:</span> <span class="border-b border-gray-400 px-2">${g.gameInfo.date}</span> <span>時間:</span> <span class="border-b border-gray-400 px-2">${g.gameInfo.time}</span></div>
-                        <div><span>場所:</span> <span class="border-b border-gray-400 px-2">${g.gameInfo.place}</span></div>
-                    </div>
-                    <div class="flex flex-col gap-1 text-right w-1/3">
-                         <div><span class="font-bold w-16 mr-1">チームB:</span> <span class="border-b border-gray-400 px-1 text-left">${g.teamB.name}</span></div>
-                    </div>
-                </div>
-                <div class="flex justify-between text-[9px] border border-black p-1 px-4">
-                     <div><span class="font-bold">クルーチーフ:</span> <span class="border-b border-gray-400 px-2">${g.gameInfo.crewChief}</span></div>
-                     <div><span class="font-bold">1st アンパイア:</span> <span class="border-b border-gray-400 px-2">${g.gameInfo.umpire1}</span></div>
-                     <div><span class="font-bold">2nd アンパイア:</span> <span class="border-b border-gray-400 px-2">${g.gameInfo.umpire2}</span></div>
-                </div>
-            </div>
-
-            <div class="flex h-full">
-                <div class="w-[45%] flex flex-col pr-2">
-                    ${renderTeamSection('A')}
-                    <div class="h-2"></div>
-                    ${renderTeamSection('B')}
-                    
-                    <div class="mt-2 border-2 border-black text-[9px]">
-                        <div class="flex bg-gray-100 font-bold border-b border-black text-center">
-                            <div class="w-1/4 border-r border-black">スコア</div>
-                            <div class="flex-1 border-r border-gray-300">1Q</div>
-                            <div class="flex-1 border-r border-gray-300">2Q</div>
-                            <div class="flex-1 border-r border-gray-300">3Q</div>
-                            <div class="flex-1">4Q</div>
-                        </div>
-                        <div class="flex text-center border-b border-gray-300 h-6 items-center">
-                            <div class="w-1/4 border-r border-black font-bold">A</div>
-                            <div class="flex-1 border-r border-gray-300">${this.calculateQuarterScore('A',1)}</div>
-                            <div class="flex-1 border-r border-gray-300">${this.calculateQuarterScore('A',2)}</div>
-                            <div class="flex-1 border-r border-gray-300">${this.calculateQuarterScore('A',3)}</div>
-                            <div class="flex-1">${this.calculateQuarterScore('A',4)}</div>
-                        </div>
-                        <div class="flex text-center border-b border-black h-6 items-center">
-                            <div class="w-1/4 border-r border-black font-bold">B</div>
-                            <div class="flex-1 border-r border-gray-300">${this.calculateQuarterScore('B',1)}</div>
-                            <div class="flex-1 border-r border-gray-300">${this.calculateQuarterScore('B',2)}</div>
-                            <div class="flex-1 border-r border-gray-300">${this.calculateQuarterScore('B',3)}</div>
-                            <div class="flex-1">${this.calculateQuarterScore('B',4)}</div>
-                        </div>
-                        <div class="p-1 font-bold text-center bg-gray-100 border-b border-black">
-                             最終スコア A: <span class="text-lg">${totalA}</span> - <span class="text-lg">${totalB}</span> : B
-                        </div>
-                        <div class="p-1 flex justify-between border-b border-black">
-                            <span>勝者: ${winner}</span>
-                            <span>終了時間: ${g.gameInfo.endTime}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="w-[55%] flex flex-col">
-                    <div class="text-center font-bold text-sm bg-gray-100 border-x border-t border-black">ランニングスコア</div>
-                    ${renderRunningScore()}
-                </div>
-            </div>
-            
-            <div class="mt-2 border border-black p-1 text-[9px] flex justify-between">
-                <div class="flex gap-4">
-                    <span>スコアラー: <span class="border-b border-gray-400 px-1">${g.gameInfo.scorer}</span></span>
-                    <span>タイマー: <span class="border-b border-gray-400 px-1">${g.gameInfo.timer}</span></span>
-                </div>
-                <div class="flex gap-4">
-                     <div class="text-center"><span class="border-b border-black block w-16 h-3"></span><span class="text-[8px]">クルーチーフ</span></div>
-                </div>
-            </div>
-        `;
-        document.getElementById('sheet-content').innerHTML = html;
-    }
-
-    renderSettings() {
-        const t = this.state.settingsTab;
-        const el = document.getElementById('settings-content');
-        ['Info', 'A', 'B'].forEach(k => {
-            const b = document.getElementById(`tab-${k.toLowerCase()}`);
-            b.className = `flex-1 py-2 font-bold text-center ${t===k ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`;
-        });
-
-        if (t === 'Info') {
-            const i = this.state.gameInfo;
-            el.innerHTML = `
-                <div class="grid grid-cols-1 gap-3">
-                    <div><label class="text-xs text-gray-500">大会名</label><input type="text" value="${i.competition}" onchange="app.updateGameInfo('competition',this.value)"></div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div><label class="text-xs text-gray-500">日付</label><input type="date" value="${i.date}" onchange="app.updateGameInfo('date',this.value)"></div>
-                        <div><label class="text-xs text-gray-500">時間</label><input type="time" value="${i.time}" onchange="app.updateGameInfo('time',this.value)"></div>
-                    </div>
-                    <div><label class="text-xs text-gray-500">会場</label><input type="text" value="${i.place}" onchange="app.updateGameInfo('place',this.value)"></div>
-                    <div><label class="text-xs text-gray-500">審判 (Crew Chief)</label><input type="text" value="${i.crewChief}" onchange="app.updateGameInfo('crewChief',this.value)"></div>
-                </div>
-            `;
-        } else {
-            const team = this.state[t==='A'?'teamA':'teamB'];
-            const rows = team.players.map(p => `
-                <tr class="border-t">
-                    <td class="p-1 text-center"><button onclick="app.toggleCaptain('${t}','${p.id}')" class="${p.isCaptain?'text-yellow-500':'text-gray-300'}">★</button></td>
-                    <td class="p-1"><input type="text" class="text-center p-1" placeholder="-" value="${p.number}" onchange="app.updatePlayer('${t}','${p.id}','number',this.value)"></td>
-                    <td class="p-1"><input type="text" class="p-1" placeholder="名前" value="${p.name}" onchange="app.updatePlayer('${t}','${p.id}','name',this.value)"></td>
-                </tr>
-            `).join('');
-            el.innerHTML = `
-                <div class="mb-4 space-y-2">
-                    <div><label class="text-xs text-gray-500">チーム名</label><input type="text" value="${team.name}" onchange="app.updateTeamInfo('${t}','name',this.value)"></div>
-                    <div><label class="text-xs text-gray-500">カラー</label><input type="text" value="${team.color}" onchange="app.updateTeamInfo('${t}','color',this.value)"></div>
-                </div>
-                <table class="w-full text-sm">
-                    <thead class="bg-gray-100"><tr><th width="30">C</th><th width="50">No</th><th>Name</th></tr></thead>
-                    <tbody>${rows}</tbody>
-                </table>
             `;
         }
-    }
 
-    renderHistory() {
-        const el = document.getElementById('history-list');
-        if (this.savedGames.length === 0) { el.innerHTML = '<div class="text-center py-8 text-gray-500">データなし</div>'; return; }
-        el.innerHTML = this.savedGames.map(g => `
-            <div class="bg-white p-3 rounded shadow border">
-                <div class="font-bold text-blue-900">${g.title}</div>
-                <div class="text-xs text-gray-500 mb-2">${new Date(g.createdAt).toLocaleString()}</div>
-                <div class="flex gap-2">
-                    <button class="bg-blue-100 text-blue-800 px-3 py-1 rounded text-xs flex-1" onclick="app.loadGame('${g.id}')">開く</button>
-                    <button class="bg-red-100 text-red-800 px-3 py-1 rounded text-xs" onclick="app.deleteGame('${g.id}')">削除</button>
+        function renderSheetView() {
+            const { gameState } = appState;
+            const runningData = [];
+            let currentA = 0, currentB = 0;
+            for(let i=1; i<=160; i++) runningData.push({ score: i, a: null, b: null });
+            gameState.scores.forEach(s => {
+                const isA = s.team === 'A';
+                const endScore = (isA ? currentA : currentB) + s.points;
+                if (runningData[endScore - 1]) { if (isA) runningData[endScore - 1].a = { number: s.playerNumber, quarter: s.quarter }; else runningData[endScore - 1].b = { number: s.playerNumber, quarter: s.quarter }; }
+                if(isA) currentA = endScore; else currentB = endScore;
+            });
+            const renderTeamSection = (teamKey) => {
+                const team = gameState[`team${teamKey}`];
+                const players = team.players.filter(p => p.number);
+                const rows = [];
+                for(let i=0; i<18; i++) {
+                    const p = players[i];
+                    rows.push(`<tr class="h-[14px] border-b border-gray-400 last:border-b-0"><td class="border-r border-black text-center font-mono text-xs">${i + 1}</td><td class="border-r border-black pl-1 truncate relative text-xs">${p ? `${p.name} ${p.isCaptain ? '<span class="text-xs font-bold">(CAP)</span>' : ''}` : ''}</td><td class="border-r border-black text-center font-bold font-mono text-xs">${p ? p.number : ''}</td><td class="text-center align-middle"><div class="flex justify-center gap-0.5 items-center h-full px-0.5">${[1,2,3,4,5].map(j => `<div class="w-3 h-3 border border-gray-400 flex items-center justify-center text-xs leading-none">${p && p.fouls[j-1] ? p.fouls[j-1] : ''}</div>`).join('')}</div></td></tr>`);
+                }
+                return `<div class="mb-2"><div class="flex justify-between items-end border-b border-black mb-1"><div class="font-bold text-sm leading-none pb-0.5 flex-1"><span class="text-xs mr-2">チーム${teamKey}</span><span class="text-base font-serif uppercase">${team.name}</span></div><div class="text-xs leading-none pb-0.5 text-right w-24">Color: ${team.color || '_'}</div></div><div class="flex text-xs mb-1 justify-between items-start"><div class="w-1_2"><div class="font-bold text-xs mb-0.5">Time-outs</div><div class="flex gap-1 mb-0.5 items-center"><div class="border border-black w-6 h-5 text-center leading-5 font-bold">${team.timeouts[1][0]||''}</div><div class="border border-black w-6 h-5 text-center leading-5 font-bold">${team.timeouts[1][1]||''}</div></div><div class="flex gap-1 items-center"><div class="border border-black w-6 h-5 text-center leading-5 font-bold">${team.timeouts[2][0]||''}</div><div class="border border-black w-6 h-5 text-center leading-5 font-bold">${team.timeouts[2][1]||''}</div><div class="border border-black w-6 h-5 text-center leading-5 font-bold">${team.timeouts[2][2]||''}</div></div></div><div class="w-1_2"><div class="font-bold mb-0.5 text-xs">Team Fouls</div><div class="flex gap-1 mb-0.5 items-center"><span class="w-4 text-right">1</span><div class="border border-black w-6 h-5 text-center leading-5">${team.teamFouls[1]>0?(team.teamFouls[1]>4?5:team.teamFouls[1]):''}</div><span class="w-4 text-right ml-2">2</span><div class="border border-black w-6 h-5 text-center leading-5">${team.teamFouls[2]>0?(team.teamFouls[2]>4?5:team.teamFouls[2]):''}</div></div><div class="flex gap-1 items-center"><span class="w-4 text-right">3</span><div class="border border-black w-6 h-5 text-center leading-5">${team.teamFouls[3]>0?(team.teamFouls[3]>4?5:team.teamFouls[3]):''}</div><span class="w-4 text-right ml-2">4</span><div class="border border-black w-6 h-5 text-center leading-5">${team.teamFouls[4]>0?(team.teamFouls[4]>4?5:team.teamFouls[4]):''}</div></div></div></div><div class="border border-black"><table class="w-full text-xs border-collapse table-fixed"><thead class="bg-gray-100 border-b border-black"><tr><th class="border-r border-black w-8 text-center uppercase text-xs h-5">No.</th><th class="border-r border-black text-left pl-2 uppercase text-xs">Name</th><th class="border-r border-black w-8 text-center uppercase text-xs h-5">No.</th><th class="w-20 text-center uppercase text-xs">Fouls</th></tr></thead><tbody>${rows.join('')}<tr class="h-5 border-t border-black"><td colSpan="2" class="border-r border-black pl-1 text-xs align-middle"><span class="font-bold mr-1">Coach:</span> ${team.coach}</td><td colSpan="2"></td></tr><tr class="h-5 border-t border-gray-300"><td colSpan="2" class="border-r border-black pl-1 text-xs align-middle"><span class="font-bold mr-1">A.Coach:</span> ${team.assistantCoach}</td><td colSpan="2"></td></tr></tbody></table></div></div>`;
+            };
+            const renderRunningCol = (start, end) => `<div class="flex flex-col border-r border-black last:border-r-0 w-1_4 text-xs"><div class="flex border-b border-black font-bold bg-gray-100 text-center h-6 items-center"><div class="w-1_4 text-xs">A</div><div class="w-2_4 text-xs">A-B</div><div class="w-1_4 text-xs">B</div></div>${runningData.slice(start-1, end).map(r => `<div class="flex border-b border-gray-300 h-[15px] items-center"><div class="w-1_4 text-center font-bold text-xs ${r.a ? getCurrentQuarterColor(r.a.quarter) : ''} h-full border-r border-gray-300">${r.a ? r.a.number : ''}</div><div class="w-2_4 flex text-center h-full"><div class="w-1_2 flex items-center justify-center border-r border-gray-300 bg-gray-50">${r.a ? `<span class="text-xs font-bold ${getCurrentQuarterColor(r.a.quarter)}">${r.score}</span>` : `<span class="text-xs text-gray-300">${r.score}</span>`}</div><div class="w-1_2 flex items-center justify-center bg-gray-50">${r.b ? `<span class="text-xs font-bold ${getCurrentQuarterColor(r.b.quarter)}">${r.score}</span>` : `<span class="text-xs text-gray-300">${r.score}</span>`}</div></div><div class="w-1_4 text-center font-bold text-xs ${r.b ? getCurrentQuarterColor(r.b.quarter) : ''} h-full border-l border-gray-300">${r.b ? r.b.number : ''}</div></div>`).join('')}</div>`;
+
+            // Updated wrapper: Added flex-1, w-full, overflow-auto to ensure scroll bars appear when needed
+            return `
+                <div class="flex-1 w-full overflow-auto p-4 flex justify-center items-start print:p-0 print:overflow-visible print:block">
+                    <div class="bg-white text-black font-serif mx-auto w-full max-w-[210mm] min-h-[297mm] p-4 relative print:p-0 print:w-full print:h-screen print:overflow-hidden box-border flex flex-col">
+                         <div class="text-center border-b-2 border-black pb-2 mb-2">
+                            <h1 class="font-bold text-xl uppercase tracking-widest mb-2">OFFICIAL SCORESHEET</h1>
+                            <div class="flex justify-between items-end text-xs mb-2 px-2">
+                                <div class="flex flex-col gap-1 text-left w-1_3">
+                                    <div class="flex"><span class="font-bold w-16">Team A:</span> <span class="border-b border-gray-400 flex-1">${gameState.teamA.name}</span></div>
+                                    <div class="flex"><span class="font-bold w-16">Competition:</span> <span class="border-b border-gray-400 flex-1">${gameState.gameInfo.competition}</span></div>
+                                    <div class="flex"><span class="font-bold w-16">Game No:</span> <span class="border-b border-gray-400 w-20">${gameState.gameInfo.gameNo}</span></div>
+                                </div>
+                                <div class="flex flex-col gap-1 text-center w-1_3 items-center">
+                                    <div class="flex gap-2 w-full justify-center"><span>Date:</span> <span class="border-b border-gray-400 min-w-[80px]">${gameState.gameInfo.date}</span><span>Time:</span> <span class="border-b border-gray-400 min-w-[50px]">${gameState.gameInfo.time}</span></div>
+                                    <div class="flex w-full justify-center"><span>Place:</span> <span class="border-b border-gray-400 min-w-[150px]">${gameState.gameInfo.place}</span></div>
+                                </div>
+                                <div class="flex flex-col gap-1 text-right w-1_3 items-end">
+                                    <div class="flex w-full justify-end"><span class="font-bold w-16 text-right mr-1">Team B:</span> <span class="border-b border-gray-400 flex-1 text-left">${gameState.teamB.name}</span></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between text-xs border border-black p-1 px-4">
+                                <div><span class="font-bold">Crew Chief:</span> ${gameState.gameInfo.crewChief}</div>
+                                <div><span class="font-bold">Umpire 1:</span> ${gameState.gameInfo.umpire1}</div>
+                                <div><span class="font-bold">Umpire 2:</span> ${gameState.gameInfo.umpire2}</div>
+                            </div>
+                        </div>
+                        <div class="flex flex-row h-full">
+                            <div class="w-[45%] flex flex-col pr-2">
+                                <div class="flex-grow">${renderTeamSection('A')} <div class="h-2"></div> ${renderTeamSection('B')}</div>
+                                <div class="mt-2 border-2 border-black">
+                                    <div class="grid grid-cols-11 text-center border-b border-black text-xs h-5 items-center bg-gray-100 font-bold"><div class="col-span-3 border-r border-black">Score</div><div class="col-span-2 border-r border-gray-300">1Q</div><div class="col-span-2 border-r border-gray-300">2Q</div><div class="col-span-2 border-r border-gray-300">3Q</div><div class="col-span-2">4Q</div></div>
+                                    <div class="grid grid-cols-11 text-center border-b border-black text-xs h-6 items-center"><div class="col-span-3 border-r border-black font-bold">A</div><div class="col-span-2 border-r border-gray-300">${calculateQuarterScore(gameState.scores,'A',1)}</div><div class="col-span-2 border-r border-gray-300">${calculateQuarterScore(gameState.scores,'A',2)}</div><div class="col-span-2 border-r border-gray-300">${calculateQuarterScore(gameState.scores,'A',3)}</div><div class="col-span-2">${calculateQuarterScore(gameState.scores,'A',4)}</div></div>
+                                    <div class="grid grid-cols-11 text-center border-b border-black text-xs h-6 items-center"><div class="col-span-3 border-r border-black font-bold">B</div><div class="col-span-2 border-r border-gray-300">${calculateQuarterScore(gameState.scores,'B',1)}</div><div class="col-span-2 border-r border-gray-300">${calculateQuarterScore(gameState.scores,'B',2)}</div><div class="col-span-2 border-r border-gray-300">${calculateQuarterScore(gameState.scores,'B',3)}</div><div class="col-span-2">${calculateQuarterScore(gameState.scores,'B',4)}</div></div>
+                                    <div class="p-1 bg-gray-100 font-bold text-xs flex justify-between"><span>Final</span><span>A: ${calculateTotalScore(gameState.scores,'A')}</span><span>B: ${calculateTotalScore(gameState.scores,'B')}</span></div>
+                                </div>
+                            </div>
+                            <div class="w-[55%] border-2 border-black flex flex-col h-full">
+                                <div class="text-center font-bold uppercase text-sm py-0.5 border-b border-black bg-gray-50 tracking-widest">RUNNING SCORE</div>
+                                <div class="flex flex-1">${renderRunningCol(1,40)}${renderRunningCol(41,80)}${renderRunningCol(81,120)}${renderRunningCol(121,160)}</div>
+                            </div>
+                        </div>
+                        <div class="mt-2 border border-black p-1 text-xs">
+                             <div class="flex flex-wrap gap-x-4 gap-y-1 justify-between">
+                                <div class="flex items-end w-1_3"><span class="font-bold w-20">Scorer:</span> <span class="border-b border-gray-400 flex-1">${gameState.gameInfo.scorer}</span></div>
+                                <div class="flex items-end w-1_3"><span class="font-bold w-20">A.Scorer:</span> <span class="border-b border-gray-400 flex-1">${gameState.gameInfo.assistantScorer}</span></div>
+                                <div class="flex items-end w-1_3"><span class="font-bold w-20">Timer:</span> <span class="border-b border-gray-400 flex-1">${gameState.gameInfo.timer}</span></div>
+                                <div class="flex items-end w-1_3"><span class="font-bold w-24">Shot Clock:</span> <span class="border-b border-gray-400 flex-1">${gameState.gameInfo.shotClock}</span></div>
+                             </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        `).join('');
-    }
-}
+            `;
+        }
 
-const app = new ScoreApp();
-</script>
+        function renderSettingsPanel() {
+            const { gameState, settingsTab } = appState;
+            const tabs = ['Info', 'A', 'B'].map(t => `<button onclick="setState({settingsTab: '${t}'})" class="px-6 py-2 font-bold capitalize ${settingsTab === t ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}">${t==='Info'?'試合情報':`チーム ${t}`}</button>`).join('');
+            let content = '';
+            if(settingsTab === 'Info') {
+                content = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm font-bold text-gray-700 mb-1">大会名</label><input type="text" value="${gameState.gameInfo.competition}" data-path="gameInfo.competition" class="w-full p-2 border rounded input-sync"></div><div><label class="block text-sm font-bold text-gray-700 mb-1">会場</label><input type="text" value="${gameState.gameInfo.place}" data-path="gameInfo.place" class="w-full p-2 border rounded input-sync"></div><div class="grid grid-cols-2 gap-2"><div><label class="block text-sm font-bold text-gray-700 mb-1">日付</label><input type="date" value="${gameState.gameInfo.date}" data-path="gameInfo.date" class="w-full p-2 border rounded input-sync"></div><div><label class="block text-sm font-bold text-gray-700 mb-1">時間</label><input type="time" value="${gameState.gameInfo.time}" data-path="gameInfo.time" class="w-full p-2 border rounded input-sync"></div></div><div><label class="block text-sm font-bold text-gray-700 mb-1">試合No</label><input type="text" value="${gameState.gameInfo.gameNo}" data-path="gameInfo.gameNo" class="w-full p-2 border rounded input-sync"></div><div class="md:col-span-2 border-t pt-4 mt-2"><h3 class="font-bold mb-2 text-blue-800">審判・TO</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4">${['crewChief','umpire1','umpire2','scorer','assistantScorer','timer','shotClock'].map(f => `<div><label class="block text-xs text-gray-500 capitalize">${f}</label><input type="text" value="${gameState.gameInfo[f]}" data-path="gameInfo.${f}" class="w-full p-2 border rounded input-sync"></div>`).join('')}</div></div></div>`;
+            } else {
+                const teamKey = `team${settingsTab}`;
+                const team = gameState[teamKey];
+                content = `<div><div class="mb-6 grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold text-gray-700 mb-2">チーム名</label><input type="text" value="${team.name}" data-path="${teamKey}.name" class="w-full p-2 border rounded text-lg input-sync"></div><div><label class="block text-sm font-bold text-gray-700 mb-2">色</label><input type="text" value="${team.color}" data-path="${teamKey}.color" class="w-full p-2 border rounded input-sync"></div></div><div class="mb-6 grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded border"><div><label class="block text-xs font-bold text-gray-500 mb-1">HC</label><input type="text" value="${team.coach}" data-path="${teamKey}.coach" class="w-full p-2 border rounded text-sm input-sync"></div><div><label class="block text-xs font-bold text-gray-500 mb-1">AC</label><input type="text" value="${team.assistantCoach}" data-path="${teamKey}.assistantCoach" class="w-full p-2 border rounded text-sm input-sync"></div></div><div class="border rounded overflow-hidden"><table class="w-full"><thead class="bg-gray-100"><tr><th class="px-4 py-2 text-center w-16">CAP</th><th class="px-4 py-2 text-left w-24">No.</th><th class="px-4 py-2 text-left">選手名</th></tr></thead><tbody>${team.players.map((p, i) => `<tr class="border-t hover:bg-gray-50"><td class="p-2 text-center"><button onclick="toggleCaptain('${teamKey}', ${i})" class="p-1 rounded-full ${p.isCaptain ? 'text-yellow-500 bg-yellow-50' : 'text-gray-300'}">${getIcon('Crown', 20)}</button></td><td class="p-2"><input type="text" value="${p.number}" data-path="${teamKey}.players.${i}.number" class="w-full p-2 border rounded text-center input-sync"></td><td class="p-2"><input type="text" value="${p.name}" data-path="${teamKey}.players.${i}.name" class="w-full p-2 border rounded input-sync"></td></tr>`).join('')}</tbody></table></div></div>`;
+            }
+            return `<div class="p-4 bg-gray-50 h-full overflow-y-auto print:hidden"><div class="max-w-4xl mx-auto bg-white shadow rounded-lg p-6"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold flex items-center gap-2">${getIcon('Settings')} 設定・編集</h2><button onclick="changeView('input')" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">${getIcon('CheckCircle', 16)} 完了</button></div><div class="flex border-b mb-6">${tabs}</div>${content}</div></div>`;
+        }
+
+        function renderHistoryPanel() {
+            const { savedGames } = appState;
+            return `<div class="p-4 bg-gray-50 h-full overflow-y-auto print:hidden"><div class="max-w-4xl mx-auto"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold flex items-center gap-2">${getIcon('FolderOpen')} 保存データ</h2><button onclick="changeView('input')" class="bg-gray-600 text-white px-4 py-2 rounded flex items-center gap-2">${getIcon('ArrowLeft', 16)} 戻る</button></div>${savedGames.length === 0 ? '<div class="text-center py-12 bg-white rounded shadow text-gray-500">データなし</div>' : `<div class="grid gap-4">${savedGames.map((g, i) => `<div class="bg-white p-4 rounded shadow flex flex-col md:flex-row justify-between items-center gap-4"><div><h3 class="font-bold text-lg text-blue-900">${g.title}</h3><div class="text-sm text-gray-500 flex items-center gap-2 mt-1">${getIcon('Clock', 14)} ${new Date(g.createdAt).toLocaleString()}</div><div class="mt-2 flex items-center gap-4"><span class="font-mono font-bold bg-gray-100 px-2 py-1 rounded">Q${g.quarter}</span><div class="font-bold">${g.finalScoreA} - ${g.finalScoreB}</div></div></div><div class="flex gap-2"><button onclick='loadGameData(${JSON.stringify(g)})' class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">${getIcon('FolderOpen', 16)} 読み込む</button><button onclick="requestDelete('${g.id}')" class="bg-red-100 text-red-600 px-4 py-2 rounded hover:bg-red-200 flex items-center gap-2">${getIcon('Trash2', 16)} 削除</button></div></div>`).join('')}</div>`}</div></div>`;
+        }
+
+        function renderNotification() {
+            const { notification } = appState;
+            if (!notification) return '';
+            const color = notification.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+            const icon = notification.type === 'success' ? 'CheckCircle' : 'AlertCircle';
+            return `<div class="fixed top-16 right-4 z-50 px-4 py-2 rounded shadow-lg flex items-center gap-2 animate-bounce ${color}">${getIcon(icon, 16)} ${notification.message}</div>`;
+        }
+
+        function renderConfirmModal() {
+            const { confirmModal } = appState;
+            if (!confirmModal.isOpen) return '';
+            return `<div class="modal-overlay"><div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 animate-fade-in-up"><h3 class="text-lg font-bold mb-4 text-gray-800 flex items-center gap-2">${getIcon('AlertCircle', 20, 'text-red-500')} 確認</h3><p class="text-gray-700 mb-6">${confirmModal.message}</p><div class="flex justify-end gap-3"><button onclick="setState({confirmModal: {isOpen: false}})" class="px-4 py-2 rounded bg-gray-200 font-bold">キャンセル</button><button id="btn-confirm-action" class="px-4 py-2 rounded bg-red-600 text-white font-bold">実行する</button></div></div></div>`;
+        }
+
+        // --- 6. Main Render ---
+        function render() {
+            const app = document.getElementById('app');
+            // Updated Main Wrapper: Added 'flex', 'flex-col', 'overflow-hidden' to ensuring main takes full height and manages its own overflow context
+            let content = renderNav() + '<main class="flex-1 flex flex-col overflow-hidden relative bg-gray-100 print:bg-white print:block print:h-auto print:overflow-visible">';
+            
+            if (appState.viewMode === 'input') content += renderInputPanel();
+            else if (appState.viewMode === 'sheet') content += renderSheetView();
+            else if (appState.viewMode === 'settings') content += renderSettingsPanel();
+            else if (appState.viewMode === 'history') content += renderHistoryPanel();
+            
+            content += '</main>' + renderNotification() + renderConfirmModal();
+            app.innerHTML = content;
+
+            if (appState.viewMode === 'settings') attachSettingsListeners();
+            if (appState.confirmModal.isOpen) document.getElementById('btn-confirm-action').onclick = appState.confirmModal.onConfirm;
+        }
+
+        // --- 7. Listeners ---
+        window.changeView = (mode) => setState({ viewMode: mode });
+        window.changeTeam = (team) => setState({ selectedTeam: team, selectedPlayerId: null });
+        window.selectPlayer = (id) => setState({ selectedPlayerId: id });
+        window.nextQuarter = nextQuarter;
+        window.addScore = addScore;
+        window.addFoul = addFoul;
+        window.addTimeout = addTimeout;
+        window.undo = undo;
+        window.saveGameData = saveGameData;
+        window.loadGameData = loadGameData;
+        window.requestDelete = (id) => setState({ confirmModal: { isOpen: true, message: '本当に削除しますか？', onConfirm: () => { deleteGameData(id); setState({confirmModal: {isOpen: false}}); } } });
+        window.toggleCaptain = (teamKey, index) => { const players = [...appState.gameState[teamKey].players]; players[index].isCaptain = !players[index].isCaptain; updateGameState({ [teamKey]: { ...appState.gameState[teamKey], players } }); };
+
+        function attachSettingsListeners() {
+            const inputs = document.querySelectorAll('.input-sync');
+            inputs.forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const path = e.target.dataset.path.split('.');
+                    let current = appState.gameState;
+                    for (let i = 0; i < path.length - 1; i++) current = current[path[i]];
+                    current[path[path.length - 1]] = e.target.value;
+                });
+            });
+        }
+
+        try { const saved = localStorage.getItem(STORAGE_KEY); if (saved) appState.savedGames = JSON.parse(saved); } catch (e) {}
+        render();
+
+    </script>
 </body>
 </html>
+
 
