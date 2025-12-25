@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>BasketScore Precision Fit Fixed V3</title>
+<title>BasketScore TO Indicator</title>
 <style>
     /* --- CSS Reset & Base --- */
     * { box-sizing: border-box; }
@@ -56,27 +56,38 @@
     /* --- INPUT VIEW --- */
     #input-view {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 140px minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) 130px minmax(0, 1fr);
         gap: 2px; height: 100%; background: #ccc; overflow: hidden;
     }
     @media (max-width: 450px) {
-        #input-view { grid-template-columns: minmax(0, 1fr) 120px minmax(0, 1fr); }
+        #input-view { grid-template-columns: minmax(0, 1fr) 110px minmax(0, 1fr); }
     }
 
     .team-col { background: #fff; display: flex; flex-direction: column; overflow: hidden; height: 100%; }
+    
+    /* Revised Team Header for TO Display */
     .team-header {
-        padding: 0 4px; background: #222; color: white;
-        display: flex; justify-content: space-between; align-items: center;
-        height: 40px; flex-shrink: 0;
+        padding: 2px 4px; background: #222; color: white;
+        display: flex; flex-direction: row; justify-content: space-between; align-items: center;
+        height: 50px; flex-shrink: 0;
     }
-    .th-name { font-weight: bold; font-size: 0.85rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 60%; }
+    .th-left { display: flex; flex-direction: column; justify-content: center; max-width: 65%; }
+    .th-name { font-weight: bold; font-size: 0.8rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .th-stats { display: flex; gap: 8px; font-size: 0.6rem; color: #aaa; margin-top: 2px; }
+    .th-stat-item { display: flex; align-items: center; gap: 2px; }
+    
+    /* Time out indicators */
+    .to-dots { display: flex; gap: 2px; }
+    .to-dot { width: 6px; height: 6px; border-radius: 50%; background: #555; }
+    .to-dot.on-1 { background: #2563eb; } /* Blue for 1st half */
+    .to-dot.on-2 { background: #dc2626; } /* Red for 2nd half */
+
     .th-score { font-size: 1.6rem; font-weight: bold; color: #fbbf24; line-height: 1; }
-    .th-sub { font-size: 0.65rem; color: #aaa; }
 
     .player-list {
         flex: 1; overflow-y: auto; padding: 2px;
         display: grid; 
-        grid-template-columns: repeat(auto-fill, minmax(55px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
         grid-auto-rows: minmax(55px, 1fr); 
         gap: 2px; align-content: start;
     }
@@ -87,18 +98,27 @@
         cursor: pointer; position: relative; user-select: none;
         transition: transform 0.05s; overflow: hidden;
         height: 100%; width: 100%;
+        padding: 2px; 
     }
     .p-btn:active { transform: scale(0.96); }
     .p-btn.active-a { background: #2563eb; color: white; border-color: #1d4ed8; }
     .p-btn.active-b { background: #dc2626; color: white; border-color: #b91c1c; }
     .p-btn.out { opacity: 0.5; background: #fee2e2; }
     
-    .p-no { font-size: 1.2rem; font-weight: bold; font-family: monospace; line-height: 1; }
-    .p-name { font-size: 0.6rem; width: 100%; text-align: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin-top:1px; }
-    .p-dots { display: flex; gap: 1px; margin-top: 1px; height: 3px; }
-    .dot { width: 3px; height: 3px; border-radius: 50%; background: #e5e7eb; }
+    .p-no { 
+        font-size: 1.4rem; 
+        font-weight: bold; font-family: monospace; line-height: 1; 
+        width: 100%; text-align: center;
+    }
+    .p-name { 
+        font-size: 0.6rem; width: 100%; text-align: center; 
+        overflow: hidden; white-space: nowrap; text-overflow: ellipsis; 
+        margin-top: 2px; 
+    }
+    .p-dots { display: flex; gap: 2px; margin-top: 2px; height: 4px; }
+    .dot { width: 4px; height: 4px; border-radius: 50%; background: #e5e7eb; }
     .dot.on { background: #eab308; }
-    .p-mark { position: absolute; top: 1px; left: 1px; font-size: 0.5rem; font-weight: bold; color: #eab308; }
+    .p-mark { position: absolute; top: 2px; left: 2px; font-size: 0.6rem; font-weight: bold; color: #eab308; }
 
     .center-col { 
         background: #e5e7eb; display: flex; flex-direction: column; 
@@ -108,22 +128,27 @@
     .q-box { 
         display: flex; justify-content: space-between; align-items: center; 
         background: #333; color: white; padding: 0 4px; border-radius: 4px; 
-        height: 36px; flex-shrink: 0; 
+        height: 32px; flex-shrink: 0; 
     }
+    
     .info-box { 
-        background: white; border-radius: 4px; padding: 2px; text-align: center; 
-        border: 1px solid #ccc; flex-shrink: 0; height: 32px; 
+        background: white; border-radius: 4px; padding: 4px; text-align: center; 
+        border: 1px solid #ccc; flex-shrink: 0; height: 44px; 
         display:flex; flex-direction:column; justify-content:center;
     }
-    .sel-info { height: 1rem; font-weight: bold; font-size: 0.8rem; color: #666; overflow: hidden; white-space: nowrap; line-height:1rem; }
+    .sel-info { 
+        height: 1.2rem; line-height: 1.2rem;
+        font-weight: bold; font-size: 1rem; 
+        color: #666; overflow: hidden; white-space: nowrap; 
+    }
     .sel-info.team-a { color: #2563eb; }
     .sel-info.team-b { color: #dc2626; }
     
     .actions-area {
         flex: 1; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; min-height: 0;
     }
-    .btn-group { display: flex; flex-direction: column; gap: 2px; flex: 1; justify-content:center; min-height: 60px; }
-    .grp-lbl { font-size: 0.65rem; font-weight: bold; color: #555; text-align: center; margin-bottom: 1px; }
+    .btn-group { display: flex; flex-direction: column; gap: 2px; flex: 1; justify-content:center; min-height: 50px; }
+    .grp-lbl { font-size: 0.6rem; font-weight: bold; color: #555; text-align: center; margin-bottom: 2px; }
     
     .act-btn {
         flex: 1; min-height: 0;
@@ -131,10 +156,10 @@
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         box-shadow: 0 1px 2px rgba(0,0,0,0.1); padding: 0;
     }
-    .act-score { background: #16a34a; color: white; font-size: 1rem; }
-    .act-score span { font-size: 0.55rem; opacity: 0.9; font-weight: normal; }
-    .act-foul { background: #eab308; color: white; font-size: 0.85rem; }
-    .act-spec { background: #f59e0b; color: white; font-size: 0.75rem; }
+    .act-score { background: #16a34a; color: white; font-size: 0.9rem; }
+    .act-score span { font-size: 0.5rem; opacity: 0.9; font-weight: normal; margin-top: 2px; }
+    .act-foul { background: #eab308; color: white; font-size: 0.8rem; }
+    .act-spec { background: #f59e0b; color: white; font-size: 0.7rem; }
     
     .bottom-ctrl { margin-top: auto; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; padding-top: 2px;}
     .to-row { display: flex; gap: 2px; height: 36px; }
@@ -167,7 +192,6 @@
     .tbl-set th { background: #eee; padding: 8px; text-align: center; font-weight: bold; }
     .tbl-set td { border-bottom: 1px solid #eee; padding: 4px; text-align: center; vertical-align: middle; }
     
-    /* Improved input cells for readability */
     .inp-cell { 
         width: 100%; border: 1px solid #ddd; padding: 8px 4px; 
         text-align: center; background: #fff; font-size: 1rem; 
@@ -179,8 +203,8 @@
         background-repeat: no-repeat;
         background-position: right .7em top 50%;
         background-size: .65em auto;
-        padding-right: 1.5em; /* Ensure text doesn't overlap arrow */
-        min-width: 60px; /* Ensure wide enough */
+        padding-right: 1.5em; 
+        min-width: 60px; 
     }
     .inp-cell:focus { border-color: #2563eb; background-color: #eff6ff; outline: none; }
 
@@ -213,7 +237,6 @@
         justify-content: center;
     }
     
-    /* Sheet wrapper - Fixed Aspect Ratio for Screen */
     .sheet-wrapper {
         width: 210mm; 
         min-height: 297mm;
@@ -340,9 +363,15 @@
         <div id="input-view">
             <div class="team-col">
                 <div class="team-header">
-                    <div style="width:65%;">
+                    <div class="th-left">
                         <div class="th-name" id="name-a">TEAM A</div>
-                        <div class="th-sub">Fouls: <span id="foul-a">0</span></div>
+                        <div class="th-stats">
+                            <div class="th-stat-item">Fouls:<span id="foul-a">0</span></div>
+                            <div class="th-stat-item">
+                                Time out:
+                                <div class="to-dots" id="to-dots-a"></div>
+                            </div>
+                        </div>
                     </div>
                     <div class="th-score" id="score-a">0</div>
                 </div>
@@ -393,9 +422,15 @@
             <div class="team-col">
                 <div class="team-header">
                     <div class="th-score" id="score-b">0</div>
-                    <div style="width:65%; text-align:right;">
+                    <div class="th-left" style="align-items:flex-end; text-align:right; margin-left:auto;">
                         <div class="th-name" id="name-b">TEAM B</div>
-                        <div class="th-sub">Fouls: <span id="foul-b">0</span></div>
+                        <div class="th-stats">
+                            <div class="th-stat-item">
+                                Time out:
+                                <div class="to-dots" id="to-dots-b"></div>
+                            </div>
+                            <div class="th-stat-item">Fouls:<span id="foul-b">0</span></div>
+                        </div>
                     </div>
                 </div>
                 <div id="list-b" class="player-list"></div>
@@ -553,7 +588,12 @@ function actFoul(code) {
 
 function actTO(tm) {
     const tk = tm==='A'?'teamA':'teamB';
-    const h = st.q<=2?1:2;
+    const h = st.q<=2?1:2; // 1st half: Q1,2; 2nd half: Q3,4
+    // Usually limit: 2 in 1st half, 3 in 2nd half
+    const max = h===1 ? 2 : 3;
+    if(st[tk].timeouts[h].length >= max) {
+        if(!confirm('タイムアウト制限数に達しています。追加しますか？')) return;
+    }
     const min = prompt("経過時間(分)", "");
     st[tk].timeouts[h].push(min || 'X');
     renInput();
@@ -594,6 +634,24 @@ function renInput() {
     document.getElementById('foul-b').innerText = st.teamB.fouls[st.q]||0;
     document.getElementById('disp-q').innerText = 'Q'+st.q;
 
+    // Render TO Dots
+    ['A','B'].forEach(tm => {
+        const tk = tm==='A'?'teamA':'teamB';
+        const el = document.getElementById('to-dots-'+tm.toLowerCase());
+        // 1st half: 2 slots, 2nd half: 3 slots. Show current half's availability
+        const h = st.q<=2?1:2;
+        const used = st[tk].timeouts[h].length;
+        let html = '';
+        if(h===1) {
+            // 2 blue dots max
+            for(let i=0; i<2; i++) html += `<div class="to-dot ${i<used?'on-1':''}"></div>`;
+        } else {
+            // 3 red dots max
+            for(let i=0; i<3; i++) html += `<div class="to-dot ${i<used?'on-2':''}"></div>`;
+        }
+        el.innerHTML = html;
+    });
+
     const selInfo = document.getElementById('sel-name');
     if(st.selId) {
         const p = getP(st.selT, st.selId);
@@ -614,10 +672,14 @@ function renInput() {
             }
             return `
             <div class="p-btn ${activeClass} ${p.fouls.length>=5?'out':''}" onclick="selP('${tm}','${p.id}')">
-                ${p.capt?'<div class="p-mark">CAP</div>':''}
-                ${p.start?'<div style="position:absolute; bottom:2px; left:2px; font-size:0.5rem; color:red;">ST</div>':''}
                 <div class="p-no">${p.no}</div>
-                <div class="p-name">${p.name||'-'}</div>
+                <div class="p-center">
+                    <div class="p-name">${p.name||'-'}</div>
+                    <div class="p-marks">
+                        ${p.capt?'<span>(C)</span>':''}
+                        ${p.start?'<span>ST</span>':''}
+                    </div>
+                </div>
                 <div class="p-dots">
                     ${[1,2,3,4,5].map(i=>`<div class="dot ${i<=p.fouls.length?'on':''}"></div>`).join('')}
                 </div>
@@ -772,7 +834,7 @@ function renSheet() {
     const getRun = (s,e) => `
         <div class="br flex-col flex-1" style="min-width:0;">
             <div class="flex-row bb bg-g txt-b txt-c center-v" style="font-size:0.8em; height:1.8em; flex-shrink:0;">
-                <div style="flex:1;">A</div><div style="flex:1;">B</div><div style="flex:1;">A</div><div style="flex:1;">B</div>
+                <div style="flex:1;">A</div><div style="flex:1;">A</div><div style="flex:1;">B</div><div style="flex:1;">B</div>
             </div>
             <div class="flex-col flex-1" style="min-height:0;">
                 ${run.slice(s,e).map(r=> {
