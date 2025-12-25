@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BasketScore Final (Color Coded)</title>
+<title>BasketScore Final (History Print)</title>
 <style>
     /* --- CSS Reset & Base --- */
     * { box-sizing: border-box; }
@@ -347,6 +347,15 @@ function deleteGame(id) {
     localStorage.setItem('bss_hist_v2', JSON.stringify(hist));
     renHistory();
 }
+function printGame(id) {
+    if(!confirm('現在の画面を閉じて、選択した試合の記録を開き、印刷しますか？\n(未保存の入力は消えます)')) return;
+    const g = loadGameList().find(x => x.gameId === id);
+    if(g) {
+        st = g;
+        setView('sheet');
+        setTimeout(() => { window.print(); }, 500);
+    }
+}
 function newGame() {
     if(!confirm('新規作成しますか？')) return;
     st = initSt(); setView('input');
@@ -441,13 +450,10 @@ function renInput() {
     document.getElementById('foul-b').innerText = st.teamB.fouls[st.q]||0;
     document.getElementById('disp-q').innerText = 'Q'+st.q;
 
-    // Center Info Update
     const selInfo = document.getElementById('sel-name');
     if(st.selId) {
         const p = getP(st.selT, st.selId);
         selInfo.innerText = p ? `#${p.no} ${p.name}` : '---';
-        
-        // Color Change Logic
         selInfo.className = 'sel-info ' + (st.selT === 'A' ? 'team-a' : 'team-b');
     } else {
         selInfo.innerText = '---';
@@ -458,12 +464,10 @@ function renInput() {
         const tk = tm==='A'?'teamA':'teamB';
         const players = st[tk].players.filter(p=>p.no!=='');
         const html = players.map(p => {
-            // Determine active class based on team
             let activeClass = '';
             if (st.selId === p.id) {
                 activeClass = (tm === 'A') ? 'active-a' : 'active-b';
             }
-            
             return `
             <div class="p-btn ${activeClass} ${p.fouls.length>=5?'out':''}" onclick="selP('${tm}','${p.id}')">
                 ${p.capt?'<div class="p-mark">CAP</div>':''}
@@ -536,6 +540,7 @@ function renHistory() {
                 <div style="font-family:monospace; font-weight:bold; color:#059669;">${sc.a} - ${sc.b}</div>
             </div>
             <div style="display:flex; gap:5px;">
+                <button class="btn btn-warning" onclick="printGame('${g.gameId}')">印刷</button>
                 <button class="btn btn-primary" onclick="loadGame('${g.gameId}')">開く</button>
                 <button class="btn btn-danger" onclick="deleteGame('${g.gameId}')">削除</button>
             </div>
@@ -544,7 +549,6 @@ function renHistory() {
 }
 
 function renSheet() {
-    // Calc Running
     const run = Array.from({length:160},(_,i)=>({sc:i+1,a:null,b:null}));
     let cA=0, cB=0;
     const sumA={1:0,2:0,3:0,4:0}, sumB={1:0,2:0,3:0,4:0};
@@ -556,8 +560,7 @@ function renSheet() {
             const e = s+l.val;
             if(l.q<=4) (isA?sumA:sumB)[l.q]+=l.val;
             
-            // Running Score Logic with Symbols and Colors
-            const item = { no:l.no, q:l.q, type:l.val }; // 1=FT, 2=FG, 3=3P
+            const item = { no:l.no, q:l.q, type:l.val }; 
             if(isA) { if(run[e-1]) run[e-1].a=item; cA=e; }
             else    { if(run[e-1]) run[e-1].b=item; cB=e; }
         }
@@ -613,7 +616,6 @@ function renSheet() {
             </div>
         </div>`;
 
-    // Player Number Cell in Running Score
     const getRunNum = (d) => {
         if(!d) return '<div style="flex:1;"></div>';
         const isRed = (d.q===1 || d.q===3);
@@ -630,7 +632,6 @@ function renSheet() {
             </div>
             <div style="flex:1; display:flex; flex-direction:column;">
                 ${run.slice(s,e).map(r=> {
-                    // Symbol logic
                     const isRedA = r.a && (r.a.q===1 || r.a.q===3);
                     const isRedB = r.b && (r.b.q===1 || r.b.q===3);
                     
