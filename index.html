@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>BasketScore Full Scroll Settings</title>
+<title>BasketScore Precision Fit Fixed</title>
 <style>
     /* --- CSS Reset & Base --- */
     * { box-sizing: border-box; }
     body { 
         margin: 0; padding: 0; 
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
         background-color: #333; 
         color: #000;
         -webkit-font-smoothing: antialiased;
@@ -140,40 +140,28 @@
     .to-row { display: flex; gap: 2px; height: 36px; }
     .to-btn { flex: 1; font-size: 0.7rem; padding: 0; background: #fff; border: 1px solid #ccc; height: 100%; }
 
-    /* --- SETTINGS VIEW (Full Scroll) --- */
+    /* --- SETTINGS VIEW --- */
     #settings-view { 
         display: none; background: #f3f4f6; 
         height: 100%; width: 100%; 
         padding: 10px; 
-        overflow-y: auto; /* Allow vertical scroll for the whole view */
+        overflow-y: auto;
     }
     .settings-layout {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        width: 100%;
-        max-width: 800px;
-        margin: 0 auto;
-        padding-bottom: 40px; /* Space at bottom */
+        display: flex; flex-direction: column; gap: 20px;
+        width: 100%; max-width: 800px; margin: 0 auto;
+        padding-bottom: 40px;
     }
-    
     .set-panel {
         background: white; padding: 15px; border-radius: 8px; 
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         display: flex; flex-direction: column;
-        /* No internal overflow hidden */
     }
     .set-panel h3 { margin: 0 0 15px 0; font-size: 1rem; border-bottom: 2px solid #eee; padding-bottom: 8px; }
-    
-    .scroll-content { 
-        /* No fixed height or internal scroll */
-    }
-
     .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
     .form-grp { flex: 1; }
     .form-lbl { font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 2px; color:#555; }
     .form-inp { width: 100%; padding: 8px; font-size: 0.95rem; border: 1px solid #ccc; border-radius: 4px; }
-    
     .tbl-container { width: 100%; border: 1px solid #eee; margin-top: 10px; }
     .tbl-set { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
     .tbl-set th { background: #eee; padding: 8px; text-align: center; font-weight: bold; }
@@ -199,7 +187,7 @@
         flex-shrink: 0;
     }
     
-    /* --- SHEET VIEW (OBA Style) --- */
+    /* --- SHEET VIEW (Precision Fit) --- */
     #sheet-view { 
         display: none; 
         width: 100%; height: 100%;
@@ -209,12 +197,15 @@
         flex-direction: column;
     }
     
+    /* Sheet wrapper for screen preview */
     .sheet-wrapper {
         width: 100%; height: 100%;
         display: flex; flex-direction: column;
         padding: 5px; 
-        font-size: 1.2vh; 
+        font-size: 1.1vh; /* Fluid font size for screen */
         background: white;
+        color: #000;
+        font-family: sans-serif;
     }
 
     /* Common Sheet Utils */
@@ -222,13 +213,15 @@
     .flex-col { display: flex; flex-direction: column; }
     .flex-1 { flex: 1; min-height: 0; min-width: 0; }
     
+    /* Borders */
     .bd { border: 1px solid #000; }
     .bt { border-top: 1px solid #000; }
     .bb { border-bottom: 1px solid #000; }
     .bl { border-left: 1px solid #000; }
     .br { border-right: 1px solid #000; }
-    .b-double { border-bottom: 3px double #000; }
+    .b-bold { border-width: 2px; }
     
+    /* Align */
     .txt-c { text-align: center; }
     .txt-r { text-align: right; }
     .txt-l { text-align: left; }
@@ -238,50 +231,63 @@
     
     .center-v { display: flex; align-items: center; justify-content: center; }
     
-    /* Sheet Header Grid */
+    /* Header Grid Layout */
     .sheet-header-grid {
         display: grid;
-        grid-template-columns: 20% 50% 30%;
-        grid-template-rows: auto auto auto;
-        gap: 2px;
+        grid-template-columns: 50% 50%;
+        grid-template-rows: auto auto;
+        gap: 4px;
         width: 100%;
-        margin-bottom: 5px;
+        margin-bottom: 3px;
         border-bottom: 2px solid #000;
-        padding-bottom: 5px;
+        padding-bottom: 3px;
         flex-shrink: 0;
     }
-    .sh-logo { grid-column: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: bold; border-right: 1px solid #ccc; padding-right:5px; }
-    .sh-main { grid-column: 2; padding: 0 5px; }
-    .sh-right { grid-column: 3; padding-left: 5px; }
-    .sh-bottom { grid-column: 1 / 4; display: flex; justify-content: space-between; margin-top: 5px; border-top: 1px solid #000; padding-top:2px; }
+    .sh-left { grid-column: 1; border-right:1px solid #ccc; padding-right:10px; }
+    .sh-right { grid-column: 2; padding-left:10px; }
+    .sh-label { display: inline-block; font-weight:bold; width: 6em; font-size:0.85em; }
+    .sh-val { border-bottom: 1px solid #000; flex:1; text-align: center; font-weight:bold; font-size:0.9em; min-height:1.2em; }
+    .row-item { display: flex; align-items: flex-end; margin-bottom: 2px; }
 
     /* Visual Symbols */
     .slash { background: linear-gradient(to top right, transparent calc(50% - 0.5px), black calc(50% - 0.5px), black calc(50% + 0.5px), transparent calc(50% + 0.5px)); }
     .slash-red { background: linear-gradient(to top right, transparent calc(50% - 0.5px), #dc2626 calc(50% - 0.5px), #dc2626 calc(50% + 0.5px), transparent calc(50% + 0.5px)); }
     
-    .circle-num { border: 1px solid black; border-radius: 50%; width: 1.6em; height: 1.6em; display: inline-flex; align-items: center; justify-content: center; line-height: 1; margin: 0 auto; }
-    .circle-num-red { border: 1px solid #dc2626; color: #dc2626; border-radius: 50%; width: 1.6em; height: 1.6em; display: inline-flex; align-items: center; justify-content: center; line-height: 1; margin: 0 auto; }
-    .filled-dot { width: 0.6em; height: 0.6em; background: black; border-radius: 50%; margin: auto; }
-    .filled-dot-red { width: 0.6em; height: 0.6em; background: #dc2626; border-radius: 50%; margin: auto; }
-    .starter-mark { width: 1.2em; height: 1.2em; border: 1px solid #dc2626; border-radius: 50%; color: #dc2626; font-size: 0.9em; line-height: 1.2; text-align: center; display: inline-block; }
+    .circle-num { border: 1px solid black; border-radius: 50%; width: 1.5em; height: 1.5em; display: inline-flex; align-items: center; justify-content: center; line-height: 1; margin: 0 auto; font-size:0.9em; }
+    .circle-num-red { border: 1px solid #dc2626; color: #dc2626; border-radius: 50%; width: 1.5em; height: 1.5em; display: inline-flex; align-items: center; justify-content: center; line-height: 1; margin: 0 auto; font-size:0.9em; }
+    .filled-dot { width: 0.5em; height: 0.5em; background: black; border-radius: 50%; margin: auto; }
+    .filled-dot-red { width: 0.5em; height: 0.5em; background: #dc2626; border-radius: 50%; margin: auto; }
+    .starter-mark { width: 1.1em; height: 1.1em; border: 1px solid #dc2626; border-radius: 50%; color: #dc2626; font-size: 0.9em; line-height: 1.1; text-align: center; display: inline-block; }
 
     /* Print Overrides */
     @media print {
         @page { size: A4 portrait; margin: 0; }
-        body { background: white; height: auto; overflow: visible; width:auto; transform:none !important; }
+        html, body { height: 297mm; width: 210mm; margin: 0; padding: 0; background: white; overflow: hidden; }
+        
         nav { display: none !important; }
-        #app-container { height: auto; display: block; overflow:visible; width:auto; transform:none !important; margin:0; padding:0; }
-        #scaler { transform:none !important; width:auto; height:auto; display:block; }
+        #app-container { height: 297mm; width: 210mm; display: block; margin:0; padding:0; overflow:hidden; }
+        #scaler { transform:none !important; width:100%; height:100%; display:block; }
         #input-view, #settings-view, #history-view { display: none !important; }
         
-        #sheet-view { display: block !important; padding: 0; margin: 0; overflow: visible; height: auto; }
+        #sheet-view { 
+            display: block !important; 
+            padding: 0; margin: 0; 
+            height: 297mm; width: 210mm;
+            overflow: hidden;
+        }
         .sheet-wrapper {
-            width: 210mm !important; height: 297mm !important;
-            padding: 10mm !important; margin: 0; 
-            font-size: 10px !important;
+            width: 210mm !important; 
+            height: 297mm !important;
+            padding: 8mm !important; 
+            margin: 0 !important;
+            font-size: 9pt !important; /* Fixed print size */
             display: flex !important;
+            box-sizing: border-box !important;
         }
         .sheet-header-grid { display: grid !important; }
+        
+        /* Ensure specific borders print */
+        .bd, .bt, .bb, .bl, .br { border-color: #000 !important; }
     }
 </style>
 </head>
@@ -373,10 +379,9 @@
             </div>
         </div>
 
-        <!-- SETTINGS VIEW (Full Vertical Scroll) -->
+        <!-- SETTINGS VIEW -->
         <div id="settings-view">
             <div class="settings-layout">
-                <!-- Panel 1: Info -->
                 <div class="set-panel">
                     <h3>GAME INFO</h3>
                     <div class="scroll-content">
@@ -409,9 +414,7 @@
                         </div>
                     </div>
                 </div>
-                <!-- Panel 2: Team A -->
                 <div id="set-team-A" class="set-panel"></div>
-                <!-- Panel 3: Team B -->
                 <div id="set-team-B" class="set-panel"></div>
             </div>
         </div>
@@ -493,7 +496,6 @@ function setView(v) {
     autoScale();
 }
 
-// AUTO SCALER
 function autoScale() {
     const scaler = document.getElementById('scaler');
     scaler.style.width = '100%';
@@ -691,18 +693,18 @@ function renSheet() {
     const getP = (p) => `
         <div class="flex-row bb center-v flex-1" style="min-height:0;">
             <div class="br txt-c" style="width:2.5em; font-weight:bold;">${p.no}</div>
-            <div class="br txt-l" style="flex:1; overflow:hidden; white-space:nowrap; padding-left:4px; font-size:0.9em;">
+            <div class="br txt-l" style="flex:1; overflow:hidden; white-space:nowrap; padding-left:4px; font-size:0.75em; display:flex; align-items:center;">
                 ${p.name} ${p.capt?'(CAP)':''}
             </div>
-            ${[0,1,2,3,4].map(i=>`<div class="br txt-c" style="width:1.6em; font-size:0.8em;">${p.fouls[i]||''}</div>`).join('')}
+            ${[0,1,2,3,4].map(i=>`<div class="br txt-c" style="width:1.6em; font-size:0.8em; display:flex; align-items:center; justify-content:center;">${p.fouls[i]||''}</div>`).join('')}
         </div>`;
     
     const getTm = (tk, ttl) => `
         <div class="flex-col flex-1" style="margin-bottom:0.3em; min-height:0;">
             <div class="flex-row bb" style="align-items:end; margin-bottom:1px; flex-shrink:0;">
-                <div style="font-size:0.9em; width:4em;">${ttl}</div>
-                <div style="font-weight:bold; font-size:1.2em; margin-left:5px; text-transform:uppercase; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${st[tk].name}</div>
-                <div style="width:5em; text-align:right; font-size:0.8em; margin-right:4px;">Time-outs</div>
+                <div style="font-size:0.8em; width:4em;">${ttl}</div>
+                <div style="font-weight:bold; font-size:1.1em; margin-left:5px; text-transform:uppercase; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${st[tk].name}</div>
+                <div style="width:5em; text-align:right; font-size:0.7em; margin-right:4px;">Time-outs</div>
             </div>
             <div class="flex-row" style="font-size:0.8em; margin-bottom:2px; justify-content:space-between; flex-shrink:0;">
                  <div style="display:flex; align-items:center;">
@@ -710,15 +712,15 @@ function renSheet() {
                         <span style="font-size:0.7em;">Team fouls</span>
                     </div>
                     <div style="display:flex; gap:1px;">
-                         ${[1,2].map(q=>`<div class="bd txt-c ${(q===1||q===3)?'text-red':''}" style="width:1.5em; height:1.2em;">${st[tk].fouls[q]>0?(st[tk].fouls[q]>4?5:st[tk].fouls[q]):''}</div>`).join('')}
+                         ${[1,2].map(q=>`<div class="bd txt-c ${(q===1||q===3)?'text-red':''}" style="width:1.5em; height:1.2em; display:flex; align-items:center; justify-content:center;">${st[tk].fouls[q]>0?(st[tk].fouls[q]>4?5:st[tk].fouls[q]):''}</div>`).join('')}
                          <span style="margin:0 2px;"></span>
-                         ${[3,4].map(q=>`<div class="bd txt-c ${(q===1||q===3)?'text-red':''}" style="width:1.5em; height:1.2em;">${st[tk].fouls[q]>0?(st[tk].fouls[q]>4?5:st[tk].fouls[q]):''}</div>`).join('')}
+                         ${[3,4].map(q=>`<div class="bd txt-c ${(q===1||q===3)?'text-red':''}" style="width:1.5em; height:1.2em; display:flex; align-items:center; justify-content:center;">${st[tk].fouls[q]>0?(st[tk].fouls[q]>4?5:st[tk].fouls[q]):''}</div>`).join('')}
                     </div>
                  </div>
                  <div style="display:flex; align-items:center;">
-                    ${[0,1].map(i=> `<div class="bd txt-c" style="width:1.5em; height:1.2em; margin-right:1px;">${st[tk].timeouts[1][i]||''}</div>`).join('')}
+                    ${[0,1].map(i=> `<div class="bd txt-c" style="width:1.5em; height:1.2em; margin-right:1px; display:flex; align-items:center; justify-content:center;">${st[tk].timeouts[1][i]||''}</div>`).join('')}
                     <span style="margin:0 4px;"></span>
-                    ${[0,1,2].map(i=>`<div class="bd txt-c" style="width:1.5em; height:1.2em; margin-right:1px;">${st[tk].timeouts[2][i]||''}</div>`).join('')}
+                    ${[0,1,2].map(i=>`<div class="bd txt-c" style="width:1.5em; height:1.2em; margin-right:1px; display:flex; align-items:center; justify-content:center;">${st[tk].timeouts[2][i]||''}</div>`).join('')}
                  </div>
             </div>
             <div class="bd flex-col flex-1" style="min-height:0;">
@@ -775,30 +777,29 @@ function renSheet() {
 
     document.getElementById('sheet-view').innerHTML = `
         <div class="sheet-wrapper">
-            <!-- HEADER (OBA Style) -->
+            <!-- HEADER (No Logo, Text Fit) -->
             <div class="sheet-header-grid">
-                <div class="sh-logo">
-                    <div style="font-size:2em; font-weight:900;">OBA</div>
-                    <div style="font-size:0.6em; text-align:center;">Oita Basketball<br>Association</div>
-                </div>
-                
-                <div class="sh-main" style="display:flex; flex-direction:column; justify-content:center;">
-                    <div class="flex-row" style="margin-bottom:2px;"><span style="width:4em;">Competition</span> <span class="bb" style="flex:1;">${st.meta.competition}</span></div>
-                    <div class="flex-row"><span style="width:4em;">Game No.</span> <span class="bb" style="flex:1;">${st.meta.no}</span></div>
-                    <div class="txt-c txt-b" style="font-size:1.4em; letter-spacing:1px; margin-top:2px;">OFFICIAL SCORESHEET</div>
+                <div class="sh-left">
+                    <div class="row-item"><span class="sh-label">Competition</span> <span class="sh-val">${st.meta.competition}</span></div>
+                    <div class="row-item"><span class="sh-label">Game No.</span> <span class="sh-val" style="width:4em; flex:none;">${st.meta.no}</span></div>
+                    
+                    <div class="row-item" style="margin-top:4px;">
+                        <span class="sh-label" style="width:2.5em;">Date</span> <span class="sh-val" style="margin-right:10px;">${st.meta.date}</span>
+                        <span class="sh-label" style="width:2.5em;">Time</span> <span class="sh-val">${st.meta.time}</span>
+                    </div>
+                    <div class="row-item"><span class="sh-label" style="width:2.5em;">Place</span> <span class="sh-val">${st.meta.place}</span></div>
                 </div>
 
-                <div class="sh-right" style="display:flex; flex-direction:column; justify-content:center; gap:2px;">
-                    <div class="flex-row"><span style="width:2.5em;">Date</span> <span class="bb" style="flex:1;">${st.meta.date}</span></div>
-                    <div class="flex-row"><span style="width:2.5em;">Time</span> <span class="bb" style="flex:1;">${st.meta.time}</span></div>
-                    <div class="flex-row"><span style="width:2.5em;">Place</span> <span class="bb" style="flex:1;">${st.meta.place}</span></div>
-                    <div class="flex-row"><span style="width:3.5em; font-size:0.8em;">Crew Chief</span> <span class="bb" style="flex:1;">${st.meta.crewChief}</span></div>
-                    <div class="flex-row"><span style="width:3.5em; font-size:0.8em;">Umpire 1</span> <span class="bb" style="flex:1;">${st.meta.umpire1}</span></div>
-                    <div class="flex-row"><span style="width:3.5em; font-size:0.8em;">Umpire 2</span> <span class="bb" style="flex:1;">${st.meta.umpire2}</span></div>
+                <div class="sh-right">
+                    <div class="row-item"><span class="sh-label">Crew Chief</span> <span class="sh-val">${st.meta.crewChief}</span></div>
+                    <div class="row-item"><span class="sh-label">Umpire 1</span> <span class="sh-val">${st.meta.umpire1}</span></div>
+                    <div class="row-item"><span class="sh-label">Umpire 2</span> <span class="sh-val">${st.meta.umpire2}</span></div>
                 </div>
             </div>
             
-            <div class="flex-row" style="margin-bottom:2px; font-weight:bold;">
+            <div class="txt-c txt-b" style="font-size:1.6em; letter-spacing:2px; margin-bottom:5px;">OFFICIAL SCORESHEET</div>
+
+            <div class="flex-row" style="margin-bottom:2px; font-weight:bold; font-size:0.9em;">
                 <div style="width:46%; display:flex; justify-content:space-between;">
                     <span>Team A: ${st.teamA.name}</span>
                 </div>
@@ -816,25 +817,25 @@ function renSheet() {
                     ${getTm('teamA','Team A')}
                     ${getTm('teamB','Team B')}
                     
-                    <!-- SCORE SUMMARY (OBA Style) -->
-                    <div class="bd flex-col" style="margin-top:auto; font-size:0.85em; border-width:2px; flex-shrink:0;">
-                        <div class="flex-row bb txt-c center-v" style="height:1.5em;"><div style="width:30%; text-align:left; padding-left:4px;">Scores</div><div class="br" style="flex:1;">Quarter 1</div><div class="br" style="flex:1;">Quarter 2</div><div class="br" style="flex:1;">Quarter 3</div><div class="br" style="flex:1;">Quarter 4</div><div style="flex:1;">Overtime</div></div>
+                    <!-- SCORE SUMMARY -->
+                    <div class="bd flex-col" style="margin-top:auto; font-size:0.8em; border-width:2px; flex-shrink:0;">
+                        <div class="flex-row bb txt-c center-v" style="height:1.5em;"><div style="width:30%; text-align:left; padding-left:4px;">Scores</div><div class="br" style="flex:1;">Q1</div><div class="br" style="flex:1;">Q2</div><div class="br" style="flex:1;">Q3</div><div class="br" style="flex:1;">Q4</div><div style="flex:1;">OT</div></div>
                         <div class="flex-row bb txt-c center-v" style="height:1.5em;"><div style="width:30%; text-align:left; padding-left:4px;">A</div><div class="br" style="flex:1;">${sumA[1]}</div><div class="br" style="flex:1;">${sumA[2]}</div><div class="br" style="flex:1;">${sumA[3]}</div><div class="br" style="flex:1;">${sumA[4]}</div><div style="flex:1;">0</div></div>
                         <div class="flex-row bb txt-c center-v" style="height:1.5em;"><div style="width:30%; text-align:left; padding-left:4px;">B</div><div class="br" style="flex:1;">${sumB[1]}</div><div class="br" style="flex:1;">${sumB[2]}</div><div class="br" style="flex:1;">${sumB[3]}</div><div class="br" style="flex:1;">${sumB[4]}</div><div style="flex:1;">0</div></div>
                         
                         <div class="flex-row bb" style="height:1.8em; align-items:center; padding:0 4px;">
-                            <div style="width:100%; display:flex;"><strong style="width:6em;">Final Score</strong> Team A <span class="bb txt-c" style="width:3em;">${cA}</span> Team B <span class="bb txt-c" style="width:3em;">${cB}</span></div>
+                            <div style="width:100%; display:flex;"><strong style="width:7em;">Final Score</strong> Team A <span class="bb txt-c" style="width:3em;">${cA}</span> Team B <span class="bb txt-c" style="width:3em;">${cB}</span></div>
                         </div>
                         <div class="flex-row bb" style="height:1.8em; align-items:center; padding:0 4px;">
-                            <div style="width:100%; display:flex;"><strong style="width:10em;">Name of Winning Team</strong> <span class="bb" style="flex:1;">${cA>cB?st.teamA.name:(cB>cA?st.teamB.name:'')}</span></div>
+                            <div style="width:100%; display:flex;"><strong style="width:8em;">Winning team</strong> <span class="bb" style="flex:1;">${cA>cB?st.teamA.name:(cB>cA?st.teamB.name:'')}</span></div>
                         </div>
                          <div class="flex-row" style="height:1.8em; align-items:center; padding:0 4px;">
-                             <strong style="width:12em;">Game ended at (hh:mm)</strong> <span class="bb" style="width:6em; text-align:center;">${st.meta.gameEndedAt}</span>
+                             <strong style="width:14em;">Game ended at (hh:mm)</strong> <span class="bb" style="width:5em; text-align:center;">${st.meta.gameEndedAt}</span>
                         </div>
                     </div>
 
-                     <!-- FOOTER SIGNATURES (OBA Style) -->
-                    <div class="bd flex-row" style="margin-top:2px; padding:2px; font-size:0.8em; flex-shrink:0; align-items:center;">
+                     <!-- FOOTER SIGNATURES -->
+                    <div class="bd flex-row" style="margin-top:2px; padding:2px; font-size:0.7em; flex-shrink:0; align-items:center;">
                         <div style="flex:1; display:flex; flex-direction:column; gap:1px;">
                             <div class="flex-row"><span style="width:6em;">Scorer</span> <span class="bb" style="flex:1;">${st.meta.scorer}</span></div>
                             <div class="flex-row"><span style="width:6em;">A. Scorer</span> <span class="bb" style="flex:1;">${st.meta.assistantScorer}</span></div>
