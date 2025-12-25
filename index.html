@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>BasketScore TO Indicator</title>
+<title>BasketScore Final Fit</title>
 <style>
     /* --- CSS Reset & Base --- */
     * { box-sizing: border-box; }
@@ -56,69 +56,77 @@
     /* --- INPUT VIEW --- */
     #input-view {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 130px minmax(0, 1fr);
+        /* Responsive: Adjust center column width */
+        grid-template-columns: minmax(0, 1fr) 120px minmax(0, 1fr);
         gap: 2px; height: 100%; background: #ccc; overflow: hidden;
     }
     @media (max-width: 450px) {
-        #input-view { grid-template-columns: minmax(0, 1fr) 110px minmax(0, 1fr); }
+        #input-view { grid-template-columns: minmax(0, 1fr) 100px minmax(0, 1fr); }
     }
 
     .team-col { background: #fff; display: flex; flex-direction: column; overflow: hidden; height: 100%; }
     
-    /* Revised Team Header for TO Display */
     .team-header {
         padding: 2px 4px; background: #222; color: white;
         display: flex; flex-direction: row; justify-content: space-between; align-items: center;
-        height: 50px; flex-shrink: 0;
+        height: 48px; flex-shrink: 0;
     }
     .th-left { display: flex; flex-direction: column; justify-content: center; max-width: 65%; }
     .th-name { font-weight: bold; font-size: 0.8rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
     .th-stats { display: flex; gap: 8px; font-size: 0.6rem; color: #aaa; margin-top: 2px; }
     .th-stat-item { display: flex; align-items: center; gap: 2px; }
-    
-    /* Time out indicators */
     .to-dots { display: flex; gap: 2px; }
     .to-dot { width: 6px; height: 6px; border-radius: 50%; background: #555; }
-    .to-dot.on-1 { background: #2563eb; } /* Blue for 1st half */
-    .to-dot.on-2 { background: #dc2626; } /* Red for 2nd half */
-
+    .to-dot.on-1 { background: #2563eb; } 
+    .to-dot.on-2 { background: #dc2626; } 
     .th-score { font-size: 1.6rem; font-weight: bold; color: #fbbf24; line-height: 1; }
 
     .player-list {
         flex: 1; overflow-y: auto; padding: 2px;
         display: grid; 
-        grid-template-columns: repeat(3, 1fr);
-        grid-auto-rows: minmax(55px, 1fr); 
+        /* 1 column for horizontal bars */
+        grid-template-columns: 1fr;
+        /* Adjust height to fit roughly 5-6 items in typical mobile view */
+        grid-auto-rows: minmax(60px, 1fr); 
         gap: 2px; align-content: start;
     }
     
     .p-btn {
         background: #f9fafb; border: 1px solid #ddd; border-radius: 4px;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        display: flex; flex-direction: row; /* Horizontal layout */
+        align-items: center; justify-content: space-between;
         cursor: pointer; position: relative; user-select: none;
         transition: transform 0.05s; overflow: hidden;
         height: 100%; width: 100%;
-        padding: 2px; 
+        padding: 0 4px;
     }
-    .p-btn:active { transform: scale(0.96); }
+    .p-btn:active { transform: scale(0.98); }
     .p-btn.active-a { background: #2563eb; color: white; border-color: #1d4ed8; }
     .p-btn.active-b { background: #dc2626; color: white; border-color: #b91c1c; }
     .p-btn.out { opacity: 0.5; background: #fee2e2; }
     
     .p-no { 
-        font-size: 1.4rem; 
+        font-size: 1.6rem; 
         font-weight: bold; font-family: monospace; line-height: 1; 
-        width: 100%; text-align: center;
+        width: 2.2rem; text-align: center; flex-shrink: 0;
+    }
+    .p-center {
+        flex: 1; display: flex; flex-direction: column; 
+        align-items: flex-start; justify-content: center;
+        padding-left: 6px; overflow: hidden;
     }
     .p-name { 
-        font-size: 0.6rem; width: 100%; text-align: center; 
+        font-size: 0.8rem; width: 100%; text-align: left; 
         overflow: hidden; white-space: nowrap; text-overflow: ellipsis; 
-        margin-top: 2px; 
     }
-    .p-dots { display: flex; gap: 2px; margin-top: 2px; height: 4px; }
-    .dot { width: 4px; height: 4px; border-radius: 50%; background: #e5e7eb; }
-    .dot.on { background: #eab308; }
-    .p-mark { position: absolute; top: 2px; left: 2px; font-size: 0.6rem; font-weight: bold; color: #eab308; }
+    .p-marks { display: flex; gap: 4px; margin-top: 2px; font-size: 0.6rem; font-weight: bold; color: #eab308; }
+    .p-dots { display: flex; gap: 3px; margin-right: 4px; align-items: center; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #e5e7eb; border: 1px solid #ccc; }
+    .dot.on { background: #eab308; border-color: #ca8a04; }
+    .p-btn.active-a .dot { background: #1d4ed8; border-color: #1e40af; }
+    .p-btn.active-a .dot.on { background: #facc15; border-color: #fff; }
+    .p-btn.active-b .dot { background: #b91c1c; border-color: #991b1b; }
+    .p-btn.active-b .dot.on { background: #facc15; border-color: #fff; }
 
     .center-col { 
         background: #e5e7eb; display: flex; flex-direction: column; 
@@ -148,7 +156,7 @@
         flex: 1; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; min-height: 0;
     }
     .btn-group { display: flex; flex-direction: column; gap: 2px; flex: 1; justify-content:center; min-height: 50px; }
-    .grp-lbl { font-size: 0.6rem; font-weight: bold; color: #555; text-align: center; margin-bottom: 2px; }
+    .grp-lbl { font-size: 0.6rem; font-weight: bold; color: #555; text-align: center; margin-bottom: 1px; }
     
     .act-btn {
         flex: 1; min-height: 0;
@@ -162,7 +170,7 @@
     .act-spec { background: #f59e0b; color: white; font-size: 0.7rem; }
     
     .bottom-ctrl { margin-top: auto; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; padding-top: 2px;}
-    .to-row { display: flex; gap: 2px; height: 36px; }
+    .to-row { display: flex; gap: 2px; height: 32px; }
     .to-btn { flex: 1; font-size: 0.7rem; padding: 0; background: #fff; border: 1px solid #ccc; height: 100%; }
 
     /* --- SETTINGS VIEW --- */
@@ -230,9 +238,9 @@
     #sheet-view { 
         display: none; 
         width: 100%; height: 100%;
-        background: #525659; /* Gray background for contrast */
+        background: #525659; 
         padding: 10px; 
-        overflow: auto; /* Scrollable wrapper */
+        overflow: auto; /* Allow scroll for viewing */
         align-items: flex-start;
         justify-content: center;
     }
@@ -243,7 +251,7 @@
         margin: 0 auto;
         display: flex; flex-direction: column;
         padding: 8mm; 
-        font-size: 9pt; /* Fixed font size similar to print */
+        font-size: 9pt; 
         background: white;
         color: #000;
         font-family: sans-serif;
@@ -315,9 +323,10 @@
         #sheet-view { 
             display: block !important; 
             padding: 0; margin: 0; 
-            width: 100%; height: auto;
-            overflow: visible;
+            width: 210mm; height: 297mm; /* Exact size */
+            overflow: hidden;
             background: white;
+            position: absolute; top: 0; left: 0;
         }
         .sheet-wrapper {
             width: 210mm !important; 
@@ -588,8 +597,7 @@ function actFoul(code) {
 
 function actTO(tm) {
     const tk = tm==='A'?'teamA':'teamB';
-    const h = st.q<=2?1:2; // 1st half: Q1,2; 2nd half: Q3,4
-    // Usually limit: 2 in 1st half, 3 in 2nd half
+    const h = st.q<=2?1:2; 
     const max = h===1 ? 2 : 3;
     if(st[tk].timeouts[h].length >= max) {
         if(!confirm('タイムアウト制限数に達しています。追加しますか？')) return;
@@ -638,15 +646,12 @@ function renInput() {
     ['A','B'].forEach(tm => {
         const tk = tm==='A'?'teamA':'teamB';
         const el = document.getElementById('to-dots-'+tm.toLowerCase());
-        // 1st half: 2 slots, 2nd half: 3 slots. Show current half's availability
         const h = st.q<=2?1:2;
         const used = st[tk].timeouts[h].length;
         let html = '';
         if(h===1) {
-            // 2 blue dots max
             for(let i=0; i<2; i++) html += `<div class="to-dot ${i<used?'on-1':''}"></div>`;
         } else {
-            // 3 red dots max
             for(let i=0; i<3; i++) html += `<div class="to-dot ${i<used?'on-2':''}"></div>`;
         }
         el.innerHTML = html;
