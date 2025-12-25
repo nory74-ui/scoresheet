@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basketball Score Sheet</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel (for JSX) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        @media print {
+            @page { size: A4 portrait; margin: 10mm; }
+            body { background: white; -webkit-print-color-adjust: exact; }
+            nav, .notification { display: none !important; }
+            main { overflow: visible !important; height: auto !important; }
+            .print\:hidden { display: none !important; }
+            .print\:block { display: block !important; }
+            .print\:p-0 { padding: 0 !important; }
+            .print\:w-full { width: 100% !important; }
+            .print\:h-screen { height: 100vh !important; }
+            .print\:overflow-hidden { overflow: hidden !important; }
+            .print\:bg-white { background-color: white !important; }
+        }
+        
+        /* Custom scrollbar for better look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="bg-gray-200">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- Icons (Lucide React replacements) ---
+        const IconBase = ({ children, size = 24, ...props }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                {children}
+            </svg>
+        );
+
+        const Plus = (props) => <IconBase {...props}><path d="M5 12h14"/><path d="M12 5v14"/></IconBase>;
+        const Minus = (props) => <IconBase {...props}><path d="M5 12h14"/></IconBase>;
+        const RotateCcw = (props) => <IconBase {...props}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></IconBase>;
+        const FileText = (props) => <IconBase {...props}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></IconBase>;
+        const Activity = (props) => <IconBase {...props}><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></IconBase>;
+        const Users = (props) => <IconBase {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></IconBase>;
+        const Download = (props) => <IconBase {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></IconBase>;
+        const Settings = (props) => <IconBase {...props}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></IconBase>;
+        const Save = (props) => <IconBase {...props}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></IconBase>;
+        const ArrowLeft = (props) => <IconBase {...props}><line x1="19" x2="5" y1="12" y2="12"/><polyline points="12 19 5 12 12 5"/></IconBase>;
+        const Trash2 = (props) => <IconBase {...props}><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></IconBase>;
+        const FolderOpen = (props) => <IconBase {...props}><path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></IconBase>;
+        const Clock = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></IconBase>;
+        const CheckCircle = (props) => <IconBase {...props}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></IconBase>;
+        const AlertCircle = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></IconBase>;
+        const Printer = (props) => <IconBase {...props}><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></IconBase>;
+        const Timer = (props) => <IconBase {...props}><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></IconBase>;
+        const User = (props) => <IconBase {...props}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></IconBase>;
+        const Crown = (props) => <IconBase {...props}><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></IconBase>;
+
+        // --- Helper Functions ---
+        const getCurrentQuarterColor = (q) => (q === 1 || q === 3) ? 'text-red-600' : 'text-black';
+        const getHalfKey = (quarter) => (quarter <= 2 ? 1 : 2);
+
+        const calculateTotalScore = (scores, team) => {
+          return scores
+            .filter(s => s.team === team)
+            .reduce((sum, s) => sum + s.points, 0);
+        };
+
+        const calculateQuarterScore = (scores, team, q) => {
+          return scores
+            .filter(s => s.team === team && s.quarter === q)
+            .reduce((sum, s) => sum + s.points, 0);
+        };
+
+        // --- Subcomponent: Settings Panel ---
+        const SettingsPanel = ({ gameState, setViewMode, updateTeamInfo, updatePlayer, updateGameInfo }) => {
+          const [activeTab, setActiveTab] = useState('Info'); // 'Info', 'A', 'B'
+          
+          return (
+            <div className="p-4 bg-gray-50 h-full overflow-y-auto print:hidden">
+              <div className="max-w-4xl mx-auto bg-white shadow rounded-lg p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold flex items-center gap-2">
+                    <Settings className="text-gray-600" />
+                    設定・編集
+                  </h2>
+                  <button 
+                    onClick={() => setViewMode('input')}
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
+                  >
+                    <CheckCircle size={16} /> 完了して戻る
+                  </button>
+                </div>
+
+                <div className="flex border-b mb-6">
+                  {['Info', 'A', 'B'].map(tab => (
+                      <button
+                      key={tab}
+                      className={`px-6 py-2 font-bold capitalize ${activeTab === tab ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                      onClick={() => setActiveTab(tab)}
+                      >
+                      {tab === 'Info' ? '試合情報' : `チーム ${tab}`}
+                      </button>
+                  ))}
+                </div>
+
+                {activeTab === 'Info' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-1">大会名 (Competition)</label>
+                            <input type="text" value={gameState.gameInfo.competition} onChange={e => updateGameInfo('competition', e.target.value)} className="w-full p-2 border rounded" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-1">会場 (Place)</label>
+                            <input type="text" value={gameState.gameInfo.place} onChange={e => updateGameInfo('place', e.target.value)} className="w-full p-2 border rounded" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">日付 (Date)</label>
+                                <input type="date" value={gameState.gameInfo.date} onChange={e => updateGameInfo('date', e.target.value)} className="w-full p-2 border rounded" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">開始時間 (Time)</label>
+                                <input type="time" value={gameState.gameInfo.time} onChange={e => updateGameInfo('time', e.target.value)} className="w-full p-2 border rounded" />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-1">試合No (Game No.)</label>
+                            <input type="text" value={gameState.gameInfo.gameNo} onChange={e => updateGameInfo('gameNo', e.target.value)} className="w-full p-2 border rounded" />
+                        </div>
+
+                        <div className="md:col-span-2 border-t pt-4 mt-2">
+                            <h3 className="font-bold mb-2 text-blue-800">審判団・テーブルオフィシャルズ</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-xs text-gray-500">クルーチーフ (Crew Chief)</label>
+                                <input type="text" value={gameState.gameInfo.crewChief} onChange={e => updateGameInfo('crewChief', e.target.value)} className="w-full p-2 border rounded" />
+                              </div>
+                              <div>
+                                <label className="block text-xs text-gray-500">アンパイア1 (Umpire 1)</label>
+                                <input type="text" value={gameState.gameInfo.umpire1} onChange={e => updateGameInfo('umpire1', e.target.value)} className="w-full p-2 border rounded" />
+                              </div>
+                              <div>
+                                <label className="block text-xs text-gray-500">アンパイア2 (Umpire 2)</label>
+                                <input type="text" value={gameState.gameInfo.umpire2} onChange={e => updateGameInfo('umpire2', e.target.value)} className="w-full p-2 border rounded" />
+                              </div>
+                              <div>
+                                <label className="block text-xs text-gray-500">スコアラー (Scorer)</label>
+                                <input type="text" value={gameState.gameInfo.scorer} onChange={e => updateGameInfo('scorer', e.target.value)} className="w-full p-2 border rounded" />
+                              </div>
+                              <div>
+                                <label className="block text-xs text-gray-500">A.スコアラー (Assistant Scorer)</label>
+                                <input type="text" value={gameState.gameInfo.assistantScorer} onChange={e => updateGameInfo('assistantScorer', e.target.value)} className="w-full p-2 border rounded" />
+                              </div>
+                              <div>
+                                <label className="block text-xs text-gray-500">タイマー (Timer)</label>
+                                <input type="text" value={gameState.gameInfo.timer} onChange={e => updateGameInfo('timer', e.target.value)} className="w-full p-2 border rounded" />
+                              </div>
+                              <div>
+                                <label className="block text-xs text-gray-500">ショットクロック (Shot Clock Op.)</label>
+                                <input type="text" value={gameState.gameInfo.shotClock} onChange={e => updateGameInfo('shotClock', e.target.value)} className="w-full p-2 border rounded" />
+                              </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {(activeTab === 'A' || activeTab === 'B') && (
+                  <div>
+                      <div className="mb-6 grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-2">チーム名</label>
+                            <input
+                            type="text"
+                            value={gameState[`team${activeTab}`].name}
+                            onChange={(e) => updateTeamInfo(activeTab, 'name', e.target.value)}
+                            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400 outline-none text-lg"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-2">ユニフォーム色 (Color)</label>
+                            <input
+                            type="text"
+                            value={gameState[`team${activeTab}`].color}
+                            onChange={(e) => updateTeamInfo(activeTab, 'color', e.target.value)}
+                            placeholder="例: 白 / White"
+                            className="w-full p-2 border rounded"
+                            />
+                          </div>
+                      </div>
+
+                       <div className="mb-6 grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded border">
+                          <div>
+                            <label className="block text-xs font-bold text-gray-500 mb-1">ヘッドコーチ</label>
+                            <input
+                            type="text"
+                            value={gameState[`team${activeTab}`].coach}
+                            onChange={(e) => updateTeamInfo(activeTab, 'coach', e.target.value)}
+                            className="w-full p-2 border rounded text-sm"
+                            placeholder="氏名"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-gray-500 mb-1">A.コーチ</label>
+                            <input
+                            type="text"
+                            value={gameState[`team${activeTab}`].assistantCoach}
+                            onChange={(e) => updateTeamInfo(activeTab, 'assistantCoach', e.target.value)}
+                            className="w-full p-2 border rounded text-sm"
+                            placeholder="氏名"
+                            />
+                          </div>
+                      </div>
+
+                      <div className="border rounded overflow-hidden">
+                          <table className="w-full">
+                              <thead className="bg-gray-100">
+                              <tr>
+                                  <th className="px-4 py-2 text-center w-16">CAP</th>
+                                  <th className="px-4 py-2 text-left w-24">No.</th>
+                                  <th className="px-4 py-2 text-left">選手名</th>
+                              </tr>
+                              </thead>
+                              <tbody>
+                              {gameState[`team${activeTab}`].players.map((player) => (
+                                  <tr key={player.id} className="border-t hover:bg-gray-50">
+                                  <td className="p-2 text-center">
+                                      <button 
+                                        onClick={() => updatePlayer(activeTab, player.id, 'isCaptain', !player.isCaptain)}
+                                        className={`p-1 rounded-full ${player.isCaptain ? 'text-yellow-500 bg-yellow-50' : 'text-gray-300 hover:text-gray-500'}`}
+                                      >
+                                          <Crown size={20} fill={player.isCaptain ? "currentColor" : "none"} />
+                                      </button>
+                                  </td>
+                                  <td className="p-2">
+                                      <input
+                                        type="text"
+                                        value={player.number}
+                                        onChange={(e) => updatePlayer(activeTab, player.id, 'number', e.target.value)}
+                                        className="w-full p-2 border rounded text-center bg-white"
+                                        placeholder="-"
+                                      />
+                                  </td>
+                                  <td className="p-2">
+                                      <input
+                                      type="text"
+                                      value={player.name}
+                                      placeholder="選手名"
+                                      onChange={(e) => updatePlayer(activeTab, player.id, 'name', e.target.value)}
+                                      className="w-full p-2 border rounded"
+                                      />
+                                  </td>
+                                  </tr>
+                              ))}
+                              </tbody>
+                          </table>
+                      </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        };
+
+        // --- Subcomponent: Input Panel ---
+        const InputPanel = ({ 
+            gameState, 
+            selectedTeam, setSelectedTeam, 
+            selectedPlayer, setSelectedPlayer, 
+            addScore, addFoul, addTimeout, undo, nextQuarter,
+            timeoutCounts 
+        }) => {
+            const activeTeamKey = selectedTeam === 'A' ? 'teamA' : 'teamB';
+            const activeTeamData = gameState[activeTeamKey];
+            
+            const currentHalf = getHalfKey(gameState.quarter);
+            const timeoutLimit = currentHalf === 1 ? 2 : 3;
+
+            const displayPlayers = activeTeamData.players.filter(p => p.number);
+
+            return (
+              <div className="flex flex-col h-full bg-gray-50 print:hidden">
+                <div className="bg-gray-900 text-white p-4 flex justify-between items-center shadow-lg shrink-0">
+                  <div className={`text-center flex-1 p-2 rounded cursor-pointer transition-colors ${selectedTeam === 'A' ? 'bg-gray-700 ring-2 ring-blue-400' : 'hover:bg-gray-800'}`} onClick={() => {setSelectedTeam('A'); setSelectedPlayer(null);}}>
+                    <div className="text-sm text-gray-400">{gameState.teamA.name}</div>
+                    <div className="text-4xl font-bold font-mono text-yellow-400">{calculateTotalScore(gameState.scores, 'A')}</div>
+                    <div className="text-xs mt-1 flex justify-center gap-3">
+                        <span>Fouls: {gameState.teamA.teamFouls[gameState.quarter] || 0}</span>
+                        <span>TO: {timeoutCounts.A}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="px-4 text-center shrink-0">
+                    <div className="text-xl font-bold text-red-500">Q{gameState.quarter}</div>
+                    <button onClick={nextQuarter} className="text-xs bg-gray-700 px-3 py-1 rounded mt-1 hover:bg-gray-600 transition-colors">Next Q</button>
+                  </div>
+
+                  <div className={`text-center flex-1 p-2 rounded cursor-pointer transition-colors ${selectedTeam === 'B' ? 'bg-gray-700 ring-2 ring-blue-400' : 'hover:bg-gray-800'}`} onClick={() => {setSelectedTeam('B'); setSelectedPlayer(null);}}>
+                    <div className="text-sm text-gray-400">{gameState.teamB.name}</div>
+                    <div className="text-4xl font-bold font-mono text-yellow-400">{calculateTotalScore(gameState.scores, 'B')}</div>
+                    <div className="text-xs mt-1 flex justify-center gap-3">
+                        <span>Fouls: {gameState.teamB.teamFouls[gameState.quarter] || 0}</span>
+                        <span>TO: {timeoutCounts.B}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
+                  <div className="flex-1 overflow-y-auto p-2 border-r bg-white">
+                    <h3 className="text-sm font-bold text-gray-500 mb-2 px-2 sticky top-0 bg-white z-10 py-2 border-b flex justify-between items-center">
+                        <span>{activeTeamData.name} 選手選択</span>
+                    </h3>
+                    {displayPlayers.length === 0 ? (
+                        <div className="p-4 text-center text-gray-500 text-sm">
+                            登録済みの選手がいません。<br/>設定画面で選手に番号を割り当ててください。
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-3 gap-2 md:grid-cols-2 lg:grid-cols-3">
+                        {displayPlayers.map(player => (
+                            <button
+                            key={player.id}
+                            onClick={() => setSelectedPlayer(player)}
+                            className={`p-3 rounded-lg flex flex-col items-center justify-center transition-all min-h-[80px] relative ${
+                                selectedPlayer?.id === player.id 
+                                ? 'bg-blue-600 text-white shadow-md transform scale-105' 
+                                : 'bg-white border hover:bg-gray-50 text-gray-800'
+                            } ${player.fouls.length >= 5 ? 'opacity-50 cursor-not-allowed bg-red-50' : ''}`}
+                            >
+                            {player.isCaptain && (
+                                <span className={`absolute top-1 left-1 text-[10px] font-bold px-1 rounded ${selectedPlayer?.id === player.id ? 'bg-yellow-400 text-blue-900' : 'bg-yellow-200 text-gray-800'}`}>
+                                    CAP
+                                </span>
+                            )}
+                            <span className="text-xl font-bold font-mono">
+                                #{player.number}
+                            </span>
+                            <span className="text-xs truncate w-full text-center min-h-[1rem]">
+                                {player.name || <span className="opacity-30">-</span>}
+                            </span>
+                            <div className="flex gap-0.5 mt-1 min-h-[6px]">
+                                {player.fouls.map((f, i) => (
+                                <div key={i} className={`w-1.5 h-1.5 rounded-full ${selectedPlayer?.id === player.id ? 'bg-yellow-300' : 'bg-yellow-500'}`}></div>
+                                ))}
+                                {player.fouls.length >= 5 && <span className="text-[10px] text-red-500 font-bold leading-none">OUT</span>}
+                            </div>
+                            </button>
+                        ))}
+                        </div>
+                    )}
+                  </div>
+
+                  <div className="h-auto min-h-[250px] md:w-1/3 bg-gray-100 p-4 border-t md:border-t-0 md:border-l flex flex-col justify-center gap-3 shrink-0">
+                    <div className="text-center mb-1">
+                      <span className="text-xs text-gray-500">選択中の選手:</span>
+                      <div className="font-bold text-lg h-7 truncate px-2">
+                        {selectedPlayer 
+                            ? (selectedPlayer.number ? `#${selectedPlayer.number} ${selectedPlayer.name}` : selectedPlayer.name || '選手(番号なし)') 
+                            : '未選択'}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3">
+                      <button onClick={() => addScore(1)} disabled={!selectedPlayer} className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white py-3 rounded-lg font-bold shadow disabled:opacity-50 disabled:cursor-not-allowed flex flex-col items-center transition-colors">
+                        <span>+1</span>
+                        <span className="text-[10px] font-normal opacity-80">FT</span>
+                      </button>
+                      <button onClick={() => addScore(2)} disabled={!selectedPlayer} className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white py-3 rounded-lg font-bold shadow disabled:opacity-50 disabled:cursor-not-allowed flex flex-col items-center transition-colors">
+                        <span>+2</span>
+                        <span className="text-[10px] font-normal opacity-80">FG</span>
+                      </button>
+                      <button onClick={() => addScore(3)} disabled={!selectedPlayer} className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white py-3 rounded-lg font-bold shadow disabled:opacity-50 disabled:cursor-not-allowed flex flex-col items-center transition-colors">
+                        <span>+3</span>
+                        <span className="text-[10px] font-normal opacity-80">3P</span>
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <button onClick={() => addFoul('P')} disabled={!selectedPlayer} className="bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700 text-white py-3 rounded-lg font-bold shadow disabled:opacity-50 disabled:cursor-not-allowed text-sm transition-colors">
+                        P ファウル
+                      </button>
+                      <button onClick={undo} disabled={gameState.history.length === 0} className="bg-gray-500 hover:bg-gray-600 active:bg-gray-700 text-white py-3 rounded-lg font-bold shadow disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm transition-colors">
+                        <RotateCcw size={16} /> 戻る
+                      </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-300">
+                        <button 
+                            onClick={() => addTimeout('A')} 
+                            disabled={timeoutCounts.A >= timeoutLimit} 
+                            className="bg-orange-100 hover:bg-orange-200 active:bg-orange-300 text-orange-900 py-2 rounded-lg font-bold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex flex-col items-center justify-center text-xs border border-orange-300 transition-colors"
+                        >
+                            <div className="flex items-center gap-1 mb-0.5"><Timer size={14} /> Team A</div>
+                            <span className="font-normal text-[10px]">タイムアウト ({timeoutCounts.A}/{timeoutLimit})</span>
+                        </button>
+                        <button 
+                            onClick={() => addTimeout('B')} 
+                            disabled={timeoutCounts.B >= timeoutLimit} 
+                            className="bg-orange-100 hover:bg-orange-200 active:bg-orange-300 text-orange-900 py-2 rounded-lg font-bold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex flex-col items-center justify-center text-xs border border-orange-300 transition-colors"
+                        >
+                            <div className="flex items-center gap-1 mb-0.5"><Timer size={14} /> Team B</div>
+                            <span className="font-normal text-[10px]">タイムアウト ({timeoutCounts.B}/{timeoutLimit})</span>
+                        </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+        };
+
+        // --- Subcomponent: Official Sheet View ---
+        const OfficialSheetView = ({ gameState }) => {
+            const buildRunningScoreData = () => {
+                const data = [];
+                let currentA = 0;
+                let currentB = 0;
+                for(let i=1; i<=160; i++) data.push({ score: i, a: null, b: null });
+
+                gameState.scores.forEach(s => {
+                    const isA = s.team === 'A';
+                    const startScore = isA ? currentA : currentB;
+                    const endScore = startScore + s.points;
+                    if (isA) {
+                        if (data[endScore - 1]) data[endScore - 1].a = { number: s.playerNumber, quarter: s.quarter };
+                        currentA = endScore;
+                    } else {
+                        if (data[endScore - 1]) data[endScore - 1].b = { number: s.playerNumber, quarter: s.quarter };
+                        currentB = endScore;
+                    }
+                });
+                return data;
+            };
+            const runningData = buildRunningScoreData();
+
+            const TeamSection = ({ teamKey }) => {
+                const team = teamKey === 'A' ? gameState.teamA : gameState.teamB;
+                const registeredPlayers = team.players.filter(p => p.number);
+                
+                return (
+                    <div className="mb-2">
+                        <div className="flex justify-between items-end border-b border-black mb-1">
+                            <div className="font-bold text-sm leading-none pb-0.5 flex-1">
+                                <span className="text-xs mr-2">チーム{teamKey}</span>
+                                <span className="text-xs mr-1">Team {teamKey} :</span>
+                                <span className="text-base font-serif uppercase">{team.name}</span>
+                            </div>
+                            <div className="text-[10px] leading-none pb-0.5 text-right w-24">Color: {team.color || '_____'}</div>
+                        </div>
+                        
+                        <div className="flex text-[10px] mb-1 justify-between items-start">
+                            <div className="w-[45%]">
+                                <div className="flex items-center gap-2 mb-0.5">
+                                    <span className="font-bold text-[9px]">タイムアウト Time-outs</span>
+                                </div>
+                                <div className="flex gap-1 mb-0.5 items-center">
+                                    <div className="border border-black w-6 h-5 text-center leading-5 text-xs font-bold">{team.timeouts[1][0] || ''}</div>
+                                    <div className="border border-black w-6 h-5 text-center leading-5 text-xs font-bold">{team.timeouts[1][1] || ''}</div>
+                                </div>
+                                <div className="flex gap-1 items-center">
+                                    <div className="border border-black w-6 h-5 text-center leading-5 text-xs font-bold">{team.timeouts[2][0] || ''}</div>
+                                    <div className="border border-black w-6 h-5 text-center leading-5 text-xs font-bold">{team.timeouts[2][1] || ''}</div>
+                                    <div className="border border-black w-6 h-5 text-center leading-5 text-xs font-bold">{team.timeouts[2][2] || ''}</div>
+                                </div>
+                            </div>
+                            <div className="w-[50%]">
+                                 <div className="font-bold mb-0.5 text-[9px]">チームファウル Team Fouls</div>
+                                 <div className="flex gap-1 mb-0.5 items-center">
+                                    <span className="w-4 text-right pr-1">1</span>
+                                    <div className="border border-black w-6 h-5 text-center leading-5 text-xs">{team.teamFouls[1] > 0 ? (team.teamFouls[1] > 4 ? 5 : team.teamFouls[1]) : ''}</div>
+                                    <span className="w-4 text-right pr-1 ml-2">2</span>
+                                    <div className="border border-black w-6 h-5 text-center leading-5 text-xs">{team.teamFouls[2] > 0 ? (team.teamFouls[2] > 4 ? 5 : team.teamFouls[2]) : ''}</div>
+                                 </div>
+                                 <div className="flex gap-1 items-center">
+                                    <span className="w-4 text-right pr-1">3</span>
+                                    <div className="border border-black w-6 h-5 text-center leading-5 text-xs">{team.teamFouls[3] > 0 ? (team.teamFouls[3] > 4 ? 5 : team.teamFouls[3]) : ''}</div>
+                                    <span className="w-4 text-right pr-1 ml-2">4</span>
+                                    <div className="border border-black w-6 h-5 text-center leading-5 text-xs">{team.teamFouls[4] > 0 ? (team.teamFouls[4] > 4 ? 5 : team.teamFouls[4]) : ''}</div>
+                                 </div>
+                            </div>
+                        </div>
+
+                        <div className="border border-black">
+                            <table className="w-full text-[10px] border-collapse table-fixed">
+                                <thead className="bg-gray-100 border-b border-black">
+                                    <tr>
+                                        <th className="border-r border-black w-8 text-center uppercase text-[7px] h-5 leading-tight">No.</th>
+                                        <th className="border-r border-black text-left pl-2 uppercase text-[7px] leading-tight">
+                                            選手氏名<br/>Name of Players
+                                        </th>
+                                        <th className="border-r border-black w-8 text-center uppercase text-[7px] h-5 leading-tight">No.</th>
+                                        <th className="w-20 text-center uppercase text-[7px] leading-tight">ファウル<br/>Fouls</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {registeredPlayers.slice(0, 18).map((p, idx) => (
+                                        <tr key={idx} className="h-[14px] border-b border-gray-400 last:border-b-0">
+                                            <td className="border-r border-black text-center font-mono text-[9px]">{idx + 1}</td>
+                                            <td className="border-r border-black pl-1 truncate relative text-[9px]">
+                                                <span className="relative top-[0px]">{p.name}</span>
+                                                {p.isCaptain && <span className="ml-1 text-[7px] font-bold">(CAP)</span>}
+                                            </td>
+                                            <td className="border-r border-black text-center font-bold font-mono text-[9px]">{p.number}</td>
+                                            <td className="text-center align-middle">
+                                                <div className="flex justify-center gap-0.5 items-center h-full px-0.5">
+                                                    {[1,2,3,4,5].map(i => (
+                                                        <div key={i} className="w-3 h-3 border border-gray-400 flex items-center justify-center text-[7px] leading-none">
+                                                            {p.fouls[i-1] ? p.fouls[i-1] : ''}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {Array.from({ length: Math.max(0, 18 - registeredPlayers.length) }).map((_, idx) => (
+                                        <tr key={`empty-${idx}`} className="h-[14px] border-b border-gray-400 last:border-b-0">
+                                            <td className="border-r border-black text-center text-[9px]">{registeredPlayers.length + idx + 1}</td>
+                                            <td className="border-r border-black"></td>
+                                            <td className="border-r border-black"></td>
+                                            <td className="flex justify-center gap-0.5 items-center h-full px-0.5">
+                                                 {[1,2,3,4,5].map(i => <div key={i} className="w-3 h-3 border border-gray-400"></div>)}
+                                            </td>
+                                        </tr>
+                                    ))}
+
+                                    <tr className="h-5 border-t border-black">
+                                        <td colSpan="2" className="border-r border-black pl-1 text-[8px] align-middle">
+                                            <span className="font-bold mr-1">コーチ Coach:</span> {team.coach}
+                                        </td>
+                                        <td colSpan="2"></td>
+                                    </tr>
+                                    <tr className="h-5 border-t border-gray-300">
+                                        <td colSpan="2" className="border-r border-black pl-1 text-[8px] align-middle">
+                                            <span className="font-bold mr-1">A.コーチ A.Coach:</span> {team.assistantCoach}
+                                        </td>
+                                        <td colSpan="2"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                );
+            };
+
+            const RunningScoreCol = ({ start, end }) => (
+                <div className="flex flex-col border-r border-black last:border-r-0 w-1/4 text-xs">
+                    <div className="flex border-b border-black font-bold bg-gray-100 text-center h-6 items-center">
+                        <div className="w-1/4 text-[9px]">A</div>
+                        <div className="w-2/4 text-[9px]">A - B</div>
+                        <div className="w-1/4 text-[9px]">B</div>
+                    </div>
+                    {runningData.slice(start - 1, end).map((row) => (
+                        <div key={row.score} className="flex border-b border-gray-300 h-[15px] items-center">
+                            <div className={`w-1/4 text-center font-bold text-[10px] ${row.a ? getCurrentQuarterColor(row.a.quarter) : ''} h-full border-r border-gray-300`}>
+                                {row.a ? row.a.number : ''}
+                            </div>
+                            <div className="w-2/4 flex text-center h-full">
+                                <div className="w-1/2 flex items-center justify-center border-r border-gray-300 bg-gray-50">
+                                    {row.a ? <span className={`text-[10px] font-bold ${getCurrentQuarterColor(row.a.quarter)}`}>{row.score}</span> : <span className="text-[8px] text-gray-300">{row.score}</span>}
+                                </div>
+                                <div className="w-1/2 flex items-center justify-center bg-gray-50">
+                                    {row.b ? <span className={`text-[10px] font-bold ${getCurrentQuarterColor(row.b.quarter)}`}>{row.score}</span> : <span className="text-[8px] text-gray-300">{row.score}</span>}
+                                </div>
+                            </div>
+                            <div className={`w-1/4 text-center font-bold text-[10px] ${row.b ? getCurrentQuarterColor(row.b.quarter) : ''} h-full border-l border-gray-300`}>
+                                {row.b ? row.b.number : ''}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            );
+
+            return (
+                <div className="bg-white text-black font-serif mx-auto w-full max-w-[210mm] min-h-[297mm] p-4 relative print:p-0 print:w-full print:h-screen print:overflow-hidden box-border flex flex-col">
+                    <div className="text-center border-b-2 border-black pb-2 mb-2">
+                        <h1 className="font-bold text-xl uppercase tracking-widest mb-2">OFFICIAL SCORESHEET</h1>
+                        
+                        <div className="flex justify-between items-end text-[10px] mb-2 px-2">
+                            <div className="flex flex-col gap-1 text-left w-1/3">
+                                <div className="flex"><span className="font-bold w-16">チームA:</span> <span className="border-b border-gray-400 flex-1">{gameState.teamA.name}</span></div>
+                                <div className="flex"><span className="font-bold w-16">大会名:</span> <span className="border-b border-gray-400 flex-1">{gameState.gameInfo.competition}</span></div>
+                                 <div className="flex"><span className="font-bold w-16">Game No.:</span> <span className="border-b border-gray-400 w-20">{gameState.gameInfo.gameNo}</span></div>
+                            </div>
+                            
+                            <div className="flex flex-col gap-1 text-center w-1/3 items-center">
+                                <div className="flex gap-2 w-full justify-center">
+                                     <span>日付:</span> <span className="border-b border-gray-400 min-w-[80px]">{gameState.gameInfo.date}</span>
+                                     <span>時間:</span> <span className="border-b border-gray-400 min-w-[50px]">{gameState.gameInfo.time}</span>
+                                </div>
+                                 <div className="flex w-full justify-center">
+                                     <span>場所:</span> <span className="border-b border-gray-400 min-w-[150px]">{gameState.gameInfo.place}</span>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-1 text-right w-1/3 items-end">
+                                 <div className="flex w-full justify-end"><span className="font-bold w-16 text-right mr-1">チームB:</span> <span className="border-b border-gray-400 flex-1 text-left">{gameState.teamB.name}</span></div>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-between text-[9px] border border-black p-1 px-4">
+                             <div className="flex gap-1 items-center"><span className="font-bold">クルーチーフ:</span> <span className="border-b border-gray-400 w-32">{gameState.gameInfo.crewChief}</span></div>
+                             <div className="flex gap-1 items-center"><span className="font-bold">1st アンパイア:</span> <span className="border-b border-gray-400 w-32">{gameState.gameInfo.umpire1}</span></div>
+                             <div className="flex gap-1 items-center"><span className="font-bold">2nd アンパイア:</span> <span className="border-b border-gray-400 w-32">{gameState.gameInfo.umpire2}</span></div>
+                        </div>
+                    </div>
+                    
+                    <div className="flex flex-row h-full">
+                        <div className="w-[45%] flex flex-col pr-2">
+                            <div className="flex-grow">
+                                <TeamSection teamKey="A" />
+                                <div className="h-2"></div>
+                                <TeamSection teamKey="B" />
+                            </div>
+
+                            <div className="mt-2 border-2 border-black">
+                                 <div className="grid grid-cols-11 text-center border-b border-black text-[9px] h-5 items-center bg-gray-100 font-bold">
+                                    <div className="col-span-3 border-r border-black">スコア</div>
+                                    <div className="col-span-2 border-r border-gray-300">第1Q</div>
+                                    <div className="col-span-2 border-r border-gray-300">第2Q</div>
+                                    <div className="col-span-2 border-r border-gray-300">第3Q</div>
+                                    <div className="col-span-2">第4Q</div>
+                                 </div>
+                                 <div className="grid grid-cols-11 text-center border-b border-black text-[10px] h-6 items-center">
+                                    <div className="col-span-3 border-r border-black font-bold">A</div>
+                                    <div className="col-span-2 border-r border-gray-300">{calculateQuarterScore(gameState.scores, 'A', 1)}</div>
+                                    <div className="col-span-2 border-r border-gray-300">{calculateQuarterScore(gameState.scores, 'A', 2)}</div>
+                                    <div className="col-span-2 border-r border-gray-300">{calculateQuarterScore(gameState.scores, 'A', 3)}</div>
+                                    <div className="col-span-2">{calculateQuarterScore(gameState.scores, 'A', 4)}</div>
+                                 </div>
+                                 <div className="grid grid-cols-11 text-center border-b border-black text-[10px] h-6 items-center">
+                                    <div className="col-span-3 border-r border-black font-bold">B</div>
+                                    <div className="col-span-2 border-r border-gray-300">{calculateQuarterScore(gameState.scores, 'B', 1)}</div>
+                                    <div className="col-span-2 border-r border-gray-300">{calculateQuarterScore(gameState.scores, 'B', 2)}</div>
+                                    <div className="col-span-2 border-r border-gray-300">{calculateQuarterScore(gameState.scores, 'B', 3)}</div>
+                                    <div className="col-span-2">{calculateQuarterScore(gameState.scores, 'B', 4)}</div>
+                                 </div>
+                                 <div className="grid grid-cols-2 text-[9px] border-b border-black">
+                                     <div className="border-r border-black p-1 flex justify-between"><span>オーバータイム</span> <span>A: -</span></div>
+                                     <div className="p-1 flex justify-between"><span>B: -</span></div>
+                                 </div>
+                                 <div className="p-1 bg-gray-100 font-bold text-[10px] flex justify-between items-center">
+                                     <span>最終スコア</span>
+                                     <span>A: {calculateTotalScore(gameState.scores, 'A')}</span>
+                                     <span>B: {calculateTotalScore(gameState.scores, 'B')}</span>
+                                 </div>
+                                 <div className="border-t border-black p-1 text-[10px] flex gap-2">
+                                     <span className="font-bold">勝者チーム:</span>
+                                     <span>
+                                         {calculateTotalScore(gameState.scores, 'A') > calculateTotalScore(gameState.scores, 'B') ? gameState.teamA.name : (calculateTotalScore(gameState.scores, 'B') > calculateTotalScore(gameState.scores, 'A') ? gameState.teamB.name : '')}
+                                     </span>
+                                 </div>
+                                 <div className="border-t border-black p-1 text-[9px] flex justify-end">
+                                     <span>試合終了時間: {gameState.gameInfo.endTime || '_____ : _____'}</span>
+                                 </div>
+                            </div>
+                        </div>
+
+                        <div className="w-[55%] border-2 border-black flex flex-col h-full">
+                            <div className="text-center font-bold uppercase text-sm py-0.5 border-b border-black bg-gray-50 tracking-widest">ランニングスコア RUNNING SCORE</div>
+                            <div className="flex flex-1">
+                                <RunningScoreCol start={1} end={40} />
+                                <RunningScoreCol start={41} end={80} />
+                                <RunningScoreCol start={81} end={120} />
+                                <RunningScoreCol start={121} end={160} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-2 border border-black p-1 text-[9px]">
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 justify-between">
+                            <div className="flex items-end w-[30%]"><span className="font-bold w-20">スコアラー:</span> <span className="border-b border-gray-400 flex-1">{gameState.gameInfo.scorer}</span></div>
+                            <div className="flex items-end w-[30%]"><span className="font-bold w-20">A.スコアラー:</span> <span className="border-b border-gray-400 flex-1">{gameState.gameInfo.assistantScorer}</span></div>
+                            <div className="flex items-end w-[30%]"><span className="font-bold w-20">タイマー:</span> <span className="border-b border-gray-400 flex-1">{gameState.gameInfo.timer}</span></div>
+                            <div className="flex items-end w-[35%]"><span className="font-bold w-24">ショットクロック:</span> <span className="border-b border-gray-400 flex-1">{gameState.gameInfo.shotClock}</span></div>
+                            
+                            <div className="flex items-end w-[60%] justify-end gap-4">
+                                <div className="flex flex-col items-center">
+                                     <span className="border-b border-black w-24 h-4"></span>
+                                     <span className="text-[8px]">クルーチーフ</span>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                     <span className="border-b border-black w-24 h-4"></span>
+                                     <span className="text-[8px]">1stアンパイア</span>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                     <span className="border-b border-black w-24 h-4"></span>
+                                     <span className="text-[8px]">2ndアンパイア</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="hidden print:block text-[8px] text-center mt-1 text-gray-400 absolute bottom-0 w-full left-0">
+                        Basketball Score Sheet App - Kyoto High School Style Layout
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Subcomponent: History Panel ---
+        const HistoryPanel = ({ savedGames, loadGameData, deleteGameData, setViewMode }) => {
+            return (
+                <div className="p-4 bg-gray-50 h-full overflow-y-auto print:hidden">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-bold flex items-center gap-2">
+                                <FolderOpen className="text-gray-600" />
+                                保存された試合データ (Local)
+                            </h2>
+                            <button 
+                                onClick={() => setViewMode('input')}
+                                className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
+                            >
+                                <ArrowLeft size={16} /> 戻る
+                            </button>
+                        </div>
+
+                        {savedGames.length === 0 && (
+                            <div className="text-center py-12 bg-white rounded shadow text-gray-500">
+                                保存されたデータはありません
+                            </div>
+                        )}
+
+                        <div className="grid gap-4">
+                            {savedGames.map(game => (
+                                <div key={game.id} className="bg-white p-4 rounded shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                    <div>
+                                        <h3 className="font-bold text-lg text-blue-900">{game.title}</h3>
+                                        <div className="text-sm text-gray-500 flex items-center gap-2 mt-1">
+                                            <Clock size={14} />
+                                            {new Date(game.createdAt).toLocaleString()}
+                                        </div>
+                                        <div className="mt-2 flex items-center gap-4">
+                                            <span className="font-mono font-bold bg-gray-100 px-2 py-1 rounded">
+                                                Q{game.quarter}
+                                            </span>
+                                            <div className="font-bold">
+                                                {game.finalScoreA} - {game.finalScoreB}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2 w-full md:w-auto">
+                                        <button 
+                                            onClick={() => loadGameData(game)}
+                                            className="flex-1 md:flex-none bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-2"
+                                        >
+                                            <FolderOpen size={16} /> 読み込む
+                                        </button>
+                                        <button 
+                                            onClick={() => deleteGameData(game.id)}
+                                            className="flex-1 md:flex-none bg-red-100 text-red-600 px-4 py-2 rounded hover:bg-red-200 flex items-center justify-center gap-2"
+                                        >
+                                            <Trash2 size={16} /> 削除
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Main Component ---
+        const App = () => {
+          const initialPlayers = (teamName) => Array.from({ length: 18 }, (_, i) => ({
+            id: `${teamName}-${i + 1}`,
+            number: '', 
+            name: "", 
+            isCaptain: false, 
+            fouls: [],
+            points: 0
+          }));
+
+          const initialGameState = {
+            quarter: 1,
+            gameInfo: {
+                competition: '令和__年度 バスケットボール大会',
+                date: new Date().toISOString().split('T')[0],
+                time: '10:00',
+                place: '〇〇体育館',
+                gameNo: '',
+                crewChief: '',
+                umpire1: '',
+                umpire2: '',
+                scorer: '',
+                assistantScorer: '',
+                timer: '',
+                shotClock: '',
+                endTime: ''
+            },
+            teamA: {
+              name: 'Team A',
+              color: '',
+              coach: '',
+              assistantCoach: '',
+              players: initialPlayers('A'),
+              timeouts: { 1: [], 2: [] }, // 1:前半, 2:後半
+              teamFouls: { 1: 0, 2: 0, 3: 0, 4: 0 },
+            },
+            teamB: {
+              name: 'Team B',
+              color: '',
+              coach: '',
+              assistantCoach: '',
+              players: initialPlayers('B'),
+              timeouts: { 1: [], 2: [] },
+              teamFouls: { 1: 0, 2: 0, 3: 0, 4: 0 },
+            },
+            scores: [],
+            history: []
+          };
+
+          const [gameState, setGameState] = useState(initialGameState);
+          const [viewMode, setViewMode] = useState('input');
+          const [selectedTeam, setSelectedTeam] = useState('A');
+          const [selectedPlayer, setSelectedPlayer] = useState(null);
+          const [savedGames, setSavedGames] = useState([]);
+          const [notification, setNotification] = useState(null);
+
+          const STORAGE_KEY = 'basketball_score_sheet_data_v13';
+
+          useEffect(() => {
+            fetchSavedGames();
+          }, []);
+
+          const showNotification = (type, message) => {
+            setNotification({ type, message });
+            setTimeout(() => setNotification(null), 3000);
+          };
+
+          const saveGameData = () => {
+            try {
+              const gameId = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
+              const gameTitle = `${gameState.teamA.name} vs ${gameState.teamB.name}`;
+              
+              const newGameData = {
+                id: gameId,
+                title: gameTitle,
+                gameState: gameState,
+                createdAt: new Date().toISOString(),
+                finalScoreA: calculateTotalScore(gameState.scores, 'A'),
+                finalScoreB: calculateTotalScore(gameState.scores, 'B'),
+                quarter: gameState.quarter
+              };
+
+              const currentData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+              const updatedData = [newGameData, ...currentData];
+              
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData));
+              setSavedGames(updatedData);
+              showNotification('success', 'ブラウザに保存しました！');
+            } catch (error) {
+              console.error("Save error:", error);
+              showNotification('error', '保存に失敗しました。');
+            }
+          };
+
+          const fetchSavedGames = () => {
+            try {
+              const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+              setSavedGames(data);
+            } catch (error) {
+              console.error("Fetch error:", error);
+            }
+          };
+
+          const loadGameData = (game) => {
+            try {
+              setGameState(game.gameState);
+              setViewMode('input');
+              showNotification('success', '試合データを読み込みました！');
+            } catch (error) {
+              console.error("Load error:", error);
+              showNotification('error', 'データの展開に失敗しました。');
+            }
+          };
+
+          const deleteGameData = (gameId) => {
+            if (!window.confirm('本当にこのデータを削除しますか？')) return;
+            try {
+              const currentData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+              const updatedData = currentData.filter(g => g.id !== gameId);
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData));
+              setSavedGames(updatedData);
+              showNotification('success', 'データを削除しました。');
+            } catch (error) {
+              console.error("Delete error:", error);
+              showNotification('error', '削除に失敗しました。');
+            }
+          };
+
+          const addScore = (points) => {
+            if (!selectedPlayer) return alert('選手を選択してください');
+            const teamKey = selectedTeam === 'A' ? 'teamA' : 'teamB';
+            const currentScoreA = calculateTotalScore(gameState.scores, 'A');
+            const currentScoreB = calculateTotalScore(gameState.scores, 'B');
+
+            const newScoreEntry = {
+              quarter: gameState.quarter,
+              team: selectedTeam,
+              playerNumber: selectedPlayer.number,
+              points: points,
+              scoreA: selectedTeam === 'A' ? currentScoreA + points : currentScoreA,
+              scoreB: selectedTeam === 'B' ? currentScoreB + points : currentScoreB,
+              timestamp: new Date().toLocaleTimeString()
+            };
+
+            setGameState(prev => {
+              const updatedPlayers = prev[teamKey].players.map(p => 
+                p.id === selectedPlayer.id ? { ...p, points: p.points + points } : p
+              );
+              return {
+                ...prev,
+                [teamKey]: { ...prev[teamKey], players: updatedPlayers },
+                scores: [...prev.scores, newScoreEntry],
+                history: [...prev.history, prev]
+              };
+            });
+          };
+
+          const addFoul = (type) => {
+            if (!selectedPlayer) return alert('選手を選択してください');
+            const teamKey = selectedTeam === 'A' ? 'teamA' : 'teamB';
+            setGameState(prev => {
+              const updatedPlayers = prev[teamKey].players.map(p => {
+                if (p.id === selectedPlayer.id) {
+                  if (p.fouls.length >= 5) return p;
+                  return { ...p, fouls: [...p.fouls, type] };
+                }
+                return p;
+              });
+              const currentTeamFouls = prev[teamKey].teamFouls[prev.quarter] || 0;
+              const updatedTeamFouls = {
+                ...prev[teamKey].teamFouls,
+                [prev.quarter]: currentTeamFouls + 1
+              };
+              return {
+                ...prev,
+                [teamKey]: { ...prev[teamKey], players: updatedPlayers, teamFouls: updatedTeamFouls },
+                history: [...prev.history, prev]
+              };
+            });
+          };
+
+          const addTimeout = (targetTeam) => {
+            const teamKey = targetTeam === 'A' ? 'teamA' : 'teamB';
+            const half = getHalfKey(gameState.quarter);
+            const teamName = gameState[teamKey].name;
+            const currentCount = gameState[teamKey].timeouts[half] ? gameState[teamKey].timeouts[half].length : 0;
+            const limit = half === 1 ? 2 : 3;
+
+            if (currentCount >= limit) {
+                alert(`${teamName} は ${half === 1 ? '前半' : '後半'}のタイムアウト回数制限(${limit}回)に達しています。`);
+                return;
+            }
+
+            setGameState(prev => {
+                const currentHalfTimeouts = prev[teamKey].timeouts[half] || [];
+                const updatedTimeouts = {
+                    ...prev[teamKey].timeouts,
+                    [half]: [...currentHalfTimeouts, "X"]
+                };
+                return {
+                    ...prev,
+                    [teamKey]: { ...prev[teamKey], timeouts: updatedTimeouts },
+                    history: [...prev.history, prev]
+                };
+            });
+          };
+
+          const undo = () => {
+            if (gameState.history.length === 0) return;
+            const previousState = gameState.history[gameState.history.length - 1];
+            setGameState(previousState);
+          };
+
+          const nextQuarter = () => {
+            setGameState(prev => ({
+              ...prev,
+              quarter: prev.quarter + 1,
+              history: [...prev.history, prev]
+            }));
+          };
+
+          const updateTeamInfo = (team, field, value) => {
+              const teamKey = team === 'A' ? 'teamA' : 'teamB';
+              setGameState(prev => ({
+                  ...prev,
+                  [teamKey]: { ...prev[teamKey], [field]: value }
+              }));
+          };
+
+          const updateTeamName = (team, newName) => updateTeamInfo(team, 'name', newName);
+
+          const updatePlayer = (team, playerId, field, value) => {
+            const teamKey = team === 'A' ? 'teamA' : 'teamB';
+            setGameState(prev => {
+              const updatedPlayers = prev[teamKey].players.map(p => 
+                p.id === playerId ? { ...p, [field]: value } : p
+              );
+              return {
+                ...prev,
+                [teamKey]: { ...prev[teamKey], players: updatedPlayers }
+              };
+            });
+          };
+
+          const updateGameInfo = (field, value) => {
+              setGameState(prev => ({
+                  ...prev,
+                  gameInfo: { ...prev.gameInfo, [field]: value }
+              }));
+          };
+
+          const currentHalf = getHalfKey(gameState.quarter);
+          const timeoutCounts = {
+              A: gameState.teamA.timeouts[currentHalf]?.length || 0,
+              B: gameState.teamB.timeouts[currentHalf]?.length || 0
+          };
+
+          return (
+            <div className="h-screen flex flex-col font-sans text-gray-900 bg-gray-200">
+              {notification && (
+                <div className={`fixed top-16 right-4 z-50 px-4 py-2 rounded shadow-lg flex items-center gap-2 animate-bounce ${
+                    notification.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }`}>
+                    {notification.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+                    {notification.message}
+                </div>
+              )}
+
+              <nav className="bg-blue-900 text-white p-2 shadow-md flex justify-between items-center z-10 print:hidden">
+                <div className="flex items-center gap-2">
+                  <Activity size={20} />
+                  <h1 className="font-bold text-lg hidden md:block">Score Sheet</h1>
+                </div>
+                
+                <div className="flex gap-2 bg-blue-800 rounded p-1">
+                  <button onClick={() => setViewMode('input')} className={`px-3 py-1 rounded text-sm font-bold flex items-center gap-1 ${viewMode === 'input' ? 'bg-white text-blue-900' : 'text-blue-200'}`}>
+                    <Activity size={14} /> <span className="hidden sm:inline">入力</span>
+                  </button>
+                  <button onClick={() => setViewMode('sheet')} className={`px-3 py-1 rounded text-sm font-bold flex items-center gap-1 ${viewMode === 'sheet' ? 'bg-white text-blue-900' : 'text-blue-200'}`}>
+                    <FileText size={14} /> <span className="hidden sm:inline">公式シート</span>
+                  </button>
+                  <button onClick={() => setViewMode('settings')} className={`px-3 py-1 rounded text-sm font-bold flex items-center gap-1 ${viewMode === 'settings' ? 'bg-white text-blue-900' : 'text-blue-200'}`}>
+                    <Settings size={14} /> <span className="hidden sm:inline">設定</span>
+                  </button>
+                  <button onClick={() => setViewMode('history')} className={`px-3 py-1 rounded text-sm font-bold flex items-center gap-1 ${viewMode === 'history' ? 'bg-white text-blue-900' : 'text-blue-200'}`}>
+                    <FolderOpen size={14} /> <span className="hidden sm:inline">保存データ</span>
+                  </button>
+                </div>
+
+                <div className="flex gap-2">
+                    {viewMode === 'sheet' && (
+                        <button onClick={() => window.print()} className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm font-bold flex items-center gap-1">
+                            <Printer size={16} /> 印刷 / PDF保存
+                        </button>
+                    )}
+                    <button onClick={saveGameData} className="p-2 hover:bg-blue-800 rounded text-blue-200" title="保存">
+                        <Save size={20} />
+                    </button>
+                </div>
+              </nav>
+
+              <main className="flex-1 overflow-hidden relative bg-gray-100 print:bg-white">
+                {viewMode === 'input' && (
+                    <InputPanel 
+                        gameState={gameState}
+                        selectedTeam={selectedTeam}
+                        setSelectedTeam={setSelectedTeam}
+                        selectedPlayer={selectedPlayer}
+                        setSelectedPlayer={setSelectedPlayer}
+                        addScore={addScore}
+                        addFoul={addFoul}
+                        addTimeout={addTimeout}
+                        undo={undo}
+                        nextQuarter={nextQuarter}
+                        timeoutCounts={timeoutCounts}
+                    />
+                )}
+                {viewMode === 'sheet' && (
+                    <div className="h-full overflow-auto p-4 flex justify-center print:p-0">
+                        <OfficialSheetView gameState={gameState} />
+                    </div>
+                )}
+                {viewMode === 'settings' && (
+                    <SettingsPanel 
+                        gameState={gameState} 
+                        setViewMode={setViewMode}
+                        updateTeamInfo={updateTeamInfo}
+                        updateTeamName={updateTeamName}
+                        updatePlayer={updatePlayer}
+                        updateGameInfo={updateGameInfo}
+                    />
+                )}
+                {viewMode === 'history' && (
+                    <HistoryPanel 
+                        savedGames={savedGames} 
+                        loadGameData={loadGameData} 
+                        deleteGameData={deleteGameData} 
+                        setViewMode={setViewMode} 
+                    />
+                )}
+              </main>
+            </div>
+          );
+        };
+
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+    </script>
+</body>
+</html>
