@@ -3,949 +3,727 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Official Basketball Score Sheet (Offline)</title>
+<title>BasketScore Final (Color Coded)</title>
 <style>
     /* --- CSS Reset & Base --- */
     * { box-sizing: border-box; }
     body { 
         margin: 0; padding: 0; 
         font-family: "Times New Roman", "YuMincho", "Hiragino Mincho ProN", "Yu Mincho", "MS PMincho", serif;
-        background-color: #525659; /* Reader background color */
+        background-color: #333; 
         color: #000;
         -webkit-font-smoothing: antialiased;
+        height: 100vh; overflow: hidden;
     }
     
-    /* --- UI Specific Fonts (Sans-Serif) --- */
     .ui-font { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
 
-    /* --- Screen Layout --- */
-    #app { display: flex; flex-direction: column; height: 100vh; }
-    
     /* --- Navbar --- */
     nav { 
-        background-color: #1a1a1a; color: white; padding: 0.5rem 1rem; 
+        background-color: #111; color: white; padding: 0 10px; 
         display: flex; justify-content: space-between; align-items: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        z-index: 100;
+        height: 40px; border-bottom: 1px solid #444; flex-shrink: 0;
     }
+    .nav-title { font-weight: bold; font-size: 1rem; }
+    .nav-group { display: flex; gap: 2px; background: #222; padding: 2px; border-radius: 4px; }
+    
     .btn { 
-        padding: 0.5rem 1rem; border-radius: 4px; border: none; cursor: pointer; 
-        font-size: 0.875rem; font-weight: bold; transition: background 0.2s;
-        display: inline-flex; align-items: center; gap: 0.5rem;
+        padding: 4px 10px; border-radius: 4px; border: none; cursor: pointer; 
+        font-size: 0.85rem; font-weight: bold; transition: background 0.1s;
+        display: inline-flex; align-items: center; justify-content: center; gap: 4px; text-decoration: none;
+        white-space: nowrap;
     }
+    .btn-nav { background: transparent; color: #888; }
+    .btn-nav.active { background: #444; color: white; }
     .btn-primary { background-color: #2563eb; color: white; }
-    .btn-primary:hover { background-color: #1d4ed8; }
-    .btn-secondary { background-color: #4b5563; color: white; }
-    .btn-secondary:hover { background-color: #374151; }
-    .btn-success { background-color: #16a34a; color: white; }
-    .btn-warning { background-color: #ca8a04; color: white; }
     .btn-danger { background-color: #dc2626; color: white; }
+    .btn-warning { background-color: #eab308; color: white; }
+    .btn-secondary { background-color: #4b5563; color: white; }
     
-    .nav-group { display: flex; gap: 0.5rem; background: #333; padding: 0.25rem; border-radius: 4px; }
-    .nav-btn { background: transparent; color: #9ca3af; }
-    .nav-btn.active { background: white; color: #111827; shadow: 0 1px 2px rgba(0,0,0,0.1); }
-
-    /* --- Input View --- */
-    .input-container { display: flex; flex: 1; overflow: hidden; background: #f3f4f6; }
-    .scoreboard { background: #111827; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
-    .team-card { flex: 1; padding: 0.5rem; border-radius: 8px; text-align: center; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
-    .team-card.active { background: #1f2937; border-color: #3b82f6; }
-    .score-display { font-size: 3rem; font-family: monospace; font-weight: bold; color: #facc15; line-height: 1; }
-    .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; padding: 0.5rem; overflow-y: auto; }
-    .player-btn { 
-        background: white; border: 1px solid #e5e7eb; padding: 0.75rem; border-radius: 8px; 
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        transition: all 0.1s; position: relative; min-height: 80px;
-    }
-    .player-btn.active { background: #2563eb; color: white; border-color: #2563eb; transform: scale(1.05); z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    .player-btn.fouled-out { opacity: 0.5; background: #fee2e2; }
-    .foul-dots { display: flex; gap: 2px; margin-top: 4px; }
-    .dot { width: 6px; height: 6px; border-radius: 50%; background: #e5e7eb; }
-    .dot.active { background: #eab308; }
-    .dot.active-selected { background: #fde047; }
-
-    .controls { width: 300px; background: white; border-left: 1px solid #e5e7eb; padding: 1rem; display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; }
-    .action-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; }
-    .action-btn { padding: 1rem 0; border-radius: 8px; font-weight: bold; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    .big-num { font-size: 1.5rem; line-height: 1; }
-    .sub-text { font-size: 0.75rem; font-weight: normal; }
-
-    /* --- Settings View --- */
-    .settings-container { max-width: 900px; margin: 2rem auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-y: auto; height: calc(100vh - 100px); }
-    .form-group { margin-bottom: 1rem; }
-    .form-label { display: block; font-size: 0.875rem; font-weight: bold; color: #374151; margin-bottom: 0.25rem; }
-    .form-input { width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px; font-size: 1rem; }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .table-input { width: 100%; border: none; background: transparent; text-align: center; padding: 4px; }
-    .table-input:focus { background: #eff6ff; outline: 1px solid #3b82f6; }
-
-    /* --- SHEET CSS (Official Layout) --- */
-    .sheet-wrapper {
-        width: 100%;
-        height: calc(100vh - 60px);
-        overflow: auto;
-        display: flex;
-        justify-content: center;
-        background: #525659;
-        padding: 20px;
+    /* --- Main Container --- */
+    #app-container {
+        height: calc(100vh - 40px);
+        display: flex; flex-direction: column; background: #f0f0f0;
     }
 
-    .sheet {
-        width: 210mm;
-        height: 297mm;
-        background: white;
-        padding: 10mm;
-        box-shadow: 0 0 10px rgba(0,0,0,0.5);
-        position: relative;
-        box-sizing: border-box;
-        font-size: 10px; /* Base font size for sheet */
-        display: flex;
-        flex-direction: column;
+    /* --- INPUT VIEW --- */
+    #input-view {
+        display: grid;
+        grid-template-columns: 1fr 150px 1fr;
+        gap: 2px; height: 100%; background: #ccc; overflow: hidden;
     }
-    
-    .sheet-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        border-bottom: 2px solid black;
-        padding-bottom: 5px;
-        margin-bottom: 5px;
-    }
-    
-    .sheet-title {
-        text-align: center;
-        font-weight: bold;
-        font-size: 16px;
-        letter-spacing: 2px;
-        position: absolute;
-        width: 100%;
-        top: 15mm;
-        left: 0;
-        pointer-events: none; /* Let clicks pass through */
-    }
-
-    .header-info-box {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        width: 30%;
-    }
-
-    .info-row { display: flex; align-items: flex-end; gap: 4px; white-space: nowrap; }
-    .info-label { font-weight: bold; font-size: 9px; }
-    .info-val { border-bottom: 1px solid #000; flex: 1; text-align: center; height: 14px; }
-    
-    .referee-box {
-        border: 1px solid black;
-        display: flex;
-        justify-content: space-between;
-        padding: 2px 5px;
-        margin-bottom: 5px;
-        font-size: 9px;
-    }
-
-    /* Main Content Area */
-    .sheet-body {
-        display: flex;
-        flex: 1;
-        gap: 4mm;
-    }
-
-    /* Left Column (Teams) */
-    .col-left {
-        width: 50%;
-        display: flex;
-        flex-direction: column;
-    }
-
-    /* Team Section */
-    .team-section { margin-bottom: 5px; }
+    .team-col { background: #fff; display: flex; flex-direction: column; overflow: hidden; }
     .team-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        border-bottom: 1px solid black;
-        margin-bottom: 2px;
+        padding: 5px 10px; background: #222; color: white;
+        display: flex; justify-content: space-between; align-items: center;
+        height: 40px; flex-shrink: 0;
     }
-    .team-name { font-size: 14px; font-weight: bold; text-transform: uppercase; }
-    
-    .team-meta {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 2px;
-        font-size: 9px;
-    }
-    .timeout-grid { display: flex; gap: 2px; }
-    .timeout-box { width: 16px; height: 14px; border: 1px solid black; text-align: center; line-height: 12px; font-weight: bold; }
-    
-    .foul-grid { display: flex; gap: 2px; align-items: center; }
-    .foul-box { width: 16px; height: 14px; border: 1px solid black; text-align: center; line-height: 12px; }
+    .th-name { font-weight: bold; font-size: 0.9rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .th-score { font-size: 1.5rem; font-weight: bold; color: #fbbf24; line-height: 1; }
+    .th-sub { font-size: 0.7rem; color: #aaa; }
 
-    /* Player Table */
-    .player-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 9px;
-        table-layout: fixed;
+    .player-list {
+        flex: 1; overflow-y: auto; padding: 5px;
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        grid-auto-rows: minmax(70px, 1fr); gap: 5px; align-content: start;
     }
-    .player-table th, .player-table td {
-        border: 1px solid #000; /* Standard thin border */
-        padding: 1px 2px;
-        height: 15px; /* Fixed height for rows */
+    .p-btn {
+        background: #f9fafb; border: 1px solid #ddd; border-radius: 4px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        cursor: pointer; position: relative; user-select: none;
+        transition: transform 0.05s, background 0.1s;
     }
-    .player-table th { background: #f0f0f0; text-align: center; font-weight: bold; height: 20px; }
+    .p-btn:active { transform: scale(0.98); }
     
-    .col-lic { width: 25px; text-align: center; }
-    .col-no { width: 25px; text-align: center; font-family: sans-serif; font-weight: bold; }
-    .col-name { text-align: left; overflow: hidden; white-space: nowrap; }
-    .col-foul { width: 14px; text-align: center; border-right: none; }
-    .col-foul-last { border-right: 1px solid black; }
+    /* Active States for Colors */
+    .p-btn.active-a { background: #2563eb; color: white; border-color: #1d4ed8; box-shadow: inset 0 0 5px rgba(0,0,0,0.2); }
+    .p-btn.active-b { background: #dc2626; color: white; border-color: #b91c1c; box-shadow: inset 0 0 5px rgba(0,0,0,0.2); }
+    
+    .p-btn.out { opacity: 0.5; background: #fee2e2; }
+    .p-no { font-size: 1.4rem; font-weight: bold; font-family: monospace; line-height: 1; }
+    .p-name { font-size: 0.7rem; width: 100%; text-align: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .p-dots { display: flex; gap: 2px; margin-top: 2px; height: 5px; }
+    .dot { width: 5px; height: 5px; border-radius: 50%; background: #e5e7eb; }
+    .dot.on { background: #eab308; }
+    .p-mark { position: absolute; top: 2px; left: 2px; font-size: 0.6rem; font-weight: bold; color: #eab308; }
 
-    /* Score Summary Table */
-    .score-summary {
-        margin-top: auto; /* Push to bottom of left col */
-        border: 2px solid black;
-        width: 100%;
-        font-size: 9px;
+    .center-col { background: #e5e7eb; display: flex; flex-direction: column; padding: 5px; gap: 5px; overflow-y: auto; }
+    .q-box { display: flex; justify-content: space-between; align-items: center; background: #333; color: white; padding: 5px; border-radius: 4px; flex-shrink: 0; }
+    .info-box { background: white; border-radius: 4px; padding: 5px; text-align: center; border: 1px solid #ccc; flex-shrink: 0; }
+    
+    .sel-info { height: 1.2rem; font-weight: bold; font-size: 0.9rem; color: #666; overflow: hidden; white-space: nowrap; }
+    .sel-info.team-a { color: #2563eb; }
+    .sel-info.team-b { color: #dc2626; }
+    
+    .btn-col { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .grp-lbl { font-size: 0.7rem; font-weight: bold; color: #555; text-align: center; margin-bottom: 2px; }
+    .act-btn {
+        flex: 1; min-height: 40px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: background 0.1s;
     }
-    .summary-row { display: flex; border-bottom: 1px solid black; height: 18px; }
-    .summary-row:last-child { border-bottom: none; }
-    .summary-header { background: #f0f0f0; font-weight: bold; }
-    .s-cell { flex: 1; border-right: 1px solid black; display: flex; align-items: center; justify-content: center; }
-    .s-cell:last-child { border-right: none; }
-    .s-wide { flex: 2; }
+    .act-score { background: #16a34a; color: white; font-size: 1.1rem; }
+    .act-score span { font-size: 0.6rem; opacity: 0.9; font-weight: normal; }
+    .act-foul { background: #eab308; color: white; font-size: 0.9rem; }
+    .act-spec { background: #f59e0b; color: white; font-size: 0.8rem; }
+    
+    .bottom-ctrl { margin-top: auto; display: flex; flex-direction: column; gap: 5px; }
+    .to-row { display: flex; gap: 2px; }
+    .to-btn { flex: 1; font-size: 0.7rem; padding: 8px 0; background: #fff; border: 1px solid #ccc; }
 
-    /* Right Column (Running Score) */
-    .col-right {
-        width: 50%;
-        border: 2px solid black;
-        display: flex;
-        flex-direction: column;
-    }
-    .running-header {
-        text-align: center;
-        font-weight: bold;
-        background: #f0f0f0;
-        border-bottom: 1px solid black;
-        padding: 2px;
-        letter-spacing: 3px;
-    }
-    .running-body {
-        display: flex;
-        flex: 1;
-    }
-    .running-col {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        border-right: 1px solid black;
-    }
-    .running-col:last-child { border-right: none; }
-    
-    .rc-header {
-        display: flex;
-        height: 20px;
-        border-bottom: 1px solid black;
-        background: #f0f0f0;
-        font-weight: bold;
-        align-items: center;
-    }
-    .rc-cell { flex: 1; text-align: center; font-size: 8px; }
-    
-    .rc-row {
-        display: flex;
-        height: 14.5px; /* Adjusted to fit 40 rows */
-        border-bottom: 1px solid #ccc;
-        align-items: center;
-    }
-    .rc-row:nth-child(5n) { border-bottom: 1px solid #888; } /* Guide line every 5 */
-    
-    .rc-num { flex: 1; text-align: center; font-weight: bold; font-family: sans-serif; font-size: 9px; }
-    .rc-score { flex: 1; text-align: center; font-size: 8px; color: #888; }
-    .rc-score.filled { color: black; font-weight: bold; font-size: 10px; }
-    
-    /* Footer */
-    .sheet-footer {
-        margin-top: 5px;
-        border: 1px solid black;
-        padding: 2px 5px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        font-size: 9px;
-    }
-    .footer-item { display: flex; align-items: flex-end; gap: 5px; width: 30%; }
+    /* --- SETTINGS VIEW --- */
+    #settings-view { overflow-y: auto; padding: 20px; display: none; background: #f3f4f6; }
+    .set-box { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .form-grp { flex: 1; }
+    .form-lbl { font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 2px; }
+    .form-inp { width: 100%; padding: 5px; font-size: 0.9rem; border: 1px solid #ccc; border-radius: 4px; }
+    .tbl-set { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .tbl-set th { background: #eee; padding: 4px; text-align: center; font-weight: bold; }
+    .tbl-set td { border-bottom: 1px solid #eee; padding: 2px; text-align: center; }
+    .inp-cell { width: 100%; border: 1px solid transparent; padding: 4px; text-align: center; }
+    .inp-cell:focus { border-color: #2563eb; background: #eff6ff; }
 
-    /* --- Utilities --- */
-    .hidden { display: none !important; }
-    .text-center { text-align: center; }
-    .font-bold { font-weight: bold; }
-    .border-b { border-bottom: 1px solid black; }
+    /* --- HISTORY VIEW --- */
+    #history-view { display: none; padding: 20px; overflow-y: auto; background: #f3f4f6; }
+    .hist-list { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+    .hist-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
     
-    /* --- Print Media Query --- */
+    /* --- SHEET VIEW --- */
+    #sheet-view { display: none; justify-content: center; padding: 20px; overflow: auto; background: #525659; }
+    .paper-a4 {
+        width: 210mm; height: 297mm; background: white; padding: 10mm;
+        box-shadow: 0 0 15px rgba(0,0,0,0.5); box-sizing: border-box;
+        display: flex; flex-direction: column; font-size: 10px; line-height: 1.1;
+    }
+    
+    /* Sheet Utils */
+    .s-row { display: flex; width: 100%; }
+    .bd { border: 1px solid #000; }
+    .bt { border-top: 1px solid #000; }
+    .bb { border-bottom: 1px solid #000; }
+    .bl { border-left: 1px solid #000; }
+    .br { border-right: 1px solid #000; }
+    .txt-c { text-align: center; }
+    .txt-b { font-weight: bold; }
+    .bg-g { background: #eee; }
+    .text-red { color: #dc2626 !important; }
+    
+    /* Visual Symbols for Running Score */
+    .slash { 
+        background: linear-gradient(to top right, transparent calc(50% - 0.5px), black calc(50% - 0.5px), black calc(50% + 0.5px), transparent calc(50% + 0.5px)); 
+    }
+    .slash-red {
+        background: linear-gradient(to top right, transparent calc(50% - 0.5px), #dc2626 calc(50% - 0.5px), #dc2626 calc(50% + 0.5px), transparent calc(50% + 0.5px)); 
+    }
+    .circle-num {
+        border: 1px solid black; border-radius: 50%; width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; margin: 0 auto;
+    }
+    .circle-num-red {
+        border: 1px solid #dc2626; color: #dc2626; border-radius: 50%; width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; margin: 0 auto;
+    }
+    .filled-dot {
+        width: 6px; height: 6px; background: black; border-radius: 50%; margin: auto;
+    }
+    .filled-dot-red {
+        width: 6px; height: 6px; background: #dc2626; border-radius: 50%; margin: auto;
+    }
+
+    /* Pl-in Circle for Starter */
+    .starter-mark {
+        width: 12px; height: 12px; border: 1px solid #dc2626; border-radius: 50%; color: #dc2626; font-size: 9px; line-height: 11px; text-align: center; display: inline-block;
+    }
+
     @media print {
         @page { size: A4 portrait; margin: 0; }
-        body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        nav, .input-container, .settings-container { display: none !important; }
-        
-        .sheet-wrapper {
-            display: block;
-            width: 100%;
-            height: auto;
-            overflow: visible;
-            padding: 0;
-            margin: 0;
-            background: white;
-        }
-        
-        .sheet {
-            box-shadow: none;
-            margin: 0;
-            page-break-after: always;
-            width: 100%;
-            height: 100vh; /* Force full height */
-            padding: 8mm 10mm; /* Adjusted padding for printer margins */
-        }
-
-        /* Ensure borders print */
-        * { border-color: black !important; }
+        body { background: white; height: auto; overflow: visible; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        nav, #input-view, #settings-view, #history-view { display: none !important; }
+        #app-container { height: auto; display: block; }
+        #sheet-view { display: block !important; padding: 0; margin: 0; overflow: visible; height: auto; }
+        .paper-a4 { box-shadow: none; margin: 0; width: 210mm; height: 297mm; page-break-after: always; }
     }
 </style>
 </head>
 <body>
 
-<div id="app">
-    <!-- Navbar injected by JS -->
+<nav class="ui-font">
+    <div class="nav-title">BasketScore</div>
+    <div class="nav-group">
+        <button class="btn btn-nav active" id="nav-input" onclick="setView('input')">入力</button>
+        <button class="btn btn-nav" id="nav-sheet" onclick="setView('sheet')">シート</button>
+        <button class="btn btn-nav" id="nav-settings" onclick="setView('settings')">設定</button>
+        <button class="btn btn-nav" id="nav-history" onclick="setView('history')">履歴</button>
+    </div>
+    <div style="display:flex; gap:5px;">
+        <button class="btn btn-secondary" onclick="newGame()">新規</button>
+        <button class="btn btn-primary" onclick="saveGame()">保存</button>
+    </div>
+</nav>
+
+<div id="app-container" class="ui-font">
+
+    <!-- INPUT VIEW -->
+    <div id="input-view">
+        <div class="team-col">
+            <div class="team-header">
+                <div style="width:70%;">
+                    <div class="th-name" id="name-a">TEAM A</div>
+                    <div class="th-sub">Fouls: <span id="foul-a">0</span></div>
+                </div>
+                <div class="th-score" id="score-a">0</div>
+            </div>
+            <div id="list-a" class="player-list"></div>
+        </div>
+
+        <div class="center-col">
+            <div class="q-box">
+                <div style="font-weight:bold; font-size:1.2rem; color:#ef4444;" id="disp-q">Q1</div>
+                <button class="btn btn-secondary" onclick="nextQ()">Next</button>
+            </div>
+            <div class="info-box">
+                <div style="font-size:0.65rem; color:#666;">SELECT</div>
+                <div class="sel-info" id="sel-name">---</div>
+            </div>
+            
+            <div class="btn-col" style="flex:1;">
+                <div class="grp-lbl">SCORE (得点)</div>
+                <button class="act-btn act-score" onclick="actScore(1)">+1 <span>FT ●</span></button>
+                <button class="act-btn act-score" onclick="actScore(2)">+2 <span>FG ／</span></button>
+                <button class="act-btn act-score" onclick="actScore(3)">+3 <span>3P ○</span></button>
+            </div>
+
+            <div class="btn-col" style="flex:1.2;">
+                <div class="grp-lbl">FOUL (ファウル)</div>
+                <div style="display:flex; gap:2px; flex:1;">
+                    <button class="act-btn act-foul" onclick="actFoul('P')">P</button>
+                    <button class="act-btn act-foul" onclick="actFoul('P1')">P1</button>
+                    <button class="act-btn act-foul" onclick="actFoul('P2')">P2</button>
+                </div>
+                <div style="display:flex; gap:2px; flex:1;">
+                    <button class="act-btn act-spec" onclick="actFoul('T1')">T1</button>
+                    <button class="act-btn act-spec" onclick="actFoul('U2')">U2</button>
+                    <button class="act-btn act-spec" onclick="actFoul('D2')">D2</button>
+                </div>
+            </div>
+
+            <div class="bottom-ctrl">
+                <div class="to-row">
+                    <button class="btn to-btn" onclick="actTO('A')">A TimeOut</button>
+                    <button class="btn to-btn" onclick="actTO('B')">B TimeOut</button>
+                </div>
+                <button class="btn btn-danger" style="width:100%; padding:10px 0;" onclick="actUndo()">Undo (取消)</button>
+            </div>
+        </div>
+
+        <div class="team-col">
+            <div class="team-header">
+                <div class="th-score" id="score-b">0</div>
+                <div style="width:70%; text-align:right;">
+                    <div class="th-name" id="name-b">TEAM B</div>
+                    <div class="th-sub">Fouls: <span id="foul-b">0</span></div>
+                </div>
+            </div>
+            <div id="list-b" class="player-list"></div>
+        </div>
+    </div>
+
+    <!-- SETTINGS VIEW -->
+    <div id="settings-view">
+        <div class="set-box">
+            <h3>試合設定</h3>
+            <div class="form-row">
+                <div class="form-grp"><label class="form-lbl">大会名</label><input class="form-inp" id="inp-comp" onchange="upMeta('competition', this.value)"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-grp"><label class="form-lbl">日付</label><input type="date" class="form-inp" id="inp-date" onchange="upMeta('date', this.value)"></div>
+                <div class="form-grp"><label class="form-lbl">時間</label><input type="time" class="form-inp" id="inp-time" onchange="upMeta('time', this.value)"></div>
+                <div class="form-grp"><label class="form-lbl">会場</label><input class="form-inp" id="inp-place" onchange="upMeta('place', this.value)"></div>
+                <div class="form-grp"><label class="form-lbl">Game No</label><input class="form-inp" id="inp-no" onchange="upMeta('no', this.value)"></div>
+            </div>
+            <hr style="border:0; border-top:1px solid #ddd; margin:15px 0;">
+            <div id="team-settings"></div>
+            <hr style="border:0; border-top:1px solid #ddd; margin:15px 0;">
+            <h3>審判・オフィシャル</h3>
+            <div class="form-row">
+                <div class="form-grp"><label class="form-lbl">クルーチーフ</label><input class="form-inp" id="inp-cc" onchange="upMeta('crewChief', this.value)"></div>
+                <div class="form-grp"><label class="form-lbl">Umpire 1</label><input class="form-inp" id="inp-u1" onchange="upMeta('umpire1', this.value)"></div>
+                <div class="form-grp"><label class="form-lbl">Umpire 2</label><input class="form-inp" id="inp-u2" onchange="upMeta('umpire2', this.value)"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-grp"><label class="form-lbl">スコアラー</label><input class="form-inp" id="inp-sc" onchange="upMeta('scorer', this.value)"></div>
+                <div class="form-grp"><label class="form-lbl">タイマー</label><input class="form-inp" id="inp-tm" onchange="upMeta('timer', this.value)"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HISTORY VIEW -->
+    <div id="history-view">
+        <div class="hist-list" id="hist-container"></div>
+    </div>
+
+    <!-- SHEET VIEW -->
+    <div id="sheet-view">
+        <button class="btn btn-warning" onclick="window.print()" style="position:fixed; bottom:20px; right:20px; box-shadow:0 2px 10px rgba(0,0,0,0.3); z-index:100;">印刷 (PDF)</button>
+        <div id="sheet-paper" class="paper-a4"></div>
+    </div>
 </div>
 
 <script>
-/**
- * --- Application State ---
- * バニラJSによる状態管理
- */
+// --- Logic ---
+const createP = (i) => ({ no: '', name: '', capt: false, start: false, played: false, fouls: [], id: Math.random().toString(36).substr(2,9) });
+const genId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
+const todayStr = () => new Date().toISOString().split('T')[0];
 
-// データ構造の初期化
-const createPlayer = (team, i) => ({ 
-    id: `${team}-${i}`, 
-    number: '', 
-    license: '', // 追加: PDFにあるLicense No.
-    name: '', 
-    isCaptain: false, 
-    fouls: [], 
-    points: 0 
+const initSt = () => ({
+    gameId: genId(), lastSaved: null,
+    view: 'input', selT: null, selId: null,
+    q: 1,
+    meta: { competition:'', date:todayStr(), time:'', place:'', no:'', crewChief:'', umpire1:'', umpire2:'', scorer:'', timer:'', shotClock:'' },
+    teamA: { name:'TEAM A', color:'', coach:'', ac:'', players:Array.from({length:18},(_,i)=>createP(i)), timeouts:{1:[],2:[]}, fouls:{1:0,2:0,3:0,4:0} },
+    teamB: { name:'TEAM B', color:'', coach:'', ac:'', players:Array.from({length:18},(_,i)=>createP(i)), timeouts:{1:[],2:[]}, fouls:{1:0,2:0,3:0,4:0} },
+    logs: [] // {q, team, pid, no, val, type} type: score(1,2,3), foul
 });
+let st = initSt();
 
-const initialState = {
-    view: 'input', // input, sheet, settings
-    teamA: {
-        name: 'Team A', color: '', coach: '', assistantCoach: '',
-        players: Array.from({length: 18}, (_, i) => createPlayer('A', i+1)),
-        timeouts: { 1: [], 2: [] }, // 1=前半(1-2Q), 2=後半(3-4Q)
-        fouls: { 1:0, 2:0, 3:0, 4:0 }
-    },
-    teamB: {
-        name: 'Team B', color: '', coach: '', assistantCoach: '',
-        players: Array.from({length: 18}, (_, i) => createPlayer('B', i+1)),
-        timeouts: { 1: [], 2: [] },
-        fouls: { 1:0, 2:0, 3:0, 4:0 }
-    },
-    game: {
-        competition: '令和__年度 京都府高等学校総合体育大会',
-        no: '',
-        date: new Date().toISOString().slice(0, 10),
-        time: '10:00',
-        place: '',
-        crewChief: '', umpire1: '', umpire2: '',
-        scorer: '', assistantScorer: '', timer: '', shotClock: '',
-        endTime: ''
-    },
-    quarter: 1,
-    scores: [], // { q: 1, team: 'A', playerNo: '4', val: 2, runningA: 2, runningB: 0 }
-    history: [],
-    selectedTeam: 'A',
-    selectedPlayerId: null
-};
-
-// State Container
-let state = JSON.parse(JSON.stringify(initialState));
-
-// --- Logic Functions ---
-
-function saveState() {
-    localStorage.setItem('basket_score_offline_v2', JSON.stringify(state));
-    alert('保存しました (Saved to Browser)');
+// --- Persistence ---
+function saveGame() {
+    st.lastSaved = new Date().toISOString();
+    let hist = [];
+    try { hist = JSON.parse(localStorage.getItem('bss_hist_v2') || '[]'); } catch(e){}
+    const idx = hist.findIndex(g => g.gameId === st.gameId);
+    if(idx >= 0) hist[idx] = st; else hist.unshift(st);
+    localStorage.setItem('bss_hist_v2', JSON.stringify(hist));
+    alert('保存しました (履歴に追加)');
+}
+function loadGameList() { try { return JSON.parse(localStorage.getItem('bss_hist_v2') || '[]'); } catch(e){return[];} }
+function loadGame(id) {
+    if(!confirm('編集中の内容は破棄されます。よろしいですか？')) return;
+    const g = loadGameList().find(x => x.gameId === id);
+    if(g) { st = g; setView('input'); alert('読み込みました'); }
+}
+function deleteGame(id) {
+    if(!confirm('削除しますか？')) return;
+    const hist = loadGameList().filter(g => g.gameId !== id);
+    localStorage.setItem('bss_hist_v2', JSON.stringify(hist));
+    renHistory();
+}
+function newGame() {
+    if(!confirm('新規作成しますか？')) return;
+    st = initSt(); setView('input');
 }
 
-function loadState() {
-    const saved = localStorage.getItem('basket_score_offline_v2');
-    if(saved) {
-        try {
-            const parsed = JSON.parse(saved);
-            // マージロジックがあれば良いが、今回は単純置換
-            state = parsed;
-            render();
-        } catch(e) { console.error(e); }
-    }
-}
-
-function update(path, value) {
-    // path: 'teamA.name', 'game.place', 'teamA.players.0.number'
-    const parts = path.split('.');
-    let target = state;
-    for(let i=0; i<parts.length-1; i++) {
-        target = target[parts[i]];
-    }
-    target[parts[parts.length-1]] = value;
-    // 画面全体再描画は重いので、設定画面ではonchangeでのみデータ更新し、
-    // 必要な時だけ再描画するが、今回はシンプルに都度renderする
-    // ただし入力のフォーカス外れを防ぐため、SettingsViewは慎重に実装
-}
-
-function addScore(val) {
-    if(!state.selectedPlayerId) return alert('選手を選択してください');
-    
-    const teamKey = state.selectedTeam === 'A' ? 'teamA' : 'teamB';
-    const player = state[teamKey].players.find(p => p.id === state.selectedPlayerId);
-    
-    if(!player.number) return alert('選手の背番号が設定されていません');
-
-    // History push
-    state.history.push(JSON.stringify({scores: state.scores, players: [state.teamA.players, state.teamB.players]})); // 簡易保存
-
-    // Calculate current running score
-    const totalA = calcScore('A');
-    const totalB = calcScore('B');
-    
-    const newScore = {
-        q: state.quarter,
-        team: state.selectedTeam,
-        playerNo: player.number,
-        val: val,
-        runningA: state.selectedTeam === 'A' ? totalA + val : totalA,
-        runningB: state.selectedTeam === 'B' ? totalB + val : totalB
-    };
-    
-    state.scores.push(newScore);
-    player.points += val;
-    render();
-}
-
-function addFoul(type) {
-    if(!state.selectedPlayerId) return alert('選手を選択してください');
-    const teamKey = state.selectedTeam === 'A' ? 'teamA' : 'teamB';
-    const player = state[teamKey].players.find(p => p.id === state.selectedPlayerId);
-    
-    if(player.fouls.length >= 5) return alert('退場(5ファウル)済みです');
-    
-    player.fouls.push(type);
-    
-    // Team Foul加算 (4Q以降は延長も含むが今回は簡易的に4に加算)
-    const qKey = state.quarter > 4 ? 4 : state.quarter;
-    state[teamKey].fouls[qKey]++;
-    
-    render();
-}
-
-function addTimeout(team) {
-    const teamKey = team === 'A' ? 'teamA' : 'teamB';
-    const half = state.quarter <= 2 ? 1 : 2;
-    const limit = half === 1 ? 2 : 3;
-    
-    if(state[teamKey].timeouts[half].length >= limit) return alert('前半/後半の制限数を超えています');
-    
-    // 時間を記録するが、シートには分数(残り時間)を書くことが多い。今回は'X'や分数を入力させる代わりに自動カウント
-    // 実際の運用では分数を手書きすることが多いので、ここでは単純なマークとして扱う
-    const timeStr = prompt("タイムアウト時間（分）を入力、または空欄", state.game.time);
-    state[teamKey].timeouts[half].push(timeStr || 'X');
-    render();
-}
-
-function undo() {
-    if(state.scores.length === 0) return;
-    state.scores.pop();
-    // プレイヤーのポイント再計算が必要だが、今回は簡易実装のため省略せず、scoresから全再計算すべき
-    // リセットして再計算
-    ['teamA', 'teamB'].forEach(tk => {
-        state[tk].players.forEach(p => p.points = 0);
+// --- Actions ---
+function setView(v) {
+    st.view = v;
+    ['input','sheet','settings','history'].forEach(k => {
+        const el = document.getElementById(k+'-view');
+        if(el) el.style.display = k===v ? (k==='input'?'grid':(k==='sheet'?'flex':'block')) : 'none';
+        document.getElementById('nav-'+k).classList.toggle('active', k===v);
     });
-    state.scores.forEach(s => {
-        const p = state[`team${s.team}`].players.find(pl => pl.number === s.playerNo);
-        if(p) p.points += s.val;
-    });
-    render();
+    if(v==='input') renInput();
+    if(v==='settings') renSettings();
+    if(v==='history') renHistory();
+    if(v==='sheet') { renSheet(); fitSheet(); window.onresize = fitSheet; }
+    else window.onresize = null;
 }
 
-function calcScore(team) {
-    return state.scores.filter(s => s.team === team).reduce((a,c) => a + c.val, 0);
+function selP(tm, pid) { st.selT = tm; st.selId = pid; renInput(); }
+
+function markPlayed(tm, pid) {
+    const p = getP(tm, pid);
+    if(p && !p.played) p.played = true;
 }
 
-function calcQuarterScore(team, q) {
-    return state.scores.filter(s => s.team === team && s.q === q).reduce((a,c) => a + c.val, 0);
+function actScore(val) { // val: 1(FT), 2(FG), 3(3P)
+    if(!st.selId) return;
+    const p = getP(st.selT, st.selId);
+    if(!p.no) return alert('背番号がありません');
+    
+    markPlayed(st.selT, st.selId);
+    st.logs.push({ q:st.q, team:st.selT, pid:st.selId, no:p.no, val:val, type:'score' });
+    renInput();
 }
 
-// --- View Components (String Templates) ---
-
-const Icons = {
-    Pen: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`,
-    Sheet: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`,
-    Settings: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`,
-    Print: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>`,
-};
-
-const Navbar = () => `
-    <nav class="ui-font">
-        <div style="font-weight:bold; font-size:1.2rem;">BasketScore Offline</div>
-        <div class="nav-group">
-            <button class="btn nav-btn ${state.view==='input'?'active':''}" onclick="state.view='input'; render()">${Icons.Pen} 入力</button>
-            <button class="btn nav-btn ${state.view==='sheet'?'active':''}" onclick="state.view='sheet'; render()">${Icons.Sheet} シート</button>
-            <button class="btn nav-btn ${state.view==='settings'?'active':''}" onclick="state.view='settings'; render()">${Icons.Settings} 設定</button>
-        </div>
-        <div>
-            ${state.view === 'sheet' ? `<button class="btn btn-warning" onclick="window.print()">${Icons.Print} 印刷</button>` : ''}
-            <button class="btn btn-primary" onclick="saveState()">保存</button>
-        </div>
-    </nav>
-`;
-
-const InputView = () => {
-    const activeTeam = state.selectedTeam === 'A' ? state.teamA : state.teamB;
-    const players = activeTeam.players.filter(p => p.number); // 番号がある選手のみ表示
+function actFoul(code) { // P, P1, P2, T1, U2, D2...
+    if(!st.selId) return;
+    const p = getP(st.selT, st.selId);
+    if(p.fouls.length>=5) return alert('5ファウル済み');
     
-    return `
-    <div class="input-container ui-font">
-        <div style="display:flex; flex-direction:column; flex:1;">
-            <div class="scoreboard">
-                <div class="team-card ${state.selectedTeam==='A'?'active':''}" onclick="state.selectedTeam='A'; state.selectedPlayerId=null; render()">
-                    <div style="font-size:0.8rem; color:#9ca3af;">${state.teamA.name}</div>
-                    <div class="score-display">${calcScore('A')}</div>
-                    <div style="font-size:0.8rem;">Fouls: ${state.teamA.fouls[state.quarter]||0}</div>
-                </div>
-                <div style="text-align:center;">
-                    <div style="color:#ef4444; font-weight:bold; font-size:1.5rem;">Q${state.quarter}</div>
-                    <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.7rem;" onclick="state.quarter++; render()">Next Q</button>
-                </div>
-                <div class="team-card ${state.selectedTeam==='B'?'active':''}" onclick="state.selectedTeam='B'; state.selectedPlayerId=null; render()">
-                    <div style="font-size:0.8rem; color:#9ca3af;">${state.teamB.name}</div>
-                    <div class="score-display">${calcScore('B')}</div>
-                    <div style="font-size:0.8rem;">Fouls: ${state.teamB.fouls[state.quarter]||0}</div>
-                </div>
-            </div>
-            
-            <div class="player-grid">
-                ${players.length === 0 ? '<div style="grid-column:1/-1; text-align:center; padding:2rem; color:#666;">選手が登録されていません。<br>設定タブで選手情報を入力してください。</div>' : ''}
-                ${players.map(p => `
-                    <button class="player-btn ${state.selectedPlayerId===p.id?'active':''} ${p.fouls.length>=5?'fouled-out':''}" 
-                        onclick="state.selectedPlayerId='${p.id}'; render()">
-                        ${p.isCaptain ? '<div style="position:absolute; top:2px; left:4px; font-size:0.7rem; font-weight:bold; color:#eab308;">CAP</div>' : ''}
-                        <div style="font-size:1.5rem; font-family:monospace; font-weight:bold;">${p.number}</div>
-                        <div style="font-size:0.8rem; width:100%; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; text-align:center;">${p.name}</div>
-                        <div class="foul-dots">
-                            ${[1,2,3,4,5].map(i => `<div class="dot ${i<=p.fouls.length ? (state.selectedPlayerId===p.id?'active-selected':'active') : ''}"></div>`).join('')}
-                        </div>
-                    </button>
-                `).join('')}
-            </div>
-        </div>
-
-        <div class="controls">
-            <div style="text-align:center; padding-bottom:1rem; border-bottom:1px solid #eee;">
-                <div style="font-size:0.8rem; color:#666;">選択中</div>
-                <div style="font-weight:bold; font-size:1.2rem; height:1.5rem;">
-                    ${(() => {
-                        if(!state.selectedPlayerId) return '未選択';
-                        const p = activeTeam.players.find(x => x.id === state.selectedPlayerId);
-                        return `#${p.number} ${p.name}`;
-                    })()}
-                </div>
-            </div>
-            
-            <div style="font-weight:bold; color:#374151;">得点</div>
-            <div class="action-grid">
-                <button class="btn btn-success action-btn" onclick="addScore(1)">
-                    <span class="big-num">+1</span>
-                    <span class="sub-text">FT</span>
-                </button>
-                <button class="btn btn-success action-btn" onclick="addScore(2)">
-                    <span class="big-num">+2</span>
-                    <span class="sub-text">FG</span>
-                </button>
-                <button class="btn btn-success action-btn" onclick="addScore(3)">
-                    <span class="big-num">+3</span>
-                    <span class="sub-text">3P</span>
-                </button>
-            </div>
-
-            <div style="font-weight:bold; color:#374151; margin-top:1rem;">ファウル</div>
-            <div class="action-grid">
-                <button class="btn btn-warning action-btn" onclick="addFoul('P')">P</button>
-                <button class="btn btn-warning action-btn" onclick="addFoul('P1')">P1</button>
-                <button class="btn btn-warning action-btn" onclick="addFoul('P2')">P2</button>
-            </div>
-
-            <div style="margin-top:auto;">
-                <div class="grid-2">
-                    <button class="btn btn-secondary" onclick="addTimeout('A')">A タイムアウト</button>
-                    <button class="btn btn-secondary" onclick="addTimeout('B')">B タイムアウト</button>
-                </div>
-                <button class="btn btn-danger" style="width:100%; margin-top:1rem;" onclick="undo()">取り消し (Undo)</button>
-            </div>
-        </div>
-    </div>
-    `;
-};
-
-const SettingsView = () => {
-    // 描画コスト削減のため、inputのonchangeでstateを更新するが、
-    // ここではHTML文字列を再生成する方式をとる（シンプルさ優先）。
-    // 実際のアプリでは仮想DOMなどを使うべきだが、バニラJSなのでこれで行く。
+    markPlayed(st.selT, st.selId);
+    p.fouls.push(code); 
+    const qMap = st.q>4?4:st.q;
+    st[st.selT==='A'?'teamA':'teamB'].fouls[qMap]++;
     
-    const renderTeamSettings = (teamKey, label) => `
-        <div style="margin-bottom:2rem;">
-            <h3 style="border-bottom:2px solid #ddd; padding-bottom:0.5rem; margin-bottom:1rem;">${label} 設定</h3>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label class="form-label">チーム名</label>
-                    <input class="form-input" value="${state[teamKey].name}" onchange="update('${teamKey}.name', this.value)">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">ユニフォーム色</label>
-                    <input class="form-input" value="${state[teamKey].color}" onchange="update('${teamKey}.color', this.value)">
-                </div>
-            </div>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label class="form-label">コーチ</label>
-                    <input class="form-input" value="${state[teamKey].coach}" onchange="update('${teamKey}.coach', this.value)">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">A.コーチ</label>
-                    <input class="form-input" value="${state[teamKey].assistantCoach}" onchange="update('${teamKey}.assistantCoach', this.value)">
-                </div>
-            </div>
+    st.logs.push({ q:st.q, team:st.selT, pid:st.selId, no:p.no, val:0, type:'foul', code:code });
+    renInput();
+}
 
-            <table style="width:100%; border-collapse:collapse; margin-top:1rem;">
-                <thead style="background:#f3f4f6; font-size:0.8rem;">
-                    <tr><th style="padding:4px;">No.</th><th style="padding:4px;">Lic No.</th><th>選手名</th><th style="width:50px;">CAP</th></tr>
-                </thead>
-                <tbody>
-                    ${state[teamKey].players.map((p, i) => `
-                        <tr style="border-bottom:1px solid #eee;">
-                            <td style="width:60px;"><input class="table-input" value="${p.number}" placeholder="No" onchange="update('${teamKey}.players.${i}.number', this.value)"></td>
-                            <td style="width:80px;"><input class="table-input" value="${p.license}" placeholder="Lic" onchange="update('${teamKey}.players.${i}.license', this.value)"></td>
-                            <td><input class="table-input" style="text-align:left;" value="${p.name}" placeholder="氏名" onchange="update('${teamKey}.players.${i}.name', this.value)"></td>
-                            <td style="text-align:center;"><input type="checkbox" ${p.isCaptain?'checked':''} onchange="update('${teamKey}.players.${i}.isCaptain', this.checked)"></td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
+function actTO(tm) {
+    const tk = tm==='A'?'teamA':'teamB';
+    const h = st.q<=2?1:2;
+    const min = prompt("経過時間(分)を入力してください (例: 5)", "");
+    st[tk].timeouts[h].push(min || 'X');
+    renInput();
+}
 
-    return `
-    <div class="ui-font" style="background:#f3f4f6; height:100%; overflow:hidden;">
-        <div class="settings-container">
-            <h2 style="margin-top:0;">試合設定</h2>
-            <div class="form-group">
-                <label class="form-label">大会名</label>
-                <input class="form-input" value="${state.game.competition}" onchange="update('game.competition', this.value)">
-            </div>
-            <div class="grid-2">
-                <div class="form-group"><label class="form-label">Game No.</label><input class="form-input" value="${state.game.no}" onchange="update('game.no', this.value)"></div>
-                <div class="form-group"><label class="form-label">会場</label><input class="form-input" value="${state.game.place}" onchange="update('game.place', this.value)"></div>
-            </div>
-            <div class="grid-2">
-                <div class="form-group"><label class="form-label">日付</label><input type="date" class="form-input" value="${state.game.date}" onchange="update('game.date', this.value)"></div>
-                <div class="form-group"><label class="form-label">時間</label><input type="time" class="form-input" value="${state.game.time}" onchange="update('game.time', this.value)"></div>
-            </div>
-            
-            <div style="margin: 2rem 0; border-top:1px solid #ddd;"></div>
+function actUndo() {
+    if(st.logs.length===0) return;
+    const l = st.logs.pop();
+    if(l.type==='foul') {
+        const tk = l.team==='A'?'teamA':'teamB';
+        const p = st[tk].players.find(x=>x.id===l.pid);
+        if(p) p.fouls.pop();
+        const qMap = l.q>4?4:l.q;
+        st[tk].fouls[qMap]--;
+    }
+    renInput();
+}
 
-            ${renderTeamSettings('teamA', 'チームA')}
-            ${renderTeamSettings('teamB', 'チームB')}
+function nextQ() { st.q++; renInput(); }
+function upMeta(k,v) { st.meta[k]=v; }
+function upTeam(tm,k,v) { st[tm][k]=v; }
+function upPlayer(tm,i,k,v) { st[tm].players[i][k]=v; }
+function getP(tm, id) { return st[tm==='A'?'teamA':'teamB'].players.find(x=>x.id===id); }
+function getScore(logs) {
+    let a=0, b=0;
+    (logs||st.logs).forEach(l=>{ if(l.type==='score') l.team==='A'?a+=l.val:b+=l.val; });
+    return {a,b};
+}
 
-            <div style="margin: 2rem 0; border-top:1px solid #ddd;"></div>
+// --- Renderers ---
+function renInput() {
+    const sc = getScore();
+    document.getElementById('score-a').innerText = sc.a;
+    document.getElementById('score-b').innerText = sc.b;
+    document.getElementById('name-a').innerText = st.teamA.name;
+    document.getElementById('name-b').innerText = st.teamB.name;
+    document.getElementById('foul-a').innerText = st.teamA.fouls[st.q]||0;
+    document.getElementById('foul-b').innerText = st.teamB.fouls[st.q]||0;
+    document.getElementById('disp-q').innerText = 'Q'+st.q;
 
-            <h3>審判・オフィシャル</h3>
-            <div class="grid-2">
-                <div class="form-group"><label class="form-label">クルーチーフ</label><input class="form-input" value="${state.game.crewChief}" onchange="update('game.crewChief', this.value)"></div>
-                <div class="form-group"><label class="form-label">1st アンパイア</label><input class="form-input" value="${state.game.umpire1}" onchange="update('game.umpire1', this.value)"></div>
-                <div class="form-group"><label class="form-label">2nd アンパイア</label><input class="form-input" value="${state.game.umpire2}" onchange="update('game.umpire2', this.value)"></div>
-            </div>
-            <div class="grid-2">
-                <div class="form-group"><label class="form-label">スコアラー</label><input class="form-input" value="${state.game.scorer}" onchange="update('game.scorer', this.value)"></div>
-                <div class="form-group"><label class="form-label">A.スコアラー</label><input class="form-input" value="${state.game.assistantScorer}" onchange="update('game.assistantScorer', this.value)"></div>
-                <div class="form-group"><label class="form-label">タイマー</label><input class="form-input" value="${state.game.timer}" onchange="update('game.timer', this.value)"></div>
-                <div class="form-group"><label class="form-label">ショットクロック</label><input class="form-input" value="${state.game.shotClock}" onchange="update('game.shotClock', this.value)"></div>
-            </div>
-        </div>
-    </div>
-    `;
-};
-
-// --- Sheet Rendering Logic ---
-
-const SheetView = () => {
-    // ランニングスコアデータの構築
-    const runningData = [];
-    let curA = 0, curB = 0;
-    // 160点分確保
-    for(let i=1; i<=160; i++) runningData.push({ score: i, a: null, b: null });
-    
-    state.scores.forEach(s => {
-        // 現在の累積スコア
-        const isA = s.team === 'A';
-        const start = isA ? curA : curB;
-        const end = start + s.val;
+    // Center Info Update
+    const selInfo = document.getElementById('sel-name');
+    if(st.selId) {
+        const p = getP(st.selT, st.selId);
+        selInfo.innerText = p ? `#${p.no} ${p.name}` : '---';
         
-        // 得点線の描画データ (斜線などをCSSで表現するのは難しいので、得点が入った行に番号を入れる方式)
-        // PDFの仕様に合わせる:
-        // Aチームが得点したら、A列に番号、A得点列に累積スコア。
-        // 同じ行のB側は空欄。
-        if(isA) {
-            // end点目の行のA側にデータをセット
-            if(runningData[end-1]) {
-                runningData[end-1].a = { no: s.playerNo, q: s.q };
+        // Color Change Logic
+        selInfo.className = 'sel-info ' + (st.selT === 'A' ? 'team-a' : 'team-b');
+    } else {
+        selInfo.innerText = '---';
+        selInfo.className = 'sel-info';
+    }
+
+    ['A','B'].forEach(tm => {
+        const tk = tm==='A'?'teamA':'teamB';
+        const players = st[tk].players.filter(p=>p.no!=='');
+        const html = players.map(p => {
+            // Determine active class based on team
+            let activeClass = '';
+            if (st.selId === p.id) {
+                activeClass = (tm === 'A') ? 'active-a' : 'active-b';
             }
-            curA = end;
-        } else {
-            if(runningData[end-1]) {
-                runningData[end-1].b = { no: s.playerNo, q: s.q };
-            }
-            curB = end;
+            
+            return `
+            <div class="p-btn ${activeClass} ${p.fouls.length>=5?'out':''}" onclick="selP('${tm}','${p.id}')">
+                ${p.capt?'<div class="p-mark">CAP</div>':''}
+                ${p.start?'<div style="position:absolute; bottom:2px; left:2px; font-size:0.6rem; color:red;">ST</div>':''}
+                <div class="p-no">${p.no}</div>
+                <div class="p-name">${p.name||'-'}</div>
+                <div class="p-dots">
+                    ${[1,2,3,4,5].map(i=>`<div class="dot ${i<=p.fouls.length?'on':''}"></div>`).join('')}
+                </div>
+            </div>
+            `;
+        }).join('');
+        document.getElementById('list-'+tm.toLowerCase()).innerHTML = html;
+    });
+}
+
+function renSettings() {
+    ['comp','date','time','place','no','cc','u1','u2','sc','tm'].forEach(k => {
+        const el = document.getElementById('inp-'+k);
+        if(el) {
+            const mk = k==='comp'?'competition':(k==='cc'?'crewChief':(k==='u1'?'umpire1':(k==='u2'?'umpire2':(k==='sc'?'scorer':(k==='tm'?'timer':k)))));
+            el.value = st.meta[mk];
         }
     });
 
-    const renderTeam = (tk) => {
-        const team = state[tk];
-        // 選手は18人分枠を確保
-        const rows = [];
-        for(let i=0; i<18; i++) {
-            const p = team.players[i] || { number:'', license:'', name:'', fouls:[] };
-            rows.push(p);
-        }
-
-        return `
-        <div class="team-section">
-            <div class="team-header">
-                <div style="font-size:9px;">チーム${tk === 'teamA' ? 'A' : 'B'}</div>
-                <div class="team-name">${team.name}</div>
-                <div style="font-size:9px; margin-left:auto;">Color: ${team.color}</div>
+    let html = '';
+    ['teamA','teamB'].forEach(tk => {
+        html += `
+        <div style="margin-bottom:20px;">
+            <div style="font-weight:bold; border-bottom:1px solid #ddd; margin-bottom:10px;">${tk==='teamA'?'TEAM A':'TEAM B'}</div>
+            <div class="form-row">
+                <div class="form-grp"><label class="form-lbl">Team Name</label><input class="form-inp" value="${st[tk].name}" onchange="upTeam('${tk}','name',this.value)"></div>
+                <div class="form-grp"><label class="form-lbl">Color</label><input class="form-inp" value="${st[tk].color}" onchange="upTeam('${tk}','color',this.value)"></div>
+                <div class="form-grp"><label class="form-lbl">Coach</label><input class="form-inp" value="${st[tk].coach}" onchange="upTeam('${tk}','coach',this.value)"></div>
             </div>
-            
-            <div class="team-meta">
-                <div style="width:45%;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
-                        <strong>タイムアウト</strong>
-                        <div class="timeout-grid">
-                            ${[0,1].map(i => `<div class="timeout-box">${team.timeouts[1][i]||''}</div>`).join('')}
-                            <span style="font-size:8px; line-height:14px;">(1·2)</span>
-                            ${[0,1,2].map(i => `<div class="timeout-box">${team.timeouts[2][i]||''}</div>`).join('')}
-                            <span style="font-size:8px; line-height:14px;">(3·4)</span>
-                        </div>
-                    </div>
-                </div>
-                <div style="width:50%;">
-                    <div style="display:flex; justify-content:space-between;">
-                        <strong>チームファウル</strong>
-                        <div style="display:flex; gap:4px;">
-                            ${[1,2,3,4].map(q => `
-                                <div style="display:flex; align-items:center; gap:2px;">
-                                    <span style="font-size:8px;">${q}</span>
-                                    <div class="foul-box">${team.fouls[q]>0 ? (team.fouls[q]>4?5:team.fouls[q]) : ''}</div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <table class="player-table">
-                <thead>
-                    <tr>
-                        <th class="col-lic">Lic.</th>
-                        <th class="col-no">No.</th>
-                        <th class="col-name">選手氏名</th>
-                        <th class="col-no">No.</th>
-                        <th colspan="5">ファウル</th>
-                    </tr>
-                </thead>
+            <table class="tbl-set">
+                <thead><tr><th width="50">No</th><th>Name</th><th width="40">CAP</th><th width="40">Start</th></tr></thead>
                 <tbody>
-                    ${rows.map((p, i) => `
-                        <tr>
-                            <td class="col-lic">${p.license}</td>
-                            <td class="col-no" style="font-size:8px; color:#888;">${i+1}</td>
-                            <td class="col-name">${p.name} ${p.isCaptain?'(CAP)':''}</td>
-                            <td class="col-no">${p.number}</td>
-                            <td class="col-foul">${p.fouls[0]||''}</td>
-                            <td class="col-foul">${p.fouls[1]||''}</td>
-                            <td class="col-foul">${p.fouls[2]||''}</td>
-                            <td class="col-foul">${p.fouls[3]||''}</td>
-                            <td class="col-foul col-foul-last">${p.fouls[4]||''}</td>
-                        </tr>
-                    `).join('')}
+                ${st[tk].players.map((p,i) => `
                     <tr>
-                        <td colspan="4" style="text-align:left; border-right:none;"><span style="font-weight:bold;">コーチ:</span> ${team.coach}</td>
-                        <td colspan="5" style="border-left:none;"></td>
+                        <td>
+                            <select class="inp-cell" onchange="upPlayer('${tk}',${i},'no',this.value)">
+                                <option value="">-</option>
+                                ${Array.from({length:101},(_,n)=>`<option value="${n}" ${String(p.no)===String(n)?'selected':''}>${n}</option>`).join('')}
+                            </select>
+                        </td>
+                        <td><input class="inp-cell" style="text-align:left;" value="${p.name}" onchange="upPlayer('${tk}',${i},'name',this.value)"></td>
+                        <td><input type="checkbox" ${p.capt?'checked':''} onchange="upPlayer('${tk}',${i},'capt',this.checked)"></td>
+                        <td><input type="checkbox" ${p.start?'checked':''} onchange="upPlayer('${tk}',${i},'start',this.checked)"></td>
                     </tr>
-                    <tr>
-                        <td colspan="4" style="text-align:left; border-right:none;"><span style="font-weight:bold;">A.コーチ:</span> ${team.assistantCoach}</td>
-                        <td colspan="5" style="border-left:none;"></td>
-                    </tr>
+                `).join('')}
                 </tbody>
             </table>
-        </div>
-        `;
-    };
-
-    const renderRunningColumn = (startIdx, endIdx) => {
-        // 40行分
-        const slice = runningData.slice(startIdx, endIdx);
-        return `
-        <div class="running-col">
-            <div class="rc-header">
-                <div class="rc-cell">A</div>
-                <div class="rc-cell">Score</div>
-                <div class="rc-cell">B</div>
-            </div>
-            ${slice.map(row => `
-                <div class="rc-row">
-                    <div class="rc-num" style="${row.a && (row.a.q===1||row.a.q===3)?'color:red;':''}">${row.a ? row.a.no : ''}</div>
-                    <div class="rc-score ${row.a?'filled':''}" style="${row.a && (row.a.q===1||row.a.q===3)?'color:red;':''}">${row.score}</div>
-                    <div class="rc-score ${row.b?'filled':''}" style="${row.b && (row.b.q===1||row.b.q===3)?'color:red;':''}">${row.score}</div>
-                    <div class="rc-num" style="${row.b && (row.b.q===1||row.b.q===3)?'color:red;':''}">${row.b ? row.b.no : ''}</div>
-                </div>
-            `).join('')}
-        </div>
-        `;
-    };
-
-    return `
-    <div class="sheet-wrapper">
-        <div class="sheet">
-            <div class="sheet-title">OFFICIAL SCORESHEET</div>
-            
-            <div class="sheet-header">
-                <div class="header-info-box">
-                    <div class="info-row"><span class="info-label">チームA:</span><div class="info-val">${state.teamA.name}</div></div>
-                    <div class="info-row"><span class="info-label">大会名:</span><div class="info-val">${state.game.competition}</div></div>
-                    <div class="info-row"><span class="info-label">Game No:</span><div class="info-val" style="width:30px; flex:none;">${state.game.no}</div></div>
-                </div>
-                
-                <div class="header-info-box" style="align-items:center;">
-                    <div class="info-row" style="width:100%;">
-                        <span class="info-label">日付:</span><div class="info-val">${state.game.date}</div>
-                        <span class="info-label" style="margin-left:5px;">時間:</span><div class="info-val">${state.game.time}</div>
-                    </div>
-                    <div class="info-row" style="width:100%;"><span class="info-label">場所:</span><div class="info-val">${state.game.place}</div></div>
-                </div>
-
-                <div class="header-info-box">
-                    <div class="info-row"><span class="info-label">チームB:</span><div class="info-val">${state.teamB.name}</div></div>
-                    <div class="referee-box">
-                        <div>
-                            <div><span style="font-weight:bold;">クルーチーフ:</span> ${state.game.crewChief}</div>
-                            <div><span style="font-weight:bold;">Umpire 1:</span> ${state.game.umpire1}</div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div><span style="font-weight:bold;">Umpire 2:</span> ${state.game.umpire2}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="sheet-body">
-                <div class="col-left">
-                    ${renderTeam('teamA')}
-                    ${renderTeam('teamB')}
-
-                    <div class="score-summary">
-                        <div class="summary-row summary-header">
-                            <div class="s-wide s-cell">スコア</div>
-                            <div class="s-cell">1Q</div>
-                            <div class="s-cell">2Q</div>
-                            <div class="s-cell">3Q</div>
-                            <div class="s-cell">4Q</div>
-                            <div class="s-cell">OT</div>
-                        </div>
-                        <div class="summary-row">
-                            <div class="s-wide s-cell" style="font-weight:bold;">A</div>
-                            <div class="s-cell">${calcQuarterScore('A', 1)}</div>
-                            <div class="s-cell">${calcQuarterScore('A', 2)}</div>
-                            <div class="s-cell">${calcQuarterScore('A', 3)}</div>
-                            <div class="s-cell">${calcQuarterScore('A', 4)}</div>
-                            <div class="s-cell">-</div>
-                        </div>
-                        <div class="summary-row">
-                            <div class="s-wide s-cell" style="font-weight:bold;">B</div>
-                            <div class="s-cell">${calcQuarterScore('B', 1)}</div>
-                            <div class="s-cell">${calcQuarterScore('B', 2)}</div>
-                            <div class="s-cell">${calcQuarterScore('B', 3)}</div>
-                            <div class="s-cell">${calcQuarterScore('B', 4)}</div>
-                            <div class="s-cell">-</div>
-                        </div>
-                        <div class="summary-row" style="background:#f0f0f0;">
-                            <div class="s-cell" style="flex:4; justify-content:space-around; font-weight:bold;">
-                                <span>最終スコア</span>
-                                <span>A: ${calcScore('A')}</span>
-                                <span>B: ${calcScore('B')}</span>
-                            </div>
-                        </div>
-                        <div class="summary-row" style="height:24px;">
-                            <div class="s-cell" style="flex:4; justify-content:flex-start; padding-left:5px;">
-                                <span style="font-weight:bold; margin-right:5px;">勝者チーム:</span> 
-                                ${calcScore('A') > calcScore('B') ? state.teamA.name : (calcScore('B') > calcScore('A') ? state.teamB.name : '')}
-                            </div>
-                        </div>
-                        <div class="summary-row" style="border-bottom:none;">
-                            <div class="s-cell" style="flex:4; justify-content:flex-end; padding-right:5px; font-size:8px;">
-                                試合終了時間: ${state.game.endTime}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-right">
-                    <div class="running-header">RUNNING SCORE</div>
-                    <div class="running-body">
-                        ${renderRunningColumn(0, 40)}
-                        ${renderRunningColumn(40, 80)}
-                        ${renderRunningColumn(80, 120)}
-                        ${renderRunningColumn(120, 160)}
-                    </div>
-                </div>
-            </div>
-
-            <div class="sheet-footer">
-                <div class="footer-item"><span style="font-weight:bold;">スコアラー:</span> <div style="border-bottom:1px solid black; flex:1; text-align:center;">${state.game.scorer}</div></div>
-                <div class="footer-item"><span style="font-weight:bold;">A.スコアラー:</span> <div style="border-bottom:1px solid black; flex:1; text-align:center;">${state.game.assistantScorer}</div></div>
-                <div class="footer-item"><span style="font-weight:bold;">タイマー:</span> <div style="border-bottom:1px solid black; flex:1; text-align:center;">${state.game.timer}</div></div>
-                <div class="footer-item"><span style="font-weight:bold;">ショットクロック:</span> <div style="border-bottom:1px solid black; flex:1; text-align:center;">${state.game.shotClock}</div></div>
-                <div style="width:100%; text-align:right; font-size:8px; margin-top:5px;">
-                    JBA Official Score Sheet Layout (Compatible)
-                </div>
-            </div>
-        </div>
-    </div>
-    `;
-};
-
-// --- App Mount ---
-
-function render() {
-    const app = document.getElementById('app');
-    let content = '';
-    
-    if(state.view === 'input') content = InputView();
-    else if(state.view === 'sheet') content = SheetView();
-    else if(state.view === 'settings') content = SettingsView();
-    
-    app.innerHTML = Navbar() + content;
+        </div>`;
+    });
+    document.getElementById('team-settings').innerHTML = html;
 }
 
-// 初期ロード
-loadState();
-render();
+function renHistory() {
+    const hist = loadGameList();
+    const cont = document.getElementById('hist-container');
+    if(hist.length===0) { cont.innerHTML = '<div style="text-align:center; color:#666;">保存なし</div>'; return; }
+    cont.innerHTML = hist.map(g => {
+        const sc = getScore(g.logs);
+        return `
+        <div class="hist-card">
+            <div>
+                <div style="font-size:0.8rem; color:#666;">${g.meta.date}</div>
+                <div style="font-weight:bold;">${g.teamA.name} vs ${g.teamB.name}</div>
+                <div style="font-family:monospace; font-weight:bold; color:#059669;">${sc.a} - ${sc.b}</div>
+            </div>
+            <div style="display:flex; gap:5px;">
+                <button class="btn btn-primary" onclick="loadGame('${g.gameId}')">開く</button>
+                <button class="btn btn-danger" onclick="deleteGame('${g.gameId}')">削除</button>
+            </div>
+        </div>`;
+    }).join('');
+}
 
+function renSheet() {
+    // Calc Running
+    const run = Array.from({length:160},(_,i)=>({sc:i+1,a:null,b:null}));
+    let cA=0, cB=0;
+    const sumA={1:0,2:0,3:0,4:0}, sumB={1:0,2:0,3:0,4:0};
+
+    st.logs.forEach(l => {
+        if(l.type==='score') {
+            const isA = l.team==='A';
+            const s = isA?cA:cB; 
+            const e = s+l.val;
+            if(l.q<=4) (isA?sumA:sumB)[l.q]+=l.val;
+            
+            // Running Score Logic with Symbols and Colors
+            const item = { no:l.no, q:l.q, type:l.val }; // 1=FT, 2=FG, 3=3P
+            if(isA) { if(run[e-1]) run[e-1].a=item; cA=e; }
+            else    { if(run[e-1]) run[e-1].b=item; cB=e; }
+        }
+    });
+
+    const getP = (p) => `
+        <div class="s-row bb" style="height:4.8mm;">
+            <div class="br txt-c" style="width:20px; font-weight:bold; line-height:4.8mm;">${p.no}</div>
+            <div class="br txt-c" style="width:16px; font-size:9px; line-height:4.8mm; color:#dc2626;">
+                ${p.start ? '<span class="starter-mark">✕</span>' : (p.played ? '✕' : '')}
+            </div>
+            <div class="br" style="flex:1; overflow:hidden; white-space:nowrap; padding-left:2px; font-size:8px; line-height:4.8mm;">
+                ${p.name} ${p.capt?'(CAP)':''}
+            </div>
+            <div class="br txt-c" style="width:20px; font-weight:bold; line-height:4.8mm;">${p.no}</div>
+            ${[0,1,2,3,4].map(i=>`<div class="br txt-c" style="width:14px; font-size:8px; line-height:4.8mm;">${p.fouls[i]||''}</div>`).join('')}
+        </div>`;
+    
+    const getTm = (tk, ttl) => `
+        <div style="margin-bottom:3mm;">
+            <div class="s-row bb" style="align-items:end; margin-bottom:1px;">
+                <div style="font-size:9px;">${ttl}</div>
+                <div style="font-weight:bold; font-size:12px; margin-left:10px; text-transform:uppercase;">${st[tk].name}</div>
+                <div style="font-size:8px; margin-left:auto;">Color: ${st[tk].color}</div>
+            </div>
+            <div class="s-row" style="font-size:8px; margin-bottom:2px; justify-content:space-between;">
+                <div style="display:flex; gap:2px;">
+                    <strong>TO:</strong>
+                    ${[0,1].map(i=> {
+                        const v = st[tk].timeouts[1][i];
+                        return `<div class="bd txt-c" style="width:12px;">${v||''}</div>`;
+                    }).join('')}
+                    <span style="font-size:7px;">(1-2)</span>
+                    ${[0,1,2].map(i=>`<div class="bd txt-c" style="width:12px;">${st[tk].timeouts[2][i]||''}</div>`).join('')}
+                    <span style="font-size:7px;">(3-4)</span>
+                </div>
+                <div style="display:flex; gap:2px;">
+                    <strong>Fouls:</strong>
+                    ${[1,2,3,4].map(q=>`<span style="margin-left:2px;">${q}</span><div class="bd txt-c ${(q===1||q===3)?'text-red':''}" style="width:12px;">${st[tk].fouls[q]>0?(st[tk].fouls[q]>4?5:st[tk].fouls[q]):''}</div>`).join('')}
+                </div>
+            </div>
+            <div class="bd">
+                <div class="s-row bb bg-g" style="font-size:7px; font-weight:bold; height:5mm; align-items:center;">
+                    <div class="br txt-c" style="width:20px;">No</div>
+                    <div class="br txt-c" style="width:16px;">Pl-in</div>
+                    <div class="br txt-c" style="flex:1;">Name</div>
+                    <div class="br txt-c" style="width:20px;">No</div>
+                    <div class="txt-c" style="flex:0 0 70px;">Fouls</div>
+                </div>
+                ${st[tk].players.map(p=>getP(p)).join('')}
+                <div class="s-row bb" style="height:5mm; font-size:8px; padding-left:2px;"><strong>Coach:</strong> ${st[tk].coach}</div>
+                <div class="s-row" style="height:5mm; font-size:8px; padding-left:2px;"><strong>A.Coach:</strong> ${st[tk].ac}</div>
+            </div>
+        </div>`;
+
+    // Player Number Cell in Running Score
+    const getRunNum = (d) => {
+        if(!d) return '<div style="flex:1;"></div>';
+        const isRed = (d.q===1 || d.q===3);
+        const colClass = isRed ? 'text-red' : '';
+        let content = d.no;
+        if(d.type===3) content = `<div class="${isRed?'circle-num-red':'circle-num'}">${d.no}</div>`;
+        return `<div class="txt-c txt-b ${colClass}" style="flex:1;">${content}</div>`;
+    }
+
+    const getRun = (s,e) => `
+        <div class="br" style="flex:1; display:flex; flex-direction:column;">
+            <div class="s-row bb bg-g txt-b txt-c" style="font-size:8px; height:5mm; align-items:center;">
+                <div style="flex:1;">A</div><div style="flex:1;">S</div><div style="flex:1;">B</div>
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column;">
+                ${run.slice(s,e).map(r=> {
+                    // Symbol logic
+                    const isRedA = r.a && (r.a.q===1 || r.a.q===3);
+                    const isRedB = r.b && (r.b.q===1 || r.b.q===3);
+                    
+                    let symA = r.sc;
+                    let symB = r.sc;
+                    
+                    if(r.a) {
+                        if(r.a.type===1) symA = `<div class="${isRedA?'filled-dot-red':'filled-dot'}"></div>`;
+                        else if(r.a.type===2 || r.a.type===3) symA = `<div class="${isRedA?'slash-red':'slash'}" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">${r.sc}</div>`;
+                    }
+                    if(r.b) {
+                        if(r.b.type===1) symB = `<div class="${isRedB?'filled-dot-red':'filled-dot'}"></div>`;
+                        else if(r.b.type===2 || r.b.type===3) symB = `<div class="${isRedB?'slash-red':'slash'}" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">${r.sc}</div>`;
+                    }
+                    
+                    return `
+                    <div class="s-row" style="height:2.5%; border-bottom:1px solid ${r.sc%5===0?'#000':'#ccc'}; align-items:center; font-size:8px;">
+                        ${getRunNum(r.a)}
+                        <div class="txt-c" style="flex:1; ${r.a?'font-weight:bold;':(r.b?'':'color:#ccc; font-size:6px;')}">${symA}</div>
+                        <div class="txt-c" style="flex:1; ${r.b?'font-weight:bold;':(r.a?'':'color:#ccc; font-size:6px;')}">${symB}</div>
+                        ${getRunNum(r.b)}
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>`;
+
+    document.getElementById('sheet-paper').innerHTML = `
+        <div style="height:30mm; position:relative; border-bottom:2px solid #000; margin-bottom:2mm;">
+            <div class="txt-c txt-b" style="font-size:14pt; letter-spacing:2px; position:absolute; width:100%; top:8mm;">OFFICIAL SCORESHEET</div>
+            <div style="display:flex; justify-content:space-between; align-items:end; height:100%; padding-bottom:2px; font-size:9px;">
+                <div style="width:30%;">
+                    <div><strong>Tm A:</strong> ${st.teamA.name}</div>
+                    <div><strong>Comp:</strong> ${st.meta.competition}</div>
+                    <div><strong>No:</strong> ${st.meta.no}</div>
+                </div>
+                <div style="width:30%; text-align:center;">
+                    <div>${st.meta.date} ${st.meta.time}</div>
+                    <div>${st.meta.place}</div>
+                </div>
+                <div style="width:30%;">
+                    <div><strong>Tm B:</strong> ${st.teamB.name}</div>
+                    <div class="bd" style="padding:2px;">
+                        <div><strong>CC:</strong> ${st.meta.crewChief}</div>
+                        <div style="display:flex; justify-content:space-between;">
+                            <span><strong>U1:</strong> ${st.meta.umpire1}</span>
+                            <span><strong>U2:</strong> ${st.meta.umpire2}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="flex:1; display:flex; gap:3mm; overflow:hidden;">
+            <div style="width:50%; display:flex; flex-direction:column;">
+                ${getTm('teamA','Team A')}
+                ${getTm('teamB','Team B')}
+                <div class="bd" style="margin-top:auto; font-size:9px; border-width:2px;">
+                    <div class="s-row bb bg-g txt-b txt-c"><div style="flex:2;" class="br">SCORES</div><div class="br" style="flex:1;">1Q</div><div class="br" style="flex:1;">2Q</div><div class="br" style="flex:1;">3Q</div><div style="flex:1;">4Q</div></div>
+                    <div class="s-row bb txt-c"><div style="flex:2;" class="br txt-b">A</div><div class="br" style="flex:1;">${sumA[1]}</div><div class="br" style="flex:1;">${sumA[2]}</div><div class="br" style="flex:1;">${sumA[3]}</div><div style="flex:1;">${sumA[4]}</div></div>
+                    <div class="s-row bb txt-c"><div style="flex:2;" class="br txt-b">B</div><div class="br" style="flex:1;">${sumB[1]}</div><div class="br" style="flex:1;">${sumB[2]}</div><div class="br" style="flex:1;">${sumB[3]}</div><div style="flex:1;">${sumB[4]}</div></div>
+                    <div class="s-row bb bg-g" style="padding:2px; justify-content:space-around;"><strong>Final</strong> <span>A: ${cA}</span> <span>B: ${cB}</span></div>
+                    <div class="s-row" style="padding:2px;"><strong>Winner:</strong> ${cA>cB?st.teamA.name:(cB>cA?st.teamB.name:'')}</div>
+                </div>
+            </div>
+            <div style="width:50%; border:2px solid #000; display:flex; flex-direction:column;">
+                <div class="bb bg-g txt-c txt-b" style="padding:2px; letter-spacing:2px; font-size:10px;">RUNNING SCORE</div>
+                <div style="flex:1; display:flex;">
+                    ${getRun(0,40)} ${getRun(40,80)} ${getRun(80,120)} ${getRun(120,160).replace('border-right:1px solid #000;','border:none;')}
+                </div>
+            </div>
+        </div>
+        <div class="bd" style="margin-top:2mm; padding:2px; display:flex; gap:10px; font-size:8px;">
+            <div style="flex:1;"><strong>Scorer:</strong> ${st.meta.scorer}</div>
+            <div style="flex:1;"><strong>Timer:</strong> ${st.meta.timer}</div>
+            <div style="flex:1;"><strong>ShotClock:</strong> ${st.meta.shotClock}</div>
+        </div>
+    `;
+}
+
+function fitSheet() {
+    const v = document.getElementById('sheet-view');
+    const p = document.getElementById('sheet-paper');
+    if(!v || !p) return;
+    p.style.transform = 'none';
+    const s = Math.min((v.clientWidth-40)/p.offsetWidth, (v.clientHeight-40)/p.offsetHeight);
+    if(s<1) {
+        p.style.transformOrigin = 'top center';
+        p.style.transform = `scale(${s})`;
+        p.style.marginBottom = `-${p.offsetHeight*(1-s)}px`;
+    }
+}
+
+// Init
+renInput();
 </script>
 </body>
 </html>
