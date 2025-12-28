@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>BasketScore with Manual</title>
+<title>BasketScore Backup Ready</title>
 <style>
     /* --- CSS Reset & Base --- */
     * { box-sizing: border-box; }
@@ -23,7 +23,7 @@
         display: flex; justify-content: space-between; align-items: center;
         height: 44px; border-bottom: 1px solid #444; flex-shrink: 0;
         position: relative; z-index: 1000; width: 100%;
-        overflow-x: auto; /* Allow horizontal scroll on very small screens */
+        overflow-x: auto;
     }
     .nav-title { font-weight: bold; font-size: 0.9rem; margin-right: 5px; flex-shrink: 0; }
     .nav-group { display: flex; gap: 2px; background: #222; padding: 2px; border-radius: 4px; flex-shrink: 0; }
@@ -40,6 +40,7 @@
     .btn-danger { background-color: #dc2626; color: white; }
     .btn-warning { background-color: #eab308; color: white; }
     .btn-secondary { background-color: #4b5563; color: white; }
+    .btn-success { background-color: #16a34a; color: white; } /* Green for backup */
 
     /* --- Main Container --- */
     #app-container {
@@ -403,6 +404,9 @@
         </div>
     </div>
     <div style="display:flex; gap:5px;">
+        <button class="btn btn-secondary" onclick="exportData()">出力</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('file-input').click()">取込</button>
+        <input type="file" id="file-input" style="display:none;" onchange="importData(this)">
         <button class="btn btn-secondary" onclick="newGame()">新規</button>
         <button class="btn btn-warning" id="btn-print" onclick="window.print()" style="display:none;">印刷</button>
         <button class="btn btn-primary" onclick="saveGame()">保存</button>
@@ -573,11 +577,18 @@
 
                 <h3>推奨される対策</h3>
                 <ul>
-                    <li><strong>こまめな印刷/PDF化：</strong> 試合が終わるごとに、「印刷」ボタンからPDFとして保存するか、紙に印刷して記録を残すことを強くお勧めします。これが最も確実なバックアップ方法です。</li>
+                    <li><strong>こまめなバックアップ（出力）：</strong> 「出力」ボタンを使って、試合データを定期的にファイルとして保存してください。</li>
+                    <li><strong>印刷/PDF化：</strong> 「印刷」ボタンからPDFとして保存するか、紙に印刷して記録を残すことも確実です。</li>
                     <li><strong>プライベートブラウズモードを使わない：</strong> プライベートブラウズモードでは、タブを閉じるとデータが即座に消去されます。通常のモードでご利用ください。</li>
                 </ul>
+                
+                <h2>4. データのバックアップと復元</h2>
+                <h3>出力（バックアップ）</h3>
+                <p>「出力」ボタンを押すと、現在保存されている全ての試合データを含むファイル（JSON形式）がダウンロードされます。ファイル名は日付を含んだ名前になります。</p>
+                <h3>取込（復元）</h3>
+                <p>「取込」ボタンを押し、以前ダウンロードしたバックアップファイルを選択すると、データが復元されます。<strong style="color:#dc2626;">注意：現在のデータは全て上書きされます。</strong></p>
 
-                <h2>4. 基本的な使い方</h2>
+                <h2>5. 基本的な使い方</h2>
                 <h3>入力タブ</h3>
                 <p>試合中のリアルタイム入力を行います。</p>
                 <ul>
@@ -586,16 +597,6 @@
                     <li><strong>タイムアウト：</strong> 「A TO」「B TO」ボタンで記録します。</li>
                     <li><strong>Undo機能：</strong> 間違えた操作は「Undo」ボタンで1つ前に戻せます。</li>
                 </ul>
-
-                <h3>設定タブ</h3>
-                <p>大会名、日時、会場、チーム名、選手名などを事前に入力します。ここで入力した情報は、スコアシートに反映されます。</p>
-
-                <h3>シートタブ</h3>
-                <p>入力されたデータを公式スコアシートの形式でプレビューします。印刷時のレイアウトもここで確認できます。</p>
-                <p><strong>注意：</strong> ブラウザの画面サイズによっては、プレビューの一部が隠れることがありますが、スクロールして確認できます。印刷時はA4サイズに自動調整されます。</p>
-
-                <h3>履歴タブ</h3>
-                <p>「保存」ボタンを押した時点のデータが履歴として残ります。過去の試合データを呼び出したり、削除したりできます。</p>
             </div>
         </div>
 
@@ -653,6 +654,63 @@ function newGame() {
     if(!confirm('新規作成しますか？')) return;
     st = initSt(); setView('input');
 }
+
+// --- Backup (Export/Import) ---
+function exportData() {
+    const hist = loadGameList();
+    if(hist.length === 0 && st.logs.length === 0) {
+        alert('出力するデータがありません');
+        return;
+    }
+    // Save current state first to be safe
+    saveGame(); 
+    
+    const dataStr = JSON.stringify(localStorage.getItem('bss_hist_v6'));
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = 'basketscore_backup_' + new Date().toISOString().slice(0,10) + '.json';
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+}
+
+function importData(input) {
+    const file = input.files[0];
+    if(!file) return;
+    
+    if(!confirm('【警告】現在の全データが上書きされます。よろしいですか？')) {
+        input.value = ''; // Reset input
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            // The exported data is a JSON string of the localStorage string
+            // So we need to parse it once to get the string, or handle direct object
+            let content = e.target.result;
+            // Remove potential quotes if double stringified
+            if(content.startsWith('"') && content.endsWith('"')) {
+                content = JSON.parse(content);
+            }
+            
+            // Validate basic structure (should be array)
+            const parsed = JSON.parse(content);
+            if(!Array.isArray(parsed)) throw new Error('Invalid format');
+            
+            localStorage.setItem('bss_hist_v6', content);
+            alert('データを取り込みました。履歴タブから確認してください。');
+            renHistory();
+        } catch(err) {
+            alert('ファイルの読み込みに失敗しました: ' + err.message);
+        }
+    };
+    reader.readAsText(file);
+    input.value = '';
+}
+
 
 // --- Actions ---
 function setView(v) {
@@ -1064,5 +1122,3 @@ renInput();
 </script>
 </body>
 </html>
-
-
